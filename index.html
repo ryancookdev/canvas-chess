@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Canvas Chess</title>
+    <script src="canvaschess/chess.js"></script>
+    <script src="canvaschess/board/board.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <canvas id="chessboard"></canvas>
+    <script>
+        window.onload = function () {
+            // Configure the board
+            var config = {
+                'id': 'chessboard',
+                'height': '550px',
+                'width': '440px',
+                'state': 'play',
+                'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            };
+            // Initialize the board
+            CHESS.board.init(config);
+        }
+    </script>
+</body>
+</html>
