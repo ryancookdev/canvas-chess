@@ -894,8 +894,7 @@ CHESS.board = (function () {
         _controller.resize(config.height, config.width);
         
         // Preload pieces
-        //_view.pieces.src = CHESS._config.library_path + '/board/images/pieces.png';
-        _view.pieces.src = 'http://54.235.125.35/chess/canvaschess/board/images/pieces.png';
+        _view.pieces.src = CHESS._config.library_path + '/board/images/pieces.png';
         _view.pieces.onload = function () {
             _view.takeSnapshot();
             _view.refresh();
