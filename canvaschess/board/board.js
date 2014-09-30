@@ -394,6 +394,7 @@ CHESS.board = (function () {
         
         // Turn off support for this until resolved
         _view.support_toDataURL = false;
+        }
     };
     
     _view.drawPiece = function (piece, x, y) {
