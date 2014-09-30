@@ -1,4 +1,4 @@
-// Global namespace
+// Global namespace 
 var CHESS = CHESS || {};
 
 CHESS.board = (function () {
