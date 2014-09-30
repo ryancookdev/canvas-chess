@@ -382,13 +382,18 @@ CHESS.board = (function () {
             _view.snapshot_ctx.fill();
         }
         
+        /* Not sure if this is true... but toDataURL() doesn't work locally in Chrome because it thinks the piece image is from another domain
+        //
         // When the snapshot is drawn with drawImage(), ImageData is faster than canvas if supported by the browser. Otherwise _view.snapshot can be used.
         _view.snapshot_img.src = _view.snapshot.toDataURL('image/png');
         if (_view.snapshot_img.src.indexOf('data:image/png') === -1) {
             _view.support_toDataURL = false;
         } else {
             _view.support_toDataURL = true;
-        }
+        }*/
+        
+        // Turn off support for this until resolved
+        _view.support_toDataURL = false;
     };
     
     _view.drawPiece = function (piece, x, y) {
@@ -889,7 +894,8 @@ CHESS.board = (function () {
         _controller.resize(config.height, config.width);
         
         // Preload pieces
-        _view.pieces.src = CHESS._config.library_path + '/board/images/pieces.png';
+        //_view.pieces.src = CHESS._config.library_path + '/board/images/pieces.png';
+        _view.pieces.src = 'http://54.235.125.35/chess/canvaschess/board/images/pieces.png';
         _view.pieces.onload = function () {
             _view.takeSnapshot();
             _view.refresh();
