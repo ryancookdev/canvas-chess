@@ -10,7 +10,8 @@ html, body
     font-family: "lucida grande", tahoma, verdana, arial, sans-serif;
     font-size: 14px;
     color: #4F5155;
-    height: 100%
+    height: 100%;
+    text-align: center;
 }
 
 body
@@ -22,4 +23,9 @@ body
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+#api_controls
+{
+    margin: 20px 0 0 0;
 }

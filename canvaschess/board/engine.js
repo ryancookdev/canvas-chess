@@ -50,7 +50,7 @@ function isLegal (gb, sq1, sq2) {
         if (Math.abs(x1 - x2) > 0) {
             // if side to side movement, only the following situations are valid
             is_capturing_enemy = (sq2Val.substr(0, 1) !== '' && sq2Val.substr(0, 1) !== pieceColor);
-            is_en_passant = parseInt(gb.en_passant) === x2;
+            is_en_passant = gb.en_passant === reverseArrayPosition(y2 + '' + x2);
             if (!(Math.abs(x1 - x2) === 1 && Math.abs(y1 - y2) === 1 && (is_capturing_enemy || is_en_passant))) {
                 return false;
             }
@@ -375,7 +375,7 @@ function isMate (gb) {
     // Can en passant save the day?
     if (attacker_type === 'p') {
         // if attacker is vulnerable to en passant
-        if (color === 'w' && attack_y === 3 && parseInt(gb.en_passant) === attack_x) {
+        if (color === 'w' && attack_y === 3 && gb.en_passant === reverseArrayPosition((attack_y - 1) + '' + attack_x)) {
             // ... and if defender can execute en passant
             if (attack_x > 0 && position_array[3][attack_x - 1].substr(0, 2) === 'wp') {
                 return false;
@@ -385,7 +385,7 @@ function isMate (gb) {
             }
         }
         // if attacker is vulnerable to en passant
-        if (color === 'b' && attack_y === 4 && parseInt(gb.en_passant) === attack_x) {
+        if (color === 'b' && attack_y === 4 && gb.en_passant === reverseArrayPosition((attack_y + 1) + '' + attack_x)) {
             // ... and if defender can execute en passant
             if (attack_x > 0 && position_array[4][attack_x - 1].substr(0, 2) === 'bp') {
                 return false;
@@ -882,7 +882,9 @@ function getAttacker (temp_position_array, kingX, kingY, pieceColor) {
 }
 
 function isStalemate (gb) {
-    return !getLegalMoves(gb, true);
+    var is_stalemate = !getLegalMoves(gb, true);
+    return is_stalemate;
+    //return !getLegalMoves(gb, true);
 }
 
 function getLegalMoves (gb, return_bool) {
@@ -950,7 +952,8 @@ function getLegalMoves (gb, return_bool) {
                     move_list.push(move);
                 }
                 // Castling
-                // ...
+                // Do not need to implement right now, since this is only called to check
+                // for stalement. If the king can castle, he can also move one square.
             }
             // Pawn
             if (gb.position_array[i][j].substr(0, 2) === color + 'p') {
@@ -960,7 +963,7 @@ function getLegalMoves (gb, return_bool) {
                 move = sq1 + '-' + sq2;
                 move_list.push(move);
                 // Two squares
-                if ((color === 'w' && i === 6) || (color === 'b' && i == 1)) {
+                if ((color === 'w' && i === 6) || (color === 'b' && i === 1)) {
                     sq2 = reverseArrayPosition((i + (dir * 2)) + '' + j);
                     move = sq1 + '-' + sq2;
                     move_list.push(move);
@@ -968,7 +971,31 @@ function getLegalMoves (gb, return_bool) {
                 // Capture
                 // ...
                 // En Passant
-                // ...
+                var en_passant_x = parseInt(getArrayPosition(gb.en_passant).substr(0, 1), 10);
+                if (color === 'w' && i === 3) {
+                    if (en_passant_x === (j - 1)) {
+                        sq2 = reverseArrayPosition((i - 1) + '' + (j - 1));
+                        move = sq1 + '-' + sq2;
+                        move_list.push(move);
+                    }
+                    if (en_passant_x === (j + 1)) {
+                        sq2 = reverseArrayPosition((i - 1) + '' + (j + 1));
+                        move = sq1 + '-' + sq2;
+                        move_list.push(move);
+                    }
+                }
+                if (color === 'b' && i === 4) {
+                    if (en_passant_x === (j - 1)) {
+                        sq2 = reverseArrayPosition((i + 1) + '' + (j - 1));
+                        move = sq1 + '-' + sq2;
+                        move_list.push(move);
+                    }
+                    if (en_passant_x === (j + 1)) {
+                        sq2 = reverseArrayPosition((i + 1) + '' + (j + 1));
+                        move = sq1 + '-' + sq2;
+                        move_list.push(move);
+                    }
+                }
             }
             // Queen
             if (gb.position_array[i][j] === color + 'q') {

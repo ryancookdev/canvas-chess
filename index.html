@@ -10,6 +10,20 @@
 </head>
 <body>
     <canvas id="chessboard"></canvas>
+    <br />
+    <div id="api_controls">
+        <span>Take a look at the source to see how the board is controlled.</span>
+        <br /><br />
+        <a href="#" id="api_flip">flip()</a>
+        <br />
+        <a href="#" id="api_clear">positionClear()</a>
+        <br />
+        <a href="#" id="api_start">positionStart()</a>
+        <br />
+        <a href="#" id="api_play">setMode('play')</a>
+        <br />
+        <a href="#" id="api_setup">setMode('setup')</a>
+    </div>
     <script>
         window.onload = function () {
             // Configure the board
@@ -17,11 +31,34 @@
                 'id': 'chessboard',
                 'height': '550px',
                 'width': '440px',
-                'state': 'play',
+                'mode': 'play',
                 'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
             };
+            
             // Initialize the board
             CHESS.board.init(config);
+            
+            // Set up API demo
+            document.getElementById('api_flip').addEventListener('click', function (e) {
+                e.preventDefault();
+                CHESS.board.flip();
+            });
+            document.getElementById('api_clear').addEventListener('click', function (e) {
+                e.preventDefault();
+                CHESS.board.positionClear();
+            });
+            document.getElementById('api_start').addEventListener('click', function (e) {
+                e.preventDefault();
+                CHESS.board.positionStart();
+            });
+            document.getElementById('api_play').addEventListener('click', function (e) {
+                e.preventDefault();
+                CHESS.board.setMode('play');
+            });
+            document.getElementById('api_setup').addEventListener('click', function (e) {
+                e.preventDefault();
+                CHESS.board.setMode('setup');
+            });
         }
     </script>
 </body>

@@ -5,14 +5,13 @@ CHESS.board = (function () {
     var board = CHESS._publisher(),
     _model = {
         // Core data structures
-        state: '',
+        mode: '',
         position_array: [],
         piecebox_array: [],
         white: '',
         black: '',
         last_move: {},
         last_move_promotion: false,
-        my_username: '',
 
         // Stats on the current position
         en_passant: '',
@@ -47,21 +46,17 @@ CHESS.board = (function () {
         last_draw_top: 0,
         // Does the piece need cleared from the starting square at the start of a drag?
         piece_not_lifted: true,
+        // The white pieces are at the bottom of the screen
+        white_down: true,
         support_toDataURL: true,
         pieces: new Image(),
     },
     _controller = {};
     
     _model.move = function (sq1, sq2) {
-        var i = 0,
-            sq_1,
-            sq_2,
-            xy1,
+        var xy1,
             xy2,
             piece,
-            fen = '',
-            old_fen = '',
-            player_to_move = '',
             pos = {
                 position_array: clonePositionArray(_model.position_array),
                 white_to_move: _model.white_to_move,
@@ -71,8 +66,7 @@ CHESS.board = (function () {
                 gs_castle_qside_w: _model.gs_castle_qside_w,
                 gs_castle_kside_b: _model.gs_castle_kside_b,
                 gs_castle_qside_b: _model.gs_castle_qside_b
-            },
-            capture_piece = '';
+            };
         if (_model.last_move) {
             pos.last_move = {'sq1': _model.last_move.sq1, 'sq2': _model.last_move.sq2};
         }
@@ -84,19 +78,6 @@ CHESS.board = (function () {
         xy1 = getArrayPosition(sq1);
         xy2 = getArrayPosition(sq2);
         piece = _model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)].substr(1, 1);
-        capture_piece = _model.position_array[xy2.substr(1, 1)][xy2.substr(0, 1)].substr(1, 1);
-        
-        // Create backup copy of current position
-        _model.prev_position_array = clonePositionArray(_model.position_array);
-        _model.prev_last_move = _model.last_move;
-        _model.prev_en_passant = _model.en_passant;
-        _model.prev_white_to_move = _model.white_to_move;
-        _model.prev_gs_castle_kside_w = _model.gs_castle_kside_w;
-        _model.prev_gs_castle_qside_w = _model.gs_castle_qside_w;
-        _model.prev_gs_castle_kside_b = _model.gs_castle_kside_b;
-        _model.prev_gs_castle_qside_b = _model.gs_castle_qside_b;
-        _model.prev_active = _model.active;
-        _model.prev_moves = _model.moves;
         
         // Apply position
         _model.position_array = clonePositionArray(pos.position_array);
@@ -117,7 +98,6 @@ CHESS.board = (function () {
         if (!_model.active) {
             return;
         }
-
     };
     
     _model.moveTemp = function (pos, sq1, sq2) {
@@ -139,9 +119,7 @@ CHESS.board = (function () {
             b_y2,
             pawn_sq,
             captured_piece = '',
-            piece,
-            piece_color,
-            current_time = 0;
+            piece;
 
         // Do not play if move is illegal
         if (!isLegal(pos, sq1, sq2)) {
@@ -281,7 +259,7 @@ CHESS.board = (function () {
             rows = 8;
             
         // Prepare canvas for snapshot
-        if (_model.state === 'setup') {
+        if (_model.mode === 'setup') {
             rows = 10;
         }
         _view.snapshot.width = _view.square_size * 8;
@@ -311,7 +289,7 @@ CHESS.board = (function () {
         /*if (typeof _model.last_move === 'object' && _model.last_move.sq1 !== undefined) {
             x = _model.last_move.sq1.substr(0, 1);
             y = _model.last_move.sq1.substr(1, 1);
-            if (_model.black === _model.my_username) {
+            if (!_view.white_down) {
                 x = 7 - x;
                 y = 7 - y;
             }
@@ -321,7 +299,7 @@ CHESS.board = (function () {
 
             x = _model.last_move.sq2.substr(0, 1);
             y = _model.last_move.sq2.substr(1, 1);
-            if (_model.black === _model.my_username) {
+            if (!_view.white_down) {
                 x = 7 - x;
                 y = 7 - y;
             }
@@ -336,7 +314,7 @@ CHESS.board = (function () {
                     // Flip board for black
                     ii = i;
                     jj = j;
-                    if (_model.black === _model.my_username) {
+                    if (!_view.white_down) {
                         ii = 7 - i;
                         jj = 7 - j;
                     }
@@ -349,7 +327,7 @@ CHESS.board = (function () {
             }
         }
         
-        if (_model.state === 'setup') {
+        if (_model.mode === 'setup') {
             // Draw piece box pieces
             for (i = 0; i < 2; i += 1) {
                 for (j = 0; j < 8; j += 1) {
@@ -367,7 +345,7 @@ CHESS.board = (function () {
         if (_view.dragok) {
             i = _view.drag_clear_i,
             j = _view.drag_clear_j;
-            if (_model.black === _model.my_username) {
+            if (!_view.white_down) {
                 i = 7 - _view.drag_clear_i;
                 j = 7 - _view.drag_clear_j;
             }
@@ -531,7 +509,13 @@ CHESS.board = (function () {
                 } else {
                     _view.ctx.fillStyle = '#7389b6';
                 }
-                _view.ctx.rect(_view.drag_clear_j * _view.square_size, _view.drag_clear_i * _view.square_size, _view.square_size, _view.square_size);
+                ii = _view.drag_clear_i;
+                jj = _view.drag_clear_j;
+                if (!_view.white_down) {
+                    ii = 7 - ii;
+                    jj = 7 - jj;
+                }
+                _view.ctx.rect(jj * _view.square_size, ii * _view.square_size, _view.square_size, _view.square_size);
                 _view.ctx.fill();
             }
             
@@ -541,7 +525,7 @@ CHESS.board = (function () {
             // Draw any piece that was sitting on the hover square
             ii = i;
             jj = j;
-            if (_model.black === _model.my_username) {
+            if (!_view.white_down) {
                 ii = 7 - i;
                 jj = 7 - j;
             }
@@ -582,7 +566,7 @@ CHESS.board = (function () {
             
             // Trim drawing region so it doesn't go into the piece box
             draw_height = 55;
-            if (_model.state === 'setup' && _view.top > _view.square_size * 7.5) {
+            if (_model.mode === 'setup' && _view.top > _view.square_size * 7.5) {
                 draw_height = draw_height - ((_view.top - _view.square_size * 7.5) / scale);
             }
             
@@ -622,48 +606,53 @@ CHESS.board = (function () {
             piece,
             piece_color,
             rect = _view.canvas.getBoundingClientRect();
-        
-        if ('clientX' in e) {
-            // Mouse event
-            _view.left = e.clientX - rect.left;
-            _view.top = e.clientY - rect.top;
-            _view.canvas.style.cursor = 'move';
-        } else if ('changedTouches' in e) {
-            // Touch event
-            _view.left = e.changedTouches[0].pageX - rect.left;
-            _view.top = e.changedTouches[0].pageY - rect.top;
-        } else {
-            return;
-        }
-        
-        i = parseInt(_view.top / _view.square_size, 10);
-        j = parseInt(_view.left / _view.square_size, 10);
-            
-        // Flip board for black
-        if (_model.black === _model.my_username) {
-            i = 7 - i;
-            j = 7 - j;
-        }
-        
-        if (i < 8) {
-            // Dragging a piece on the board
-            piece = _model.position_array[i][j];
-        } else {
-            // Dragging a piece in the piece box
-            if (_model.state === 'setup') {
-                piece = _model.piecebox_array[i - 8][j];
+        if (_model.active) {
+            if ('clientX' in e) {
+                // Mouse event
+                _view.left = e.clientX - rect.left;
+                _view.top = e.clientY - rect.top;
+                _view.canvas.style.cursor = 'move';
+            } else if ('changedTouches' in e) {
+                // Touch event
+                _view.left = e.changedTouches[0].pageX - rect.left;
+                _view.top = e.changedTouches[0].pageY - rect.top;
+            } else {
+                return;
             }
-        }
-        piece_color = piece.substr(0, 1);
-        
-        if (piece !== '') {
-            _view.drag_clear_i = i;
-            _view.drag_clear_j = j;
-            _view.drag_piece = piece;
-            _view.dragok = true;
-            _view.takeSnapshot();
-        } else {
-            _view.canvas.style.cursor = 'default';
+
+            i = parseInt(_view.top / _view.square_size, 10);
+            j = parseInt(_view.left / _view.square_size, 10);
+
+            // Flip board for black
+            if (!_view.white_down) {
+                i = 7 - i;
+                j = 7 - j;
+            }
+
+            if (i < 8) {
+                // Dragging a piece on the board
+                piece = _model.position_array[i][j];
+            } else {
+                // Dragging a piece in the piece box
+                if (_model.mode === 'setup') {
+                    piece = _model.piecebox_array[i - 8][j];
+                }
+            }
+            piece_color = piece.substr(0, 1);
+            if (_model.mode !== 'setup' && ((_model.white_to_move && piece_color === 'b') || (!_model.white_to_move && piece_color === 'w'))) {
+                _view.canvas.style.cursor = 'default';
+                return;
+            }
+
+            if (piece !== '') {
+                _view.drag_clear_i = i;
+                _view.drag_clear_j = j;
+                _view.drag_piece = piece;
+                _view.dragok = true;
+                _view.takeSnapshot();
+            } else {
+                _view.canvas.style.cursor = 'default';
+            }
         }
     };
 
@@ -674,9 +663,7 @@ CHESS.board = (function () {
             alpha_conversion = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
             i,
             j,
-            pos,
-            rect = _view.canvas.getBoundingClientRect(),
-            drag_piecebox_piece;
+            rect = _view.canvas.getBoundingClientRect();
             
         // Cannot move unless game is active and a piece has been selected
         if (_model.active && _view.dragok) {
@@ -694,7 +681,7 @@ CHESS.board = (function () {
             }
             
             // Flip board for black
-            if (_model.black === _model.my_username) {
+            if (!_view.white_down) {
                 i = 7 - i;
                 j = 7 - j;
             }
@@ -725,7 +712,7 @@ CHESS.board = (function () {
             xy1 = CHESS._getArrayPosition(sq1);
             xy2 = CHESS._getArrayPosition(sq2);
 
-            if (_model.state === 'setup') {
+            if (_model.mode === 'setup') {
                 if (sq1 !== sq2 && sq1 !== 'piecebox' && sq2 !== 'piecebox') {
                     _model.position_array[xy2.substr(1, 1)][xy2.substr(0, 1)] = drag_piece_temp;
                     _model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)] = '';
@@ -769,7 +756,7 @@ CHESS.board = (function () {
             width = parseInt(window.getComputedStyle(_view.canvas.parentNode, null).getPropertyValue('width'), 10);
         }
         smaller_size = (height < width ? height : width);
-        if (_model.state === 'setup') {
+        if (_model.mode === 'setup') {
             rows = 10;
         }
         _view.square_size = (height < width ? parseInt(smaller_size / rows, 10) : parseInt(smaller_size / 8, 10));
@@ -778,7 +765,7 @@ CHESS.board = (function () {
     };
 
     /**
-    Tell the board to resize
+    Resize the board
 
     @method resize
     **/
@@ -787,6 +774,76 @@ CHESS.board = (function () {
         _view.takeSnapshot();
         _view.refresh();
     }
+
+    /**
+    Flip the board
+
+    @method flip
+    **/
+    board.flip = function () {
+        _view.white_down = !_view.white_down;
+        _view.takeSnapshot();
+        _view.refresh();
+    };
+
+    /**
+    Set the board to the starting position
+
+    @method positionStart
+    **/
+    board.positionStart = function () {
+        _model.position_array = [['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'], ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'], ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']];
+        _model.last_move = {};
+        _model.last_move_promotion = false;
+        _model.en_passant = '';
+        _model.white_to_move = true;
+        _model.gs_castle_kside_w = true;
+        _model.gs_castle_qside_w = true;
+        _model.gs_castle_kside_b = true;
+        _model.gs_castle_qside_b = true;
+        _model.active = true;
+        _model.moves = 0;
+        
+        _view.takeSnapshot();
+        _view.refresh();
+    };
+
+    /**
+    Clear the board
+
+    @method positionClear
+    **/
+    board.positionClear = function () {
+        _model.position_array = [['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', '']];
+        _model.last_move = {};
+        _model.last_move_promotion = false;
+        _model.en_passant = '';
+        _model.white_to_move = true;
+        _model.gs_castle_kside_w = true;
+        _model.gs_castle_qside_w = true;
+        _model.gs_castle_kside_b = true;
+        _model.gs_castle_qside_b = true;
+        _model.active = true;
+        _model.moves = 0;
+        
+        _view.takeSnapshot();
+        _view.refresh();
+    };
+
+    /**
+    Change the board mode
+
+    @method mode
+    **/
+    board.setMode = function (mode) {
+        _model.mode = mode;
+        if (mode === 'setup') {
+            _model.active = true;
+        }
+        _controller.resize(_view.canvas.height, _view.canvas.width);
+        _view.takeSnapshot();
+        _view.refresh();
+    };
 
     /**
     Initializes the board module.
@@ -808,6 +865,8 @@ CHESS.board = (function () {
             i = 0,
             j = 0,
             k = 0;
+    
+        // Load CSS/JS with a timestamp to prevent caching
         CHESS._loadCSS('board.css?' + time, CHESS._config.library_path + '/board/');
         CHESS._loadJS('engine.js?' + time, CHESS._config.library_path + '/board/');
         
@@ -825,7 +884,7 @@ CHESS.board = (function () {
         _view.canvas.addEventListener('touchmove', _controller.myMove, false);
         _view.canvas.addEventListener('touchleave', _controller.myCancel, false);
         _view.canvas.addEventListener('touchcancel', _controller.myCancel, false);
-        window.onresize = function (event) {
+        window.onresize = function () {
             board.resize(config.height, config.width);
         };
         
@@ -888,8 +947,7 @@ CHESS.board = (function () {
                 }
             }
         }
-        _model.my_username = (_model.white_to_move ? _model.white : _model.black);
-        _model.state = config.state;
+        _model.mode = config.mode;
         
         _controller.resize(config.height, config.width);
         
