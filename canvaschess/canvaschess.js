@@ -51,23 +51,27 @@ CHESS.publisher = function () {
 };
 
 // Lazy loading
-CHESS.loadJS = function (file, path) {
-    var fileref = document.createElement('script');
-    fileref.setAttribute('type', 'text/javascript');
-    fileref.setAttribute('src', path + file);
-    if (fileref) {
-        document.getElementsByTagName('head')[0].appendChild(fileref);
+CHESS.loadJS = function (file, callback) {
+    var new_js = document.createElement('script');
+    if (typeof callback === 'function') {
+        new_js.onload = function () {
+            callback();
+        };
+    }
+    new_js.src = file;
+    if (new_js) {
+        document.getElementsByTagName('head')[0].appendChild(new_js);
     }
 };
 
 // Lazy loading
-CHESS.loadCSS = function (file, path) {
-    var fileref = document.createElement('link');
-        fileref.setAttribute('rel', 'stylesheet');
-        fileref.setAttribute('type', 'text/css');
-        fileref.setAttribute('href', path + file);
-    if (fileref) {
-        document.getElementsByTagName('head')[0].appendChild(fileref);
+CHESS.loadCSS = function (file) {
+    var new_css = document.createElement('link');
+        new_css.setAttribute('rel', 'stylesheet');
+        new_css.setAttribute('type', 'text/css');
+        new_css.setAttribute('href', file);
+    if (new_css) {
+        document.getElementsByTagName('head')[0].appendChild(new_css);
     }
 };
 

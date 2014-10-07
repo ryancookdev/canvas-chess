@@ -793,6 +793,7 @@ CHESS.board = (function () {
     **/
     board.init = function (config) {
         var time = new Date().getTime(),
+            that = this,
             pgn_config,
             fen_arr,
             position = '',
@@ -809,8 +810,8 @@ CHESS.board = (function () {
             k = 0;
     
         // Load CSS/JS with a timestamp to prevent caching
-        CHESS.loadCSS('board.css?' + time, CHESS.config.library_path + '/board/');
-        CHESS.loadJS('engine.js?' + time, CHESS.config.library_path + '/');
+        CHESS.loadCSS(CHESS.config.library_path + '/board/board.css?' + time);
+        CHESS.loadJS(CHESS.config.library_path + '/engine.js?' + time);
         
         // Setup canvas
         _view.snapshot = document.createElement('canvas');
@@ -828,7 +829,7 @@ CHESS.board = (function () {
         _view.canvas.addEventListener('touchcancel', _controller.myCancel, false);
         window.onresize = function () {
             // Use controller instead of board?
-            this.resize(config.height, config.width);
+            that.resize(config.height, config.width);
         };
         
         _model.mode = config.mode;
@@ -839,14 +840,14 @@ CHESS.board = (function () {
             _model.active = false;
             
             // Load the PGN module
-            // TODO: Add callbacks to lazy loaders. Can't lazy load here without it
-            //CHESS.loadJS('pgn.js?' + time, CHESS.config.library_path + '/pgn/');
-            pgn_config = {
-                pgn_id: config.pgn_id,
-                pgn_url: config.pgn_url,
-                width: config.width
-            };
-            CHESS.pgn.init(pgn_config);
+            CHESS.loadJS(CHESS.config.library_path + '/pgn/pgn.js?' + time, function () {
+                pgn_config = {
+                    pgn_id: config.pgn_id,
+                    pgn_url: config.pgn_url,
+                    width: config.width
+                };
+                CHESS.pgn.init(pgn_config);
+            });
             
         } else if (config.fen) {
             // Prepare FEN values
