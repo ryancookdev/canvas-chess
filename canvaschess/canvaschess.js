@@ -93,11 +93,3 @@ CHESS._getTime = function () {
 
     return hours + ':' + minutes + ' ' + suffix;
 };
-
-CHESS._getArrayPosition = function (sq) {
-    var x = sq.substr(0, 1).toLowerCase(),
-        y = sq.substr(1, 1);
-    x = x.charCodeAt(0) - 97;
-    y = 8 - y;
-    return x + '' + y;
-};

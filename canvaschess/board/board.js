@@ -81,7 +81,7 @@ CHESS.board = (function () {
             xy2,
             piece,
             pos = {
-                position_array: clonePositionArray(this.position_array),
+                position_array: CHESS.engine.clonePositionArray(this.position_array),
                 white_to_move: this.white_to_move,
                 en_passant: this.en_passant,
                 active: this.active,
@@ -96,17 +96,17 @@ CHESS.board = (function () {
                 'sq2': this.last_move.sq2
             };
         }
-        if (!moveTemp(pos, sq1, sq2)) {
+        if (!CHESS.engine.moveTemp(pos, sq1, sq2)) {
             _view.takeSnapshot();
             _view.refresh();
             return;
         }
-        xy1 = getArrayPosition(sq1);
-        xy2 = getArrayPosition(sq2);
+        xy1 = CHESS.engine.getArrayPosition(sq1);
+        xy2 = CHESS.engine.getArrayPosition(sq2);
         piece = this.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)].substr(1, 1);
         
         // Apply position
-        this.position_array = clonePositionArray(pos.position_array);
+        this.position_array = CHESS.engine.clonePositionArray(pos.position_array);
         this.white_to_move = pos.white_to_move;
         this.en_passant = pos.en_passant;
         this.active = pos.active;
@@ -334,7 +334,8 @@ CHESS.board = (function () {
     **/
     _controller.myMove = function (e) {
         e.preventDefault();
-        var i,
+        var my_view = _view,
+            i,
             j,
             ii,
             jj,
@@ -347,15 +348,15 @@ CHESS.board = (function () {
             scale_x,
             scale_y,
             draw_height,
-            rect = _view.canvas.getBoundingClientRect();
+            rect = my_view.canvas.getBoundingClientRect();
             
-        if (_view.dragok) {
-            var i = parseInt(_view.top / _view.square_size, 10),
-                j = parseInt(_view.left / _view.square_size, 10),
-                clip_start_x = (j - 1) * _view.square_size,
-                clip_start_y = (i - 1) * _view.square_size,
-                clip_width = _view.square_size * 3,
-                clip_height = _view.square_size * 3;
+        if (my_view.dragok) {
+            var i = parseInt(my_view.top / my_view.square_size, 10),
+                j = parseInt(my_view.left / my_view.square_size, 10),
+                clip_start_x = (j - 1) * my_view.square_size,
+                clip_start_y = (i - 1) * my_view.square_size,
+                clip_width = my_view.square_size * 3,
+                clip_height = my_view.square_size * 3;
                 
             // Make sure the piece is over the board
             if (!(i < 0 || i > 7 || j < 0 || j > 7)) {
@@ -365,29 +366,29 @@ CHESS.board = (function () {
                 if (clip_start_y < 0) {
                     clip_start_y = 0;
                 }
-                if (clip_start_x + clip_width > _view.square_size * 8) {
-                    clip_width = (_view.square_size * 8) - clip_start_x;
+                if (clip_start_x + clip_width > my_view.square_size * 8) {
+                    clip_width = (my_view.square_size * 8) - clip_start_x;
                 }
-                if (clip_start_y + clip_height > _view.square_size * 8) {
-                    clip_height = (_view.square_size * 8) - clip_start_y;
+                if (clip_start_y + clip_height > my_view.square_size * 8) {
+                    clip_height = (my_view.square_size * 8) - clip_start_y;
                 }
                 // Clear the section of the board where the drag piece was drawn
-                _view.ctx.drawImage(_view.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
+                my_view.ctx.drawImage(my_view.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
             }
             // Update values
             if ('clientX' in e) {
                 // Mouse event
-                _view.left = e.clientX - rect.left;
-                _view.top = e.clientY - rect.top;
+                my_view.left = e.clientX - rect.left;
+                my_view.top = e.clientY - rect.top;
             } else if ('changedTouches' in e) {
                 // Touch event
-                _view.left = e.changedTouches[0].pageX - rect.left;
-                _view.top = e.changedTouches[0].pageY - rect.top;
+                my_view.left = e.changedTouches[0].pageX - rect.left;
+                my_view.top = e.changedTouches[0].pageY - rect.top;
             } else {
                 return;
             }
-            i = parseInt(_view.top / _view.square_size, 10);
-            j = parseInt(_view.left / _view.square_size, 10);
+            i = parseInt(my_view.top / my_view.square_size, 10);
+            j = parseInt(my_view.left / my_view.square_size, 10);
             
             // Make sure the piece is over the board
             if (i < 0 || i > 7 || j < 0 || j > 7) {
@@ -395,142 +396,142 @@ CHESS.board = (function () {
             }
             
             // Highlight hover square
-            _view.ctx.beginPath();
+            my_view.ctx.beginPath();
             if ((i + j) % 2 === 0) {
-                _view.ctx.fillStyle = '#b4d990';
+                my_view.ctx.fillStyle = '#b4d990';
             } else {
-                _view.ctx.fillStyle = '#85c249';
+                my_view.ctx.fillStyle = '#85c249';
             }
-            _view.ctx.rect(j * _view.square_size, i * _view.square_size, _view.square_size, _view.square_size);
-            _view.ctx.fill();
+            my_view.ctx.rect(j * my_view.square_size, i * my_view.square_size, my_view.square_size, my_view.square_size);
+            my_view.ctx.fill();
             
             // Clear the piece from the starting square (first time only, in case a quick mouse move didn't allow the square to highlight, and never from piece box)
-            if (_view.piece_not_lifted && _view.drag_clear_i < 8) {
-                _view.piece_not_lifted = false;
-                _view.ctx.beginPath();
-                if ((_view.drag_clear_i + _view.drag_clear_j) % 2 === 0) {
-                    _view.ctx.fillStyle = '#f3f3f3';
+            if (my_view.piece_not_lifted && my_view.drag_clear_i < 8) {
+                my_view.piece_not_lifted = false;
+                my_view.ctx.beginPath();
+                if ((my_view.drag_clear_i + my_view.drag_clear_j) % 2 === 0) {
+                    my_view.ctx.fillStyle = '#f3f3f3';
                 } else {
-                    _view.ctx.fillStyle = '#7389b6';
+                    my_view.ctx.fillStyle = '#7389b6';
                 }
-                ii = _view.drag_clear_i;
-                jj = _view.drag_clear_j;
-                if (!_view.white_down) {
+                ii = my_view.drag_clear_i;
+                jj = my_view.drag_clear_j;
+                if (!my_view.white_down) {
                     ii = 7 - ii;
                     jj = 7 - jj;
                 }
-                _view.ctx.rect(jj * _view.square_size, ii * _view.square_size, _view.square_size, _view.square_size);
-                _view.ctx.fill();
+                my_view.ctx.rect(jj * my_view.square_size, ii * my_view.square_size, my_view.square_size, my_view.square_size);
+                my_view.ctx.fill();
             }
             
-            _view.ctx.save();
-            scale = (_view.square_size / 55);
-            _view.ctx.scale(scale, scale);
+            my_view.ctx.save();
+            scale = (my_view.square_size / 55);
+            my_view.ctx.scale(scale, scale);
             // Draw any piece that was sitting on the hover square
             ii = i;
             jj = j;
-            if (!_view.white_down) {
+            if (!my_view.white_down) {
                 ii = 7 - i;
                 jj = 7 - j;
             }
             piece = _model.position_array[ii][jj].substr(0, 2);
-            if (piece !== '' && !(ii === _view.drag_clear_i && jj === _view.drag_clear_j)) {
-                scale_x = (j * _view.square_size / scale) | 0;
-                scale_y = (i * _view.square_size / scale) | 0;
+            if (piece !== '' && !(ii === my_view.drag_clear_i && jj === my_view.drag_clear_j)) {
+                scale_x = (j * my_view.square_size / scale) | 0;
+                scale_y = (i * my_view.square_size / scale) | 0;
                 
                 switch(piece) {
                     case 'wk':
-                        _view.ctx.drawImage(_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'wq':
-                        _view.ctx.drawImage(_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'wr':
-                        _view.ctx.drawImage(_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'wb':
-                        _view.ctx.drawImage(_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'wn':
-                        _view.ctx.drawImage(_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'wp':
-                        _view.ctx.drawImage(_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'bk':
-                        _view.ctx.drawImage(_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'bq':
-                        _view.ctx.drawImage(_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'br':
-                        _view.ctx.drawImage(_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'bb':
-                        _view.ctx.drawImage(_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'bn':
-                        _view.ctx.drawImage(_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     case 'bp':
-                        _view.ctx.drawImage(_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        my_view.ctx.drawImage(my_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
                         break;
                     default:
                         // Do nothing
                 }
             }
             // Draw drag piece
-            piece = _view.drag_piece.substr(0, 2);
-            scale_x = ((_view.left - (_view.square_size / 2)) / scale) | 0;
-            scale_y = ((_view.top - (_view.square_size / 2)) / scale) | 0;
+            piece = my_view.drag_piece.substr(0, 2);
+            scale_x = ((my_view.left - (my_view.square_size / 2)) / scale) | 0;
+            scale_y = ((my_view.top - (my_view.square_size / 2)) / scale) | 0;
             
             // Trim drawing region so it doesn't go into the piece box
             draw_height = 55;
-            if (_model.mode === 'setup' && _view.top > _view.square_size * 7.5) {
-                draw_height = draw_height - ((_view.top - _view.square_size * 7.5) / scale);
+            if (_model.mode === 'setup' && my_view.top > my_view.square_size * 7.5) {
+                draw_height = draw_height - ((my_view.top - my_view.square_size * 7.5) / scale);
             }
             
             switch(piece) {
                 case 'wk':
-                     _view.ctx.drawImage(_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'wq':
-                     _view.ctx.drawImage(_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'wr':
-                     _view.ctx.drawImage(_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'wb':
-                     _view.ctx.drawImage(_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'wn':
-                     _view.ctx.drawImage(_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'wp':
-                     _view.ctx.drawImage(_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'bk':
-                     _view.ctx.drawImage(_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'bq':
-                     _view.ctx.drawImage(_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'br':
-                     _view.ctx.drawImage(_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'bb':
-                     _view.ctx.drawImage(_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'bn':
-                     _view.ctx.drawImage(_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 case 'bp':
-                     _view.ctx.drawImage(_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                     my_view.ctx.drawImage(my_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, draw_height);
                     break;
                 default:
                     // Do nothing
             }
-            _view.ctx.restore();
+            my_view.ctx.restore();
         }
     };
 
@@ -654,8 +655,8 @@ CHESS.board = (function () {
                 sq2 = alpha_conversion[j] + (8 - i);
             }
             
-            xy1 = CHESS._getArrayPosition(sq1);
-            xy2 = CHESS._getArrayPosition(sq2);
+            xy1 = CHESS.engine.getArrayPosition(sq1);
+            xy2 = CHESS.engine.getArrayPosition(sq2);
 
             if (_model.mode === 'setup') {
                 if (sq1 !== sq2 && sq1 !== 'piecebox' && sq2 !== 'piecebox') {
