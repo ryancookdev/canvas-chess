@@ -1,7 +1,7 @@
 // Global namespace
 var CHESS = CHESS || {};
 
-CHESS._config = {
+CHESS.config = {
     library_path: 'canvaschess'
 };
 
@@ -11,7 +11,7 @@ Provides the base module interface class. All modules with return an interface o
 
 @module publisher
 **/
-CHESS._publisher = function () {
+CHESS.publisher = function () {
     return {
         subscribers: {
             any: []
@@ -47,11 +47,11 @@ CHESS._publisher = function () {
                 }
             }
         }
-    }
+    };
 };
 
 // Lazy loading
-CHESS._loadJS = function (file, path) {
+CHESS.loadJS = function (file, path) {
     var fileref = document.createElement('script');
     fileref.setAttribute('type', 'text/javascript');
     fileref.setAttribute('src', path + file);
@@ -61,7 +61,7 @@ CHESS._loadJS = function (file, path) {
 };
 
 // Lazy loading
-CHESS._loadCSS = function (file, path) {
+CHESS.loadCSS = function (file, path) {
     var fileref = document.createElement('link');
         fileref.setAttribute('rel', 'stylesheet');
         fileref.setAttribute('type', 'text/css');
@@ -72,7 +72,7 @@ CHESS._loadCSS = function (file, path) {
 };
 
 // Get time
-CHESS._getTime = function () {
+CHESS.getTime = function () {
     var currentTime = new Date(),
         hours = currentTime.getHours(),
         minutes = currentTime.getMinutes(),

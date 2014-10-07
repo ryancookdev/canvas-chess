@@ -8,7 +8,7 @@ CHESS.board = (function () {
     /**
     The board's public interface.
     **/
-    var board = CHESS._publisher(),
+    var board = CHESS.publisher(),
     /**
     Maintains the internal state of the board.
     @private
@@ -809,8 +809,8 @@ CHESS.board = (function () {
             k = 0;
     
         // Load CSS/JS with a timestamp to prevent caching
-        CHESS._loadCSS('board.css?' + time, CHESS._config.library_path + '/board/');
-        CHESS._loadJS('engine.js?' + time, CHESS._config.library_path + '/');
+        CHESS.loadCSS('board.css?' + time, CHESS.config.library_path + '/board/');
+        CHESS.loadJS('engine.js?' + time, CHESS.config.library_path + '/');
         
         // Setup canvas
         _view.snapshot = document.createElement('canvas');
@@ -840,7 +840,7 @@ CHESS.board = (function () {
             
             // Load the PGN module
             // TODO: Add callbacks to lazy loaders. Can't lazy load here without it
-            //CHESS._loadJS('pgn.js?' + time, CHESS._config.library_path + '/pgn/');
+            //CHESS.loadJS('pgn.js?' + time, CHESS.config.library_path + '/pgn/');
             pgn_config = {
                 pgn_id: config.pgn_id,
                 pgn_url: config.pgn_url,
@@ -921,7 +921,7 @@ CHESS.board = (function () {
         _controller.resize(config.height, config.width);
         
         // Preload pieces
-        _view.pieces.src = CHESS._config.library_path + '/board/images/pieces.png';
+        _view.pieces.src = CHESS.config.library_path + '/board/images/pieces.png';
         _view.pieces.onload = function () {
             _view.takeSnapshot();
             _view.refresh();
