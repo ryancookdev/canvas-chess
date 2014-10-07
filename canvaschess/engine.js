@@ -1287,3 +1287,146 @@ function clonePositionArray(old_array) {
     }
     return new_array;
 }
+
+function moveTemp (gb, sq1, sq2) {
+    var w_sq1,
+        w_sq2,
+        w_xy1,
+        w_xy2,
+        w_x1,
+        w_y1,
+        w_x2,
+        w_y2,
+        b_sq1,
+        b_sq2,
+        b_xy1,
+        b_xy2,
+        b_x1,
+        b_y1,
+        b_x2,
+        b_y2,
+        pawn_sq,
+        captured_piece = '',
+        piece;
+
+    // Do not play if move is illegal
+    if (!isLegal(gb, sq1, sq2)) {
+        return false;
+    }
+    // Update game values
+    gb.last_move = {'sq1':getArrayPosition(sq1), 'sq2':getArrayPosition(sq2)};
+
+    if (gb.white_to_move) {
+        w_sq1 = sq1;
+        w_sq2 = sq2;
+        w_xy1 = getArrayPosition(w_sq1);
+        w_xy2 = getArrayPosition(w_sq2);
+        w_x1 = parseInt(w_xy1.substr(0, 1));
+        w_y1 = parseInt(w_xy1.substr(1, 1));
+        w_x2 = parseInt(w_xy2.substr(0, 1));
+        w_y2 = parseInt(w_xy2.substr(1, 1));
+        captured_piece = gb.position_array[w_y2][w_x2];
+        piece = gb.position_array[w_y1][w_x1];
+        gb.position_array[w_y2][w_x2] = gb.position_array[w_y1][w_x1];
+        gb.position_array[w_y1][w_x1] = '';
+        // Pawn is eligible to be captured en passant
+        w_xy1 = getArrayPosition(w_sq1);
+        if (piece.substr(0, 2) === 'wp' && w_y2 - w_y1 === -2) {
+            gb.en_passant = reverseArrayPosition((w_y2 + 1) + '' + w_x2);
+        } else {
+            gb.en_passant = '';
+        }
+        // En passant
+        if (piece.substr(0, 2) === 'wp' && w_x2 !== w_x1 && captured_piece === '') {
+            gb.position_array[w_y1][w_x2] = '';
+            pawn_sq = w_sq2.substr(0, 1) + w_sq1.substr(1, 1);
+        }
+        // Pawn promotion
+        if (piece.substr(0, 2) === 'wp' && w_y2 === 0) {
+            gb.position_array[w_y2][w_x2] = 'wq';
+        }
+        // Castling
+        if (piece === 'wk' && w_sq1 === 'e1') {
+            if (w_sq2 === 'g1') {
+                gb.position_array[7][5] = 'wrk';
+                gb.position_array[7][7] = '';
+            } else if (w_sq2 === 'c1') {
+                gb.position_array[7][3] = 'wrq';
+                gb.position_array[7][0] = '';
+            }
+        }
+        // Lose castling ability
+        if (piece === 'wk') {
+            gb.gs_castle_kside_w = false;
+            gb.gs_castle_qside_w = false;
+        } else if (piece === 'wr' && w_sq1 === 'h1') {
+            gb.gs_castle_kside_w = false;
+        } else if (piece === 'wr' && w_sq1 === 'a1') {
+            gb.gs_castle_qside_w = false;
+        } else if (captured_piece === 'br' && w_sq2 === 'a8') {
+            gb.gs_castle_qside_b = false;
+        } else if (captured_piece === 'br' && w_sq2 === 'h8') {
+            gb.gs_castle_kside_b = false;
+        }
+        gb.white_to_move = false;
+    } else {
+        // Black's turn
+        b_sq1 = sq1;
+        b_sq2 = sq2;
+        b_xy1 = getArrayPosition(b_sq1);
+        b_xy2 = getArrayPosition(b_sq2);
+        b_x1 = parseInt(b_xy1.substr(0, 1));
+        b_y1 = parseInt(b_xy1.substr(1, 1));
+        b_x2 = parseInt(b_xy2.substr(0, 1));
+        b_y2 = parseInt(b_xy2.substr(1, 1));
+        captured_piece = gb.position_array[b_y2][b_x2];
+        piece = gb.position_array[b_y1][b_x1];
+        gb.position_array[b_y2][b_x2] = gb.position_array[b_y1][b_x1];
+        gb.position_array[b_y1][b_x1] = '';
+        // Pawn is eligible to be captured en passant
+        b_xy1 = getArrayPosition(b_sq1);
+        if (piece.substr(0, 2) === 'bp' && b_y2 - b_y1 === 2) {
+            gb.en_passant = reverseArrayPosition((b_y2 - 1) + '' + b_x2);
+        } else {
+            gb.en_passant = '';
+        }
+        // En passant
+        if (piece.substr(0, 2) === 'bp' && b_x2 !== b_x1 && captured_piece === '') {
+            gb.position_array[b_y1][b_x2] = '';
+            pawn_sq = b_sq2.substr(0, 1) + b_sq1.substr(1, 1);
+        }
+        // Pawn promotion
+        if (piece.substr(0, 2) === 'bp' && b_y2 === 7) {
+            gb.position_array[b_y2][b_x2] = 'bq';
+        }
+        // Castling
+        if (piece === 'bk' && b_sq1 === 'e8') {
+            if (b_sq2 === 'g8') {
+                gb.position_array[0][5] = 'brk';
+                gb.position_array[0][7] = '';
+            } else if (b_sq2 === 'c8') {
+                gb.position_array[0][3] = 'brq';
+                gb.position_array[0][0] = '';
+            }
+        }
+        // Lose castling ability
+        if (piece === 'bk') {
+            gb.gs_castle_kside_b = false;
+            gb.gs_castle_qside_b = false;
+        } else if (piece === 'br' && b_sq1 === 'h8') {
+            gb.gs_castle_kside_b = false;
+        } else if (piece === 'br' && b_sq1 === 'a8') {
+            gb.gs_castle_qside_b = false;
+        } else if (captured_piece === 'wr' && b_sq2 === 'a1') {
+            gb.gs_castle_qside_w = false;
+        } else if (captured_piece === 'wr' && b_sq2 === 'h1') {
+            gb.gs_castle_kside_w = false;
+        }
+        gb.white_to_move = true;
+    }
+    // Check game ending conditions
+    if (isMate(gb) || isStalemate(gb)) {
+        gb.active = false;
+    }
+    return true;
+};

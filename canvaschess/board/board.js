@@ -1,8 +1,18 @@
 // Global namespace
 var CHESS = CHESS || {};
 
+/**
+Board module
+**/
 CHESS.board = (function () {
+    /**
+    The board's public interface.
+    **/
     var board = CHESS._publisher(),
+    /**
+    Maintains the internal state of the board.
+    @private
+    **/
     _model = {
         // Core data structures
         mode: '',
@@ -21,11 +31,15 @@ CHESS.board = (function () {
         gs_castle_kside_b: true,
         gs_castle_qside_b: true,
         active: false,
-        moves: 0,
+        moves: 0
     },
+    /**
+    Updates the user interface.
+    @private
+    **/
     _view = {
-        canvas: '',
-        ctx: '',
+        canvas: null,
+        ctx:null,
         snapshot: null,
         snapshot_ctx: null,
         snapshot_img: new Image(),
@@ -48,206 +62,84 @@ CHESS.board = (function () {
         piece_not_lifted: true,
         // The white pieces are at the bottom of the screen
         white_down: true,
-        support_toDataURL: true,
-        pieces: new Image(),
+        pieces: new Image()
     },
+    /**
+    Responds to user interaction by updating the model and the view.
+    @private
+    **/
     _controller = {};
     
+    /**
+    Update the internal board with a new move.
+    
+    @param {string} sq1 - Current square (eg. e2).
+    @param {string} sq2 - New square (eg. e4).
+    **/
     _model.move = function (sq1, sq2) {
         var xy1,
             xy2,
             piece,
             pos = {
-                position_array: clonePositionArray(_model.position_array),
-                white_to_move: _model.white_to_move,
-                en_passant: _model.en_passant,
-                active: _model.active,
-                gs_castle_kside_w: _model.gs_castle_kside_w,
-                gs_castle_qside_w: _model.gs_castle_qside_w,
-                gs_castle_kside_b: _model.gs_castle_kside_b,
-                gs_castle_qside_b: _model.gs_castle_qside_b
+                position_array: clonePositionArray(this.position_array),
+                white_to_move: this.white_to_move,
+                en_passant: this.en_passant,
+                active: this.active,
+                gs_castle_kside_w: this.gs_castle_kside_w,
+                gs_castle_qside_w: this.gs_castle_qside_w,
+                gs_castle_kside_b: this.gs_castle_kside_b,
+                gs_castle_qside_b: this.gs_castle_qside_b
             };
-        if (_model.last_move) {
-            pos.last_move = {'sq1': _model.last_move.sq1, 'sq2': _model.last_move.sq2};
+        if (this.last_move) {
+            pos.last_move = {
+                'sq1': this.last_move.sq1,
+                'sq2': this.last_move.sq2
+            };
         }
-        if (!_model.moveTemp(pos, sq1, sq2)) {
+        if (!moveTemp(pos, sq1, sq2)) {
             _view.takeSnapshot();
             _view.refresh();
             return;
         }
         xy1 = getArrayPosition(sq1);
         xy2 = getArrayPosition(sq2);
-        piece = _model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)].substr(1, 1);
+        piece = this.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)].substr(1, 1);
         
         // Apply position
-        _model.position_array = clonePositionArray(pos.position_array);
-        _model.white_to_move = pos.white_to_move;
-        _model.en_passant = pos.en_passant;
-        _model.active = pos.active;
-        _model.gs_castle_kside_w = pos.gs_castle_kside_w;
-        _model.gs_castle_qside_w = pos.gs_castle_qside_w;
-        _model.gs_castle_kside_b = pos.gs_castle_kside_b;
-        _model.gs_castle_qside_b = pos.gs_castle_qside_b;
-        _model.moves += 1;
+        this.position_array = clonePositionArray(pos.position_array);
+        this.white_to_move = pos.white_to_move;
+        this.en_passant = pos.en_passant;
+        this.active = pos.active;
+        this.gs_castle_kside_w = pos.gs_castle_kside_w;
+        this.gs_castle_qside_w = pos.gs_castle_qside_w;
+        this.gs_castle_kside_b = pos.gs_castle_kside_b;
+        this.gs_castle_qside_b = pos.gs_castle_qside_b;
+        this.moves += 1;
         if (pos.last_move) {
-            _model.last_move = {'sq1': pos.last_move.sq1, 'sq2': pos.last_move.sq2};
+            this.last_move = {
+                'sq1': pos.last_move.sq1,
+                'sq2': pos.last_move.sq2
+            };
         }
         _view.takeSnapshot();
         _view.refresh();
         
-        if (!_model.active) {
+        if (!this.active) {
             return;
         }
     };
     
-    _model.moveTemp = function (pos, sq1, sq2) {
-        var w_sq1,
-            w_sq2,
-            w_xy1,
-            w_xy2,
-            w_x1,
-            w_y1,
-            w_x2,
-            w_y2,
-            b_sq1,
-            b_sq2,
-            b_xy1,
-            b_xy2,
-            b_x1,
-            b_y1,
-            b_x2,
-            b_y2,
-            pawn_sq,
-            captured_piece = '',
-            piece;
-
-        // Do not play if move is illegal
-        if (!isLegal(pos, sq1, sq2)) {
-            return false;
-        }
-        // Update game values
-        pos.last_move = {'sq1':getArrayPosition(sq1), 'sq2':getArrayPosition(sq2)};
-
-        if (pos.white_to_move) {
-            w_sq1 = sq1;
-            w_sq2 = sq2;
-            w_xy1 = getArrayPosition(w_sq1);
-            w_xy2 = getArrayPosition(w_sq2);
-            w_x1 = parseInt(w_xy1.substr(0, 1));
-            w_y1 = parseInt(w_xy1.substr(1, 1));
-            w_x2 = parseInt(w_xy2.substr(0, 1));
-            w_y2 = parseInt(w_xy2.substr(1, 1));
-            captured_piece = pos.position_array[w_y2][w_x2];
-            piece = pos.position_array[w_y1][w_x1];
-            pos.position_array[w_y2][w_x2] = pos.position_array[w_y1][w_x1];
-            pos.position_array[w_y1][w_x1] = '';
-            // Pawn is eligible to be captured en passant
-            w_xy1 = getArrayPosition(w_sq1);
-            if (piece.substr(0, 2) === 'wp' && w_y2 - w_y1 === -2) {
-                pos.en_passant = reverseArrayPosition((w_y2 + 1) + '' + w_x2);
-            } else {
-                pos.en_passant = '';
-            }
-            // En passant
-            if (piece.substr(0, 2) === 'wp' && w_x2 !== w_x1 && captured_piece === '') {
-                pos.position_array[w_y1][w_x2] = '';
-                pawn_sq = w_sq2.substr(0, 1) + w_sq1.substr(1, 1);
-            }
-            // Pawn promotion
-            if (piece.substr(0, 2) === 'wp' && w_y2 === 0) {
-                pos.position_array[w_y2][w_x2] = 'wq';
-            }
-            // Castling
-            if (piece === 'wk' && w_sq1 === 'e1') {
-                if (w_sq2 === 'g1') {
-                    pos.position_array[7][5] = 'wrk';
-                    pos.position_array[7][7] = '';
-                } else if (w_sq2 === 'c1') {
-                    pos.position_array[7][3] = 'wrq';
-                    pos.position_array[7][0] = '';
-                }
-            }
-            // Lose castling ability
-            if (piece === 'wk') {
-                pos.gs_castle_kside_w = false;
-                pos.gs_castle_qside_w = false;
-            } else if (piece === 'wr' && w_sq1 === 'h1') {
-                pos.gs_castle_kside_w = false;
-            } else if (piece === 'wr' && w_sq1 === 'a1') {
-                pos.gs_castle_qside_w = false;
-            } else if (captured_piece === 'br' && w_sq2 === 'a8') {
-                pos.gs_castle_qside_b = false;
-            } else if (captured_piece === 'br' && w_sq2 === 'h8') {
-                pos.gs_castle_kside_b = false;
-            }
-            pos.white_to_move = false;
-        } else {
-            // Black's turn
-            b_sq1 = sq1;
-            b_sq2 = sq2;
-            b_xy1 = getArrayPosition(b_sq1);
-            b_xy2 = getArrayPosition(b_sq2);
-            b_x1 = parseInt(b_xy1.substr(0, 1));
-            b_y1 = parseInt(b_xy1.substr(1, 1));
-            b_x2 = parseInt(b_xy2.substr(0, 1));
-            b_y2 = parseInt(b_xy2.substr(1, 1));
-            captured_piece = pos.position_array[b_y2][b_x2];
-            piece = pos.position_array[b_y1][b_x1];
-            pos.position_array[b_y2][b_x2] = pos.position_array[b_y1][b_x1];
-            pos.position_array[b_y1][b_x1] = '';
-            // Pawn is eligible to be captured en passant
-            b_xy1 = getArrayPosition(b_sq1);
-            if (piece.substr(0, 2) === 'bp' && b_y2 - b_y1 === 2) {
-                pos.en_passant = reverseArrayPosition((b_y2 - 1) + '' + b_x2);
-            } else {
-                pos.en_passant = '';
-            }
-            // En passant
-            if (piece.substr(0, 2) === 'bp' && b_x2 !== b_x1 && captured_piece === '') {
-                pos.position_array[b_y1][b_x2] = '';
-                pawn_sq = b_sq2.substr(0, 1) + b_sq1.substr(1, 1);
-            }
-            // Pawn promotion
-            if (piece.substr(0, 2) === 'bp' && b_y2 === 7) {
-                pos.position_array[b_y2][b_x2] = 'bq';
-            }
-            // Castling
-            if (piece === 'bk' && b_sq1 === 'e8') {
-                if (b_sq2 === 'g8') {
-                    pos.position_array[0][5] = 'brk';
-                    pos.position_array[0][7] = '';
-                } else if (b_sq2 === 'c8') {
-                    pos.position_array[0][3] = 'brq';
-                    pos.position_array[0][0] = '';
-                }
-            }
-            // Lose castling ability
-            if (piece === 'bk') {
-                pos.gs_castle_kside_b = false;
-                pos.gs_castle_qside_b = false;
-            } else if (piece === 'br' && b_sq1 === 'h8') {
-                pos.gs_castle_kside_b = false;
-            } else if (piece === 'br' && b_sq1 === 'a8') {
-                pos.gs_castle_qside_b = false;
-            } else if (captured_piece === 'wr' && b_sq2 === 'a1') {
-                pos.gs_castle_qside_w = false;
-            } else if (captured_piece === 'wr' && b_sq2 === 'h1') {
-                pos.gs_castle_kside_w = false;
-            }
-            pos.white_to_move = true;
-        }
-        // Check game ending conditions
-        if (isMate(pos) || isStalemate(pos)) {
-            pos.active = false;
-        }
-        return true;
-    };
-    
+    /**
+    Redraw the board from the image buffer.
+    **/
     _view.refresh = function () {
-        _view.ctx.clearRect(0, _view.square_size * 8, _view.square_size * 8, _view.square_size * 2);
-        _view.ctx.drawImage(_view.snapshot, 0, 0);
+        this.ctx.clearRect(0, this.square_size * 8, this.square_size * 8, this.square_size * 2);
+        this.ctx.drawImage(this.snapshot, 0, 0);
     };
 
+    /**
+    Draw the board to an image buffer.
+    **/
     _view.takeSnapshot = function () {
         var i,
             j,
@@ -262,66 +154,66 @@ CHESS.board = (function () {
         if (_model.mode === 'setup') {
             rows = 10;
         }
-        _view.snapshot.width = _view.square_size * 8;
-        _view.snapshot.height = _view.square_size * rows;
-        _view.snapshot_ctx = _view.snapshot.getContext('2d');
+        this.snapshot.width = this.square_size * 8;
+        this.snapshot.height = this.square_size * rows;
+        this.snapshot_ctx = this.snapshot.getContext('2d');
         
         // Draw chessboard
-        _view.snapshot_ctx.beginPath();
-        _view.snapshot_ctx.fillStyle = '#f3f3f3';
-        _view.snapshot_ctx.rect(0, 0, _view.square_size * 8, _view.square_size * 8);
-        _view.snapshot_ctx.fill();
-        _view.snapshot_ctx.beginPath();
-        _view.snapshot_ctx.fillStyle = '#7389b6';
+        this.snapshot_ctx.beginPath();
+        this.snapshot_ctx.fillStyle = '#f3f3f3';
+        this.snapshot_ctx.rect(0, 0, this.square_size * 8, this.square_size * 8);
+        this.snapshot_ctx.fill();
+        this.snapshot_ctx.beginPath();
+        this.snapshot_ctx.fillStyle = '#7389b6';
         for (y = 0; y < 4; y+= 1) {
             for (x = 0; x < 4; x+= 1) {
-                _view.snapshot_ctx.rect(x * (_view.square_size * 2) + _view.square_size, y * (_view.square_size * 2), _view.square_size, _view.square_size);
+                this.snapshot_ctx.rect(x * (this.square_size * 2) + this.square_size, y * (this.square_size * 2), this.square_size, this.square_size);
             }
         }
         for (y = 0; y < 4; y+= 1) {
             for (x = 0; x < 4; x+= 1) {
-                _view.snapshot_ctx.rect(x * (_view.square_size * 2), y * (_view.square_size * 2) + _view.square_size, _view.square_size, _view.square_size);
+                this.snapshot_ctx.rect(x * (this.square_size * 2), y * (this.square_size * 2) + this.square_size, this.square_size, this.square_size);
             }
         }
-        _view.snapshot_ctx.fill();
+        this.snapshot_ctx.fill();
         
         // Highlight last move, sq1
         /*if (typeof _model.last_move === 'object' && _model.last_move.sq1 !== undefined) {
             x = _model.last_move.sq1.substr(0, 1);
             y = _model.last_move.sq1.substr(1, 1);
-            if (!_view.white_down) {
+            if (!this.white_down) {
                 x = 7 - x;
                 y = 7 - y;
             }
-            _view.snapshot_ctx.lineWidth = 2;
-            _view.snapshot_ctx.strokeStyle = '#ff8d8d';
-            _view.snapshot_ctx.strokeRect(x * _view.square_size, y * _view.square_size, _view.square_size, _view.square_size);
+            this.snapshot_ctx.lineWidth = 2;
+            this.snapshot_ctx.strokeStyle = '#ff8d8d';
+            this.snapshot_ctx.strokeRect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
 
             x = _model.last_move.sq2.substr(0, 1);
             y = _model.last_move.sq2.substr(1, 1);
-            if (!_view.white_down) {
+            if (!this.white_down) {
                 x = 7 - x;
                 y = 7 - y;
             }
-            _view.snapshot_ctx.strokeRect(x * _view.square_size, y * _view.square_size, _view.square_size, _view.square_size);
+            this.snapshot_ctx.strokeRect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
         }*/
         
         // Draw pieces
         for (i = 0; i < 8; i += 1) {
             for (j = 0; j < 8; j += 1) {
-                if (!_view.dragok || !(i === _view.drag_clear_i && j === _view.drag_clear_j)) {
+                if (!this.dragok || !(i === this.drag_clear_i && j === this.drag_clear_j)) {
                     piece = _model.position_array[i][j].substr(0, 2);
                     // Flip board for black
                     ii = i;
                     jj = j;
-                    if (!_view.white_down) {
+                    if (!this.white_down) {
                         ii = 7 - i;
                         jj = 7 - j;
                     }
-                    x = jj * _view.square_size;
-                    y = ii * _view.square_size;
+                    x = jj * this.square_size;
+                    y = ii * this.square_size;
                     if (piece !== '') {
-                        _view.drawPiece(piece, x, y);
+                        this.drawPiece(piece, x, y);
                     }
                 }
             }
@@ -332,86 +224,99 @@ CHESS.board = (function () {
             for (i = 0; i < 2; i += 1) {
                 for (j = 0; j < 8; j += 1) {
                     piece = _model.piecebox_array[i][j].substr(0, 2);
-                    x = j * _view.square_size;
-                    y = (i + 8) * _view.square_size;
+                    x = j * this.square_size;
+                    y = (i + 8) * this.square_size;
                     if (piece !== '') {
-                        _view.drawPiece(piece, x, y);
+                        this.drawPiece(piece, x, y);
                     }
                 }
             }
         }
         
         // Clear drag piece
-        if (_view.dragok) {
-            i = _view.drag_clear_i,
-            j = _view.drag_clear_j;
-            if (!_view.white_down) {
-                i = 7 - _view.drag_clear_i;
-                j = 7 - _view.drag_clear_j;
+        if (this.dragok) {
+            i = this.drag_clear_i,
+            j = this.drag_clear_j;
+            if (!this.white_down) {
+                i = 7 - this.drag_clear_i;
+                j = 7 - this.drag_clear_j;
             }
-            _view.snapshot_ctx.beginPath();
-            //_view.snapshot_ctx.fillStyle = '#85c249';
-            _view.snapshot_ctx.fillStyle = '#7389b6';
+            this.snapshot_ctx.beginPath();
+            this.snapshot_ctx.fillStyle = '#7389b6';
             if ((i + j) % 2 === 0) {
-                //_view.snapshot_ctx.fillStyle = '#b4d990';
-                _view.snapshot_ctx.fillStyle = '#f3f3f3';
+                this.snapshot_ctx.fillStyle = '#f3f3f3';
             }
-            _view.snapshot_ctx.rect(j * _view.square_size, i * _view.square_size, _view.square_size, _view.square_size);
-            _view.snapshot_ctx.fill();
+            this.snapshot_ctx.rect(j * this.square_size, i * this.square_size, this.square_size, this.square_size);
+            this.snapshot_ctx.fill();
         }
-        
-        /* Not sure if this is true... but toDataURL() doesn't work locally in Chrome because it thinks the piece image is from another domain
-        //
-        // When the snapshot is drawn with drawImage(), ImageData is faster than canvas if supported by the browser. Otherwise _view.snapshot can be used.
-        _view.snapshot_img.src = _view.snapshot.toDataURL('image/png');
-        if (_view.snapshot_img.src.indexOf('data:image/png') === -1) {
-            _view.support_toDataURL = false;
-        } else {
-            _view.support_toDataURL = true;
-        }*/
-        
-        // Turn off support for this until resolved
-        _view.support_toDataURL = false;
     };
     
+    /**
+    Draw a piece to the image buffer.
+
+    @param {string} piece - The piece to draw.
+    @param {number} x - The horizontal position in pixels.
+    @param {number} y - The vertical position in pixels.
+    **/
     _view.drawPiece = function (piece, x, y) {
         var scale_x,
             scale_y,
             scale = 1;
-        _view.snapshot_ctx.save();
+        this.snapshot_ctx.save();
         // 55 is the standard size of the piece image
-        scale = _view.square_size / 55;
-        _view.snapshot_ctx.scale(scale, scale);
+        scale = this.square_size / 55;
+        this.snapshot_ctx.scale(scale, scale);
         scale_x = x / scale;
         scale_y = y / scale;
-        if (piece === 'wk') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'wq') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'wr') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'wb') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'wn') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'wp') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'bk') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'bq') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'br') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'bb') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'bn') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, 55);
-        } else if (piece === 'bp') {
-            _view.snapshot_ctx.drawImage(_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
+        
+        switch(piece) {
+            case 'wk':
+                this.snapshot_ctx.drawImage(this.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'wq':
+                this.snapshot_ctx.drawImage(this.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'wr':
+                this.snapshot_ctx.drawImage(this.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'wb':
+                this.snapshot_ctx.drawImage(this.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'wn':
+                this.snapshot_ctx.drawImage(this.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'wp':
+                this.snapshot_ctx.drawImage(this.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'bk':
+                this.snapshot_ctx.drawImage(this.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'bq':
+                this.snapshot_ctx.drawImage(this.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'br':
+                this.snapshot_ctx.drawImage(this.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'bb':
+                this.snapshot_ctx.drawImage(this.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'bn':
+                this.snapshot_ctx.drawImage(this.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            case 'bp':
+                this.snapshot_ctx.drawImage(this.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
+                break;
+            default:
+                // Do nothing
         }
-        _view.snapshot_ctx.restore();
+        this.snapshot_ctx.restore();
     };
 
+    /**
+    Respond to touch-leave or touch-cancel.
+    
+    @param e - The event object.
+    **/
     _controller.myCancel = function (e) {
         e.preventDefault();
         _view.dragok = false;
@@ -422,6 +327,11 @@ CHESS.board = (function () {
         _view.refresh();
     };
 
+    /**
+    Respond to mouse-move or touch-move. No relation to the touch-move rule in chess ;).
+    
+    @param e - The event object.
+    **/
     _controller.myMove = function (e) {
         e.preventDefault();
         var i,
@@ -462,13 +372,7 @@ CHESS.board = (function () {
                     clip_height = (_view.square_size * 8) - clip_start_y;
                 }
                 // Clear the section of the board where the drag piece was drawn
-                if (_view.support_toDataURL) {
-                    // Need to draw from a canvas (toDataURL() is not supported on some Android devices)
-                    _view.ctx.drawImage(_view.snapshot_img, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
-                } else {
-                    // Drawing from ImageData is faster than drawing from a canvas
-                    _view.ctx.drawImage(_view.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
-                }
+                _view.ctx.drawImage(_view.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
             }
             // Update values
             if ('clientX' in e) {
@@ -491,7 +395,7 @@ CHESS.board = (function () {
             }
             
             // Highlight hover square
-            _view.ctx.beginPath()
+            _view.ctx.beginPath();
             if ((i + j) % 2 === 0) {
                 _view.ctx.fillStyle = '#b4d990';
             } else {
@@ -503,7 +407,7 @@ CHESS.board = (function () {
             // Clear the piece from the starting square (first time only, in case a quick mouse move didn't allow the square to highlight, and never from piece box)
             if (_view.piece_not_lifted && _view.drag_clear_i < 8) {
                 _view.piece_not_lifted = false;
-                _view.ctx.beginPath()
+                _view.ctx.beginPath();
                 if ((_view.drag_clear_i + _view.drag_clear_j) % 2 === 0) {
                     _view.ctx.fillStyle = '#f3f3f3';
                 } else {
@@ -533,30 +437,46 @@ CHESS.board = (function () {
             if (piece !== '' && !(ii === _view.drag_clear_i && jj === _view.drag_clear_j)) {
                 scale_x = (j * _view.square_size / scale) | 0;
                 scale_y = (i * _view.square_size / scale) | 0;
-                if (piece === 'wk') {
-                    _view.ctx.drawImage(_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'wq') {
-                    _view.ctx.drawImage(_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'wr') {
-                    _view.ctx.drawImage(_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'wb') {
-                    _view.ctx.drawImage(_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'wn') {
-                    _view.ctx.drawImage(_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'wp') {
-                    _view.ctx.drawImage(_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'bk') {
-                    _view.ctx.drawImage(_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'bq') {
-                    _view.ctx.drawImage(_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'br') {
-                    _view.ctx.drawImage(_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'bb') {
-                    _view.ctx.drawImage(_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'bn') {
-                    _view.ctx.drawImage(_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, 55);
-                } else if (piece === 'bp') {
-                    _view.ctx.drawImage(_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
+                
+                switch(piece) {
+                    case 'wk':
+                        _view.ctx.drawImage(_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'wq':
+                        _view.ctx.drawImage(_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'wr':
+                        _view.ctx.drawImage(_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'wb':
+                        _view.ctx.drawImage(_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'wn':
+                        _view.ctx.drawImage(_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'wp':
+                        _view.ctx.drawImage(_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'bk':
+                        _view.ctx.drawImage(_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'bq':
+                        _view.ctx.drawImage(_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'br':
+                        _view.ctx.drawImage(_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'bb':
+                        _view.ctx.drawImage(_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'bn':
+                        _view.ctx.drawImage(_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    case 'bp':
+                        _view.ctx.drawImage(_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
+                        break;
+                    default:
+                        // Do nothing
                 }
             }
             // Draw drag piece
@@ -570,35 +490,55 @@ CHESS.board = (function () {
                 draw_height = draw_height - ((_view.top - _view.square_size * 7.5) / scale);
             }
             
-            if (piece === 'wk') {
-                _view.ctx.drawImage(_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'wq') {
-                _view.ctx.drawImage(_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'wr') {
-                _view.ctx.drawImage(_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'wb') {
-                _view.ctx.drawImage(_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'wn') {
-                _view.ctx.drawImage(_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'wp') {
-                _view.ctx.drawImage(_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'bk') {
-                _view.ctx.drawImage(_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'bq') {
-                _view.ctx.drawImage(_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'br') {
-                _view.ctx.drawImage(_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'bb') {
-                _view.ctx.drawImage(_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'bn') {
-                _view.ctx.drawImage(_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-            } else if (piece === 'bp') {
-                _view.ctx.drawImage(_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+            switch(piece) {
+                case 'wk':
+                     _view.ctx.drawImage(_view.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'wq':
+                     _view.ctx.drawImage(_view.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'wr':
+                     _view.ctx.drawImage(_view.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'wb':
+                     _view.ctx.drawImage(_view.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'wn':
+                     _view.ctx.drawImage(_view.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'wp':
+                     _view.ctx.drawImage(_view.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'bk':
+                     _view.ctx.drawImage(_view.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'bq':
+                     _view.ctx.drawImage(_view.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'br':
+                     _view.ctx.drawImage(_view.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'bb':
+                     _view.ctx.drawImage(_view.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'bn':
+                     _view.ctx.drawImage(_view.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                case 'bp':
+                     _view.ctx.drawImage(_view.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, draw_height);
+                    break;
+                default:
+                    // Do nothing
             }
             _view.ctx.restore();
         }
     };
 
+    /**
+    Respond to mouse-down or touch-start.
+    
+    @param e - The event object.
+    **/
     _controller.myDown = function (e) {
         e.preventDefault();
         var i,
@@ -656,6 +596,11 @@ CHESS.board = (function () {
         }
     };
 
+    /**
+    Respond to mouse-up or touch-end.
+    
+    @param e - The event object.
+    **/
     _controller.myUp = function (e) {
         e.preventDefault();
         var sq1,
@@ -734,19 +679,19 @@ CHESS.board = (function () {
         }
     };
     
+    /**
+    Resize the board.
+
+    @param {number} [height=0] - The new height of the board.
+    @param {number} [width=0] - The new width of the board.
+    **/
     _controller.resize = function (height, width) {
         var smaller_size = 0,
             rows = 8;
             
-        // Set values if nothing was passed
-        if (typeof(height) === 'undefined') {
-            height = 0;
-        }
-        if (typeof(width) === 'undefined') {
-            width = 0;
-        }
-        
         // Clean
+        height = height || 0;
+        width = width || 0;
         height = parseInt(height, 10);
         width = parseInt(width, 10);
         
@@ -765,20 +710,19 @@ CHESS.board = (function () {
     };
 
     /**
-    Resize the board
+    Resize the board.
 
-    @method resize
+    @param {number} [height=0] - The new height of the board.
+    @param {number} [width=0] - The new width of the board.
     **/
     board.resize = function (height, width) {
         _controller.resize(height, width);
         _view.takeSnapshot();
         _view.refresh();
-    }
+    };
 
     /**
-    Flip the board
-
-    @method flip
+    Flip the board.
     **/
     board.flip = function () {
         _view.white_down = !_view.white_down;
@@ -787,9 +731,7 @@ CHESS.board = (function () {
     };
 
     /**
-    Set the board to the starting position
-
-    @method positionStart
+    Set the board to the starting position.
     **/
     board.positionStart = function () {
         _model.position_array = [['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'], ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'], ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']];
@@ -809,9 +751,7 @@ CHESS.board = (function () {
     };
 
     /**
-    Clear the board
-
-    @method positionClear
+    Clear the board.
     **/
     board.positionClear = function () {
         _model.position_array = [['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', '']];
@@ -831,9 +771,9 @@ CHESS.board = (function () {
     };
 
     /**
-    Change the board mode
+    Change the board mode.
 
-    @method mode
+    @param {string} mode - Mode determines the default settings.
     **/
     board.setMode = function (mode) {
         _model.mode = mode;
@@ -846,16 +786,17 @@ CHESS.board = (function () {
     };
 
     /**
-    Initializes the board module.
+    Initialize the board module.
 
-    @method init
+    @param {object} config - Default settings.
     **/
     board.init = function (config) {
         var time = new Date().getTime(),
-            fen_arr = config.fen.split(' '),
-            position = fen_arr[0],
-            castling = fen_arr[2],
-            row_array = position.split('/'),
+            pgn_config,
+            fen_arr,
+            position = '',
+            castling = '',
+            row_array = [],
             row_item = '',
             starting_index = 0,
             color = '',
@@ -868,7 +809,7 @@ CHESS.board = (function () {
     
         // Load CSS/JS with a timestamp to prevent caching
         CHESS._loadCSS('board.css?' + time, CHESS._config.library_path + '/board/');
-        CHESS._loadJS('engine.js?' + time, CHESS._config.library_path + '/board/');
+        CHESS._loadJS('engine.js?' + time, CHESS._config.library_path + '/');
         
         // Setup canvas
         _view.snapshot = document.createElement('canvas');
@@ -885,70 +826,97 @@ CHESS.board = (function () {
         _view.canvas.addEventListener('touchleave', _controller.myCancel, false);
         _view.canvas.addEventListener('touchcancel', _controller.myCancel, false);
         window.onresize = function () {
-            board.resize(config.height, config.width);
+            // Use controller instead of board?
+            this.resize(config.height, config.width);
         };
         
-        _model.en_passant = fen_arr[3];
-        _model.white_to_move = (fen_arr[1] === 'w');
-        if (castling === '-') {
-            _model.gs_castle_kside_w = false;
-            _model.gs_castle_qside_w = false;
-            _model.gs_castle_kside_b = false;
-            _model.gs_castle_qside_b = false;
-        } else {
-            if (castling.indexOf('K') >= 0) {
-                _model.gs_castle_kside_w = true;
-            }
-            if (castling.indexOf('Q') >= 0) {
-                _model.gs_castle_qkside_w = true;
-            }
-            if (castling.indexOf('k') >= 0) {
-                _model.gs_castle_kside_b = true;
-            }
-            if (castling.indexOf('q') >= 0) {
-                _model.gs_castle_qside_b = true;
-            }
-        }
-        _model.position_array = [['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-']];
-        _model.piecebox_array = [['-', 'wk', 'wq', 'wr', 'wb', 'wn', 'wp', '-'], ['-', 'bk', 'bq', 'br', 'bb', 'bn', 'bp', '-']];
-        _model.white = 'human';
-        _model.black = 'human2';
-        _model.active = true;
-        _model.moves = 0;
-	    _model.last_move = {};
-	    
-        // Load FEN
-        for (i = 0; i < row_array.length; i += 1) {
-            for (j = 0; j < row_array[i].length; j += 1) {
-                row_item = row_array[i].charAt(j);
-                // Get starting index
-                for (k = 0; k < _model.position_array[i].length; k += 1) {
-                    if (_model.position_array[i][k] === '-') {
-                        starting_index = k;
-                        k = _model.position_array[i].length; // break
-                    }
-                }
-                if (/[0-9]/.test(row_item)) {
-                    // Empty square(s)
-                    for (k = 0; k < parseInt(row_item, 10); k += 1) {
-                        _model.position_array[i][k + starting_index] = '';
-                    }
-                } else {
-                    color = 'w';
-                    if (/[a-z]/.test(row_item)) {
-                        color = 'b';
-                    }
-                    piece = row_item.toLowerCase();
-                    file = '';
-                    if (piece === 'p') {
-                        file = alpha_conversion[starting_index];
-                    }
-                    _model.position_array[i][starting_index] = color + piece + file;
-                }
-            }
-        }
         _model.mode = config.mode;
         
+        if (_model.mode === 'pgn') {
+            // Set the board
+            this.positionStart();
+            _model.active = false;
+            
+            // Load the PGN module
+            // TODO: Add callbacks to lazy loaders. Can't lazy load here without it
+            //CHESS._loadJS('pgn.js?' + time, CHESS._config.library_path + '/pgn/');
+            pgn_config = {
+                pgn_id: config.pgn_id,
+                pgn_url: config.pgn_url,
+                width: config.width
+            };
+            CHESS.pgn.init(pgn_config);
+            
+        } else if (config.fen) {
+            // Prepare FEN values
+            fen_arr = config.fen.split(' ');
+            position = fen_arr[0];
+            castling = fen_arr[2];
+            row_array = position.split('/');
+            
+            // Set the model
+            _model.en_passant = fen_arr[3];
+            _model.white_to_move = (fen_arr[1] === 'w');
+            if (castling === '-') {
+                _model.gs_castle_kside_w = false;
+                _model.gs_castle_qside_w = false;
+                _model.gs_castle_kside_b = false;
+                _model.gs_castle_qside_b = false;
+            } else {
+                if (castling.indexOf('K') >= 0) {
+                    _model.gs_castle_kside_w = true;
+                }
+                if (castling.indexOf('Q') >= 0) {
+                    _model.gs_castle_qkside_w = true;
+                }
+                if (castling.indexOf('k') >= 0) {
+                    _model.gs_castle_kside_b = true;
+                }
+                if (castling.indexOf('q') >= 0) {
+                    _model.gs_castle_qside_b = true;
+                }
+            }
+            _model.position_array = [['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-']];
+            _model.piecebox_array = [['-', 'wk', 'wq', 'wr', 'wb', 'wn', 'wp', '-'], ['-', 'bk', 'bq', 'br', 'bb', 'bn', 'bp', '-']];
+            _model.white = 'human';
+            _model.black = 'human2';
+            _model.active = true;
+            _model.moves = 0;
+            _model.last_move = {};
+
+            // Load FEN
+            for (i = 0; i < row_array.length; i += 1) {
+                for (j = 0; j < row_array[i].length; j += 1) {
+                    row_item = row_array[i].charAt(j);
+                    // Get starting index
+                    for (k = 0; k < _model.position_array[i].length; k += 1) {
+                        if (_model.position_array[i][k] === '-') {
+                            starting_index = k;
+                            k = _model.position_array[i].length; // break
+                        }
+                    }
+                    if (/[0-9]/.test(row_item)) {
+                        // Empty square(s)
+                        for (k = 0; k < parseInt(row_item, 10); k += 1) {
+                            _model.position_array[i][k + starting_index] = '';
+                        }
+                    } else {
+                        color = 'w';
+                        if (/[a-z]/.test(row_item)) {
+                            color = 'b';
+                        }
+                        piece = row_item.toLowerCase();
+                        file = '';
+                        if (piece === 'p') {
+                            file = alpha_conversion[starting_index];
+                        }
+                        _model.position_array[i][starting_index] = color + piece + file;
+                    }
+                }
+            }
+        } else {
+            this.positionStart();
+        }
         _controller.resize(config.height, config.width);
         
         // Preload pieces
