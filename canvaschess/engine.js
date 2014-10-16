@@ -3,6 +3,185 @@ var CHESS = CHESS || {};
 
 CHESS.engine = {};
 
+CHESS.engine.createPosition = function (fen) {
+    var position = function () {
+        var mode = '',
+            position_array = [],
+            piecebox_array = [],
+            last_move = {},
+            en_passant = '',
+            white_to_move = true,
+            gs_castle_kside_w = true,
+            gs_castle_qside_w = true,
+            gs_castle_kside_b = true,
+            gs_castle_qside_b = true,
+            active = false,
+            moves = 0;
+    };
+    
+    var pos = function () {};
+    pos.prototype = position;
+    
+    // Create an instance
+    var pos_instance = new pos();
+    
+    // Set the position
+    if (fen !== undefined) {
+        this.setPosition(pos_instance, fen);
+    }
+    
+    return pos_instance;
+};
+
+CHESS.engine.setPosition = function (pos, fen) {
+    var fen_arr,
+        position,
+        castling,
+        row_array = [],
+        row_item = '',
+        starting_index = 0,
+        color = '',
+        piece = '',
+        file = '',
+        alpha_conversion = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+        i = 0,
+        j = 0,
+        k = 0;
+
+    // Prepare FEN values
+    fen_arr = fen.split(' ');
+    position = fen_arr[0];
+    castling = fen_arr[2];
+    row_array = position.split('/');
+
+    // Set the model
+    pos.en_passant = fen_arr[3];
+    pos.white_to_move = (fen_arr[1] === 'w');
+    if (castling === '-') {
+        pos.gs_castle_kside_w = false;
+        pos.gs_castle_qside_w = false;
+        pos.gs_castle_kside_b = false;
+        pos.gs_castle_qside_b = false;
+    } else {
+        if (castling.indexOf('K') >= 0) {
+            pos.gs_castle_kside_w = true;
+        }
+        if (castling.indexOf('Q') >= 0) {
+            pos.gs_castle_qkside_w = true;
+        }
+        if (castling.indexOf('k') >= 0) {
+            pos.gs_castle_kside_b = true;
+        }
+        if (castling.indexOf('q') >= 0) {
+            pos.gs_castle_qside_b = true;
+        }
+    }
+    pos.position_array = [['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-']];
+    pos.piecebox_array = [['-', 'wk', 'wq', 'wr', 'wb', 'wn', 'wp', '-'], ['-', 'bk', 'bq', 'br', 'bb', 'bn', 'bp', '-']];
+    pos.moves = 0;
+    pos.last_move = {};
+
+    for (i = 0; i < row_array.length; i += 1) {
+        for (j = 0; j < row_array[i].length; j += 1) {
+            row_item = row_array[i].charAt(j);
+            // Get starting index
+            for (k = 0; k < pos.position_array[i].length; k += 1) {
+                if (pos.position_array[i][k] === '-') {
+                    starting_index = k;
+                    k = pos.position_array[i].length; // break
+                }
+            }
+            if (/[0-9]/.test(row_item)) {
+                // Empty square(s)
+                for (k = 0; k < parseInt(row_item, 10); k += 1) {
+                    pos.position_array[i][k + starting_index] = '';
+                }
+            } else {
+                // Uppercase = white, lowercase = black
+                color = 'w';
+                if (/[a-z]/.test(row_item)) {
+                    color = 'b';
+                }
+                piece = row_item.toLowerCase();
+                file = '';
+                if (piece === 'p') {
+                    file = alpha_conversion[starting_index];
+                }
+                pos.position_array[i][starting_index] = color + piece + file;
+            }
+        }
+    }
+};
+
+CHESS.engine.getFEN = function (pos) {
+    var fen_arr = [],
+        position,
+        castling = '',
+        row_array = [],
+        color = '',
+        piece = '',
+        i = 0,
+        j = 0,
+        empty_rows = 0;
+
+    // Piece placement
+    for (i = 0; i < pos.position_array.length; i += 1) {
+        row_array[i] = '';
+        for (j = 0; j < pos.position_array[i].length; j += 1) {
+            piece = pos.position_array[i][j];
+            if (piece === '') {
+                empty_rows += 1;
+            } else {
+                // Append number of empty rows
+                if (empty_rows > 0) {
+                    row_array[i] += (empty_rows + '');
+                    empty_rows = 0;
+                }
+                // Append piece
+                color = piece.substr(0, 1);
+                piece = piece.substr(1, 1);
+                if (color === 'w') {
+                    piece = piece.toUpperCase();
+                }
+                row_array[i] += piece;
+            }
+        }
+        // Append number of empty rows
+        if (empty_rows > 0) {
+            row_array[i] += (empty_rows + '');
+            empty_rows = 0;
+        }
+    }
+    position = row_array.join('/');
+    fen_arr.push(position);
+    
+    // Active color
+    fen_arr.push(pos.white_to_move ? 'w' : 'b');
+    
+    // Castling
+    if (!pos.gs_castle_kside_w && !pos.gs_castle_qside_w && !pos.gs_castle_kside_b && !pos.gs_castle_qside_b) {
+        castling === '-';
+    } else {
+        if (pos.gs_castle_kside_w) {
+            castling += 'K';
+        }
+        if (pos.gs_castle_qkside_w) {
+            castling += 'Q';
+        }
+        if (pos.gs_castle_kside_b) {
+            castling += 'k';
+        }
+        if (pos.gs_castle_qside_b) {
+            castling += 'q';
+        }
+    }
+    fen_arr.push(castling);
+    fen_arr.push('- 0 1');
+    
+    // Combine
+    return fen_arr.join(' ');
+};
+
 CHESS.engine.isLegal = function (gb, sq1, sq2) {
         var i,
             xy1 = this.getArrayPosition(sq1),
@@ -1255,7 +1434,7 @@ CHESS.engine.getLongNotation = function (gb, move) {
                     continue;
                 }
                 // Locate a potential piece
-                if (gb.position_array[i][j].substr(0, 2) === color + piece) {
+                if (gb.position_array[i][j].length > 1 && gb.position_array[i][j].substr(0, 2) === color + piece) {
                     sq1 = this.reverseArrayPosition (i + '' + j);
                     if (this.isLegal(gb, sq1, sq2)) {
                         long_move = sq1 + '-' + sq2;
@@ -1312,7 +1491,7 @@ CHESS.engine.moveTemp = function (gb, sq1, sq2) {
         pawn_sq,
         captured_piece = '',
         piece;
-
+        
     // Do not play if move is illegal
     if (!this.isLegal(gb, sq1, sq2)) {
         return false;

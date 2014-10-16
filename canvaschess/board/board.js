@@ -13,26 +13,9 @@ CHESS.board = (function () {
     Maintains the internal state of the board.
     @private
     **/
-    _model = {
-        // Core data structures
-        mode: '',
-        position_array: [],
-        piecebox_array: [],
-        white: '',
-        black: '',
-        last_move: {},
-        last_move_promotion: false,
+   
+    _model = CHESS.engine.createPosition(),
 
-        // Stats on the current position
-        en_passant: '',
-        white_to_move: true,
-        gs_castle_kside_w: true,
-        gs_castle_qside_w: true,
-        gs_castle_kside_b: true,
-        gs_castle_qside_b: true,
-        active: false,
-        moves: 0
-    },
     /**
     Updates the user interface.
     @private
@@ -44,6 +27,8 @@ CHESS.board = (function () {
         snapshot_ctx: null,
         snapshot_img: new Image(),
         square_size: 80,
+        square_color_light: '#ececd7',
+        square_color_dark: '#7389b6',
         dragok: false,
         drag_piece: '',
         // Array position of piece being dragged
@@ -62,6 +47,7 @@ CHESS.board = (function () {
         piece_not_lifted: true,
         // The white pieces are at the bottom of the screen
         white_down: true,
+        display_coordinates: true,
         pieces: new Image()
     },
     /**
@@ -129,6 +115,10 @@ CHESS.board = (function () {
         }
     };
     
+    _model.setPosition = function (fen) {
+        CHESS.engine.setPosition(this, fen);
+    };
+    
     /**
     Redraw the board from the image buffer.
     **/
@@ -160,11 +150,11 @@ CHESS.board = (function () {
         
         // Draw chessboard
         this.snapshot_ctx.beginPath();
-        this.snapshot_ctx.fillStyle = '#f3f3f3';
+        this.snapshot_ctx.fillStyle = this.square_color_light;
         this.snapshot_ctx.rect(0, 0, this.square_size * 8, this.square_size * 8);
         this.snapshot_ctx.fill();
         this.snapshot_ctx.beginPath();
-        this.snapshot_ctx.fillStyle = '#7389b6';
+        this.snapshot_ctx.fillStyle = this.square_color_dark;
         for (y = 0; y < 4; y+= 1) {
             for (x = 0; x < 4; x+= 1) {
                 this.snapshot_ctx.rect(x * (this.square_size * 2) + this.square_size, y * (this.square_size * 2), this.square_size, this.square_size);
@@ -242,9 +232,9 @@ CHESS.board = (function () {
                 j = 7 - this.drag_clear_j;
             }
             this.snapshot_ctx.beginPath();
-            this.snapshot_ctx.fillStyle = '#7389b6';
+            this.snapshot_ctx.fillStyle = this.square_color_dark;
             if ((i + j) % 2 === 0) {
-                this.snapshot_ctx.fillStyle = '#f3f3f3';
+                this.snapshot_ctx.fillStyle = this.square_color_light;
             }
             this.snapshot_ctx.rect(j * this.square_size, i * this.square_size, this.square_size, this.square_size);
             this.snapshot_ctx.fill();
@@ -274,16 +264,16 @@ CHESS.board = (function () {
                 this.snapshot_ctx.drawImage(this.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'wq':
-                this.snapshot_ctx.drawImage(this.pieces, 54, 0, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 55, 0, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'wr':
-                this.snapshot_ctx.drawImage(this.pieces, 108, 0, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 110, 0, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'wb':
-                this.snapshot_ctx.drawImage(this.pieces, 162, 0, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 160, 0, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'wn':
-                this.snapshot_ctx.drawImage(this.pieces, 216, 0, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 215, 0, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'wp':
                 this.snapshot_ctx.drawImage(this.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
@@ -292,16 +282,16 @@ CHESS.board = (function () {
                 this.snapshot_ctx.drawImage(this.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'bq':
-                this.snapshot_ctx.drawImage(this.pieces, 54, 55, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 55, 55, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'br':
-                this.snapshot_ctx.drawImage(this.pieces, 108, 55, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 110, 55, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'bb':
-                this.snapshot_ctx.drawImage(this.pieces, 162, 55, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 160, 55, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'bn':
-                this.snapshot_ctx.drawImage(this.pieces, 216, 55, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(this.pieces, 215, 55, 55, 55, scale_x, scale_y, 55, 55);
                 break;
             case 'bp':
                 this.snapshot_ctx.drawImage(this.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
@@ -410,9 +400,9 @@ CHESS.board = (function () {
                 my_view.piece_not_lifted = false;
                 my_view.ctx.beginPath();
                 if ((my_view.drag_clear_i + my_view.drag_clear_j) % 2 === 0) {
-                    my_view.ctx.fillStyle = '#f3f3f3';
+                    my_view.ctx.fillStyle = this.square_color_light;
                 } else {
-                    my_view.ctx.fillStyle = '#7389b6';
+                    my_view.ctx.fillStyle = this.square_color_dark;
                 }
                 ii = my_view.drag_clear_i;
                 jj = my_view.drag_clear_j;
@@ -609,7 +599,10 @@ CHESS.board = (function () {
             alpha_conversion = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
             i,
             j,
-            rect = _view.canvas.getBoundingClientRect();
+            xy1,
+            xy2,
+            rect = _view.canvas.getBoundingClientRect(),
+            drag_piece_temp;
             
         // Cannot move unless game is active and a piece has been selected
         if (_model.active && _view.dragok) {
@@ -732,19 +725,28 @@ CHESS.board = (function () {
     };
 
     /**
+    Set the board to a new position.
+                                                                                                                                                                
+    @param {string} fen - FEN representation of the new position.
+    **/
+    board.setPosition = function (fen) {
+        _model.setPosition(fen);
+        _view.takeSnapshot();
+        _view.refresh();
+    };
+
+    /**
     Set the board to the starting position.
     **/
     board.positionStart = function () {
         _model.position_array = [['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'], ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'], ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']];
         _model.last_move = {};
-        _model.last_move_promotion = false;
         _model.en_passant = '';
         _model.white_to_move = true;
         _model.gs_castle_kside_w = true;
         _model.gs_castle_qside_w = true;
         _model.gs_castle_kside_b = true;
         _model.gs_castle_qside_b = true;
-        _model.active = true;
         _model.moves = 0;
         
         _view.takeSnapshot();
@@ -757,14 +759,12 @@ CHESS.board = (function () {
     board.positionClear = function () {
         _model.position_array = [['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', ''], ['', '', '', '', '', '', '', '']];
         _model.last_move = {};
-        _model.last_move_promotion = false;
         _model.en_passant = '';
         _model.white_to_move = true;
         _model.gs_castle_kside_w = true;
         _model.gs_castle_qside_w = true;
         _model.gs_castle_kside_b = true;
         _model.gs_castle_qside_b = true;
-        _model.active = true;
         _model.moves = 0;
         
         _view.takeSnapshot();
@@ -794,24 +794,10 @@ CHESS.board = (function () {
     board.init = function (config) {
         var time = new Date().getTime(),
             that = this,
-            pgn_config,
-            fen_arr,
-            position = '',
-            castling = '',
-            row_array = [],
-            row_item = '',
-            starting_index = 0,
-            color = '',
-            piece = '',
-            file = '',
-            alpha_conversion = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-            i = 0,
-            j = 0,
-            k = 0;
+            pgn_config;
     
         // Load CSS/JS with a timestamp to prevent caching
         CHESS.loadCSS(CHESS.config.library_path + '/board/board.css?' + time);
-        CHESS.loadJS(CHESS.config.library_path + '/engine.js?' + time);
         
         // Setup canvas
         _view.snapshot = document.createElement('canvas');
@@ -844,80 +830,17 @@ CHESS.board = (function () {
                 pgn_config = {
                     pgn_id: config.pgn_id,
                     pgn_url: config.pgn_url,
-                    width: config.width
+                    width: parseInt(config.width / 2, 10)
                 };
                 CHESS.pgn.init(pgn_config);
             });
             
         } else if (config.fen) {
-            // Prepare FEN values
-            fen_arr = config.fen.split(' ');
-            position = fen_arr[0];
-            castling = fen_arr[2];
-            row_array = position.split('/');
-            
-            // Set the model
-            _model.en_passant = fen_arr[3];
-            _model.white_to_move = (fen_arr[1] === 'w');
-            if (castling === '-') {
-                _model.gs_castle_kside_w = false;
-                _model.gs_castle_qside_w = false;
-                _model.gs_castle_kside_b = false;
-                _model.gs_castle_qside_b = false;
-            } else {
-                if (castling.indexOf('K') >= 0) {
-                    _model.gs_castle_kside_w = true;
-                }
-                if (castling.indexOf('Q') >= 0) {
-                    _model.gs_castle_qkside_w = true;
-                }
-                if (castling.indexOf('k') >= 0) {
-                    _model.gs_castle_kside_b = true;
-                }
-                if (castling.indexOf('q') >= 0) {
-                    _model.gs_castle_qside_b = true;
-                }
-            }
-            _model.position_array = [['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-'], ['-', '-', '-', '-', '-', '-', '-', '-']];
-            _model.piecebox_array = [['-', 'wk', 'wq', 'wr', 'wb', 'wn', 'wp', '-'], ['-', 'bk', 'bq', 'br', 'bb', 'bn', 'bp', '-']];
-            _model.white = 'human';
-            _model.black = 'human2';
+            _model.setPosition(config.fen);
             _model.active = true;
-            _model.moves = 0;
-            _model.last_move = {};
-
-            // Load FEN
-            for (i = 0; i < row_array.length; i += 1) {
-                for (j = 0; j < row_array[i].length; j += 1) {
-                    row_item = row_array[i].charAt(j);
-                    // Get starting index
-                    for (k = 0; k < _model.position_array[i].length; k += 1) {
-                        if (_model.position_array[i][k] === '-') {
-                            starting_index = k;
-                            k = _model.position_array[i].length; // break
-                        }
-                    }
-                    if (/[0-9]/.test(row_item)) {
-                        // Empty square(s)
-                        for (k = 0; k < parseInt(row_item, 10); k += 1) {
-                            _model.position_array[i][k + starting_index] = '';
-                        }
-                    } else {
-                        color = 'w';
-                        if (/[a-z]/.test(row_item)) {
-                            color = 'b';
-                        }
-                        piece = row_item.toLowerCase();
-                        file = '';
-                        if (piece === 'p') {
-                            file = alpha_conversion[starting_index];
-                        }
-                        _model.position_array[i][starting_index] = color + piece + file;
-                    }
-                }
-            }
         } else {
             this.positionStart();
+            _model.active = true;
         }
         _controller.resize(config.height, config.width);
         

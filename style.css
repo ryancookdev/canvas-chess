@@ -11,7 +11,6 @@ html, body
     font-size: 14px;
     color: #4F5155;
     height: 100%;
-    text-align: center;
 }
 
 body
@@ -27,4 +26,30 @@ body
 #api_controls
 {
     margin: 20px 0 0 0;
+}
+
+.pgn_viewer
+{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 680px;
+    height: 360px;
+    background-color: #f3f3f3;
+}
+
+#chessboard
+{
+    float: left;
+}
+
+#pgn
+{
+    float: right;
+    width: 300px;
+    height: 360px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 0 10px;
+    background-color: white;
 }
