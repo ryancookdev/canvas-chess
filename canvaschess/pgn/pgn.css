@@ -1,0 +1,96 @@
+#pgn
+{
+    line-height: 20px;
+    vertical-align: baseline;
+    font-family: 'Trebuchet MS', Arial, sans-serif;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: normal;
+    color: #000000;
+}
+
+.pgn_header
+{
+    padding: 10px;
+    color: #5a5855;
+}
+
+.pgn_players
+{
+    font-weight: bold;
+}
+
+.pgn_list, .pgn_controls
+{
+    list-style-type: none;
+    margin: 0;
+    padding: 2px 0 2px 10px
+}
+
+/* Moves, comments */
+.pgn_list li, .pgn_controls li
+{
+    display: inline;
+}
+
+.pgn_controls
+{
+    text-align: center;
+    font-size: 200%;
+    color: #8c8a88;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.pgn_controls li
+{
+    margin: 0 10px;
+}
+
+.pgn_list span
+{
+}
+
+/* Main line moves */
+.pgn_list > li > .move_text
+{
+    font-weight: bold;
+}
+
+/* All moves */
+.pgn_list .move_text
+{
+    cursor: pointer;
+    padding: 0 4px 0 4px;
+    margin: 0 4px 0 -4px;
+}
+
+/* All comments */
+.pgn_list .comment
+{
+    color: #322E2B;
+}
+
+.pgn_list .current .move_text
+{
+    background-color: #ffff99;
+}
+
+/* Variations */
+.variation
+{
+    /* Draw a box around variations
+    background-color: #DDD;
+    margin: 5px 0;*/
+    color: #83817D;
+    padding: 10px 0 10px 25px;
+}
+
+.variation + .variation
+{
+    /* Draw a box around variations
+    background-color: #DDD;
+    margin: 5px 0;*/
+    color: #83817D;
+    padding-top: 0;
+}
