@@ -100,7 +100,7 @@
 .pgn_ctrl_btn
 {
     margin-left: 12%;
-    background: url('player_icons.png') no-repeat;
+    background: url('../img/player_icons.png') no-repeat;
 }
 
 .pgn_start
@@ -125,7 +125,7 @@
 
 .board_ctrl_btn
 {
-    background: url('board_icons.png') no-repeat;
+    background: url('../img/board_icons.png') no-repeat;
 }
 
 .board_flip
