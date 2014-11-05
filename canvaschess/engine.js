@@ -52,6 +52,7 @@ CHESS.engine.setPosition = function (pos, fen) {
     fen_arr = fen.split(' ');
     position = fen_arr[0];
     castling = fen_arr[2];
+
     row_array = position.split('/');
 
     // Set the model
@@ -67,7 +68,7 @@ CHESS.engine.setPosition = function (pos, fen) {
             pos.gs_castle_kside_w = true;
         }
         if (castling.indexOf('Q') >= 0) {
-            pos.gs_castle_qkside_w = true;
+            pos.gs_castle_qside_w = true;
         }
         if (castling.indexOf('k') >= 0) {
             pos.gs_castle_kside_b = true;
@@ -117,6 +118,7 @@ CHESS.engine.getFEN = function (pos) {
     var fen_arr = [],
         position,
         castling = '',
+        en_passant = '',
         row_array = [],
         color = '',
         piece = '',
@@ -159,13 +161,12 @@ CHESS.engine.getFEN = function (pos) {
     fen_arr.push(pos.white_to_move ? 'w' : 'b');
 
     // Castling
-    if (!pos.gs_castle_kside_w && !pos.gs_castle_qside_w && !pos.gs_castle_kside_b && !pos.gs_castle_qside_b) {
-        castling === '-';
-    } else {
+    castling = '-';
+    if (pos.gs_castle_kside_w || pos.gs_castle_qside_w || pos.gs_castle_kside_b || pos.gs_castle_qside_b) {
         if (pos.gs_castle_kside_w) {
             castling += 'K';
         }
-        if (pos.gs_castle_qkside_w) {
+        if (pos.gs_castle_qside_w) {
             castling += 'Q';
         }
         if (pos.gs_castle_kside_b) {
@@ -176,7 +177,13 @@ CHESS.engine.getFEN = function (pos) {
         }
     }
     fen_arr.push(castling);
-    fen_arr.push('- 0 1');
+
+    // En passant
+    en_passant = (pos.en_passant === '' ? '-' : pos.en_passant);
+    fen_arr.push(en_passant);
+
+    // Remainder
+    fen_arr.push('0 1');
 
     // Combine
     return fen_arr.join(' ');

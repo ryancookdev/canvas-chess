@@ -747,6 +747,10 @@ CHESS.PgnViewer = function (config) {
         xmlhttp.send();
     };
 
+    this.loadText = function (pgn_str) {
+        view.importFile(pgn_str);
+    };
+
     init = function (api) {
         if (config.width === undefined) {
             // Width will be set by CSS instead
@@ -795,6 +799,8 @@ CHESS.PgnViewer = function (config) {
 
         if (config.url !== undefined) {
             api.load(config.url);
+        } else if (config.pgn_text !== undefined) {
+            api.loadText(config.pgn_text);
         }
     };
 

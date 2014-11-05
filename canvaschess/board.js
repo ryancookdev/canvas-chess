@@ -16,7 +16,11 @@ CHESS.Board = function (config) {
         Contains methods for responding to user interaction. Updates the model and the view.
         @private
         **/
-        controller = {},
+        controller = {
+            subscribers: {
+                any: []
+            }
+        },
 
         /**
         Holds the internal state of the board.
@@ -427,6 +431,29 @@ CHESS.Board = function (config) {
         }
     };
 
+    controller.publish = function (publication, type) {
+        this.visitSubscribers('publish', publication, type);
+    };
+
+    controller.visitSubscribers = function (action, arg, type) {
+        var pubtype = type || 'any',
+            subscribers = this.subscribers[pubtype],
+            i,
+            max = 0;
+        if (subscribers !== undefined) {
+            max = subscribers.length;
+        }
+        for (i = 0; i < max; i += 1) {
+            if (action === 'publish') {
+                subscribers[i](arg);
+            } else {
+                if (subscribers[i] === arg) {
+                    subscribers.splice(i, 1);
+                }
+            }
+        }
+    };
+
     /**
     Resize the board.
 
@@ -473,18 +500,40 @@ CHESS.Board = function (config) {
                 gs_castle_qside_w: this.gs_castle_qside_w,
                 gs_castle_kside_b: this.gs_castle_kside_b,
                 gs_castle_qside_b: this.gs_castle_qside_b
-            };
+            },
+            pos_before = {
+                fen: CHESS.engine.getFEN(this),
+                player_to_move: (this.white_to_move ? 'w' : 'b'),
+                sq1: sq1,
+                sq2: sq2,
+                promote: false
+            },
+            xy1,
+            xy2,
+            piece;
+
         if (this.last_move) {
             pos.last_move = {
                 'sq1': this.last_move.sq1,
                 'sq2': this.last_move.sq2
             };
         }
+
+        xy1 = CHESS.engine.getArrayPosition(sq1);
+        xy2 = CHESS.engine.getArrayPosition(sq2);
+        piece = model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)].substr(1, 1);
+        if (piece === 'p' && ((model.white_to_move && sq2.substr(1, 1) === '8') || (!model.white_to_move && sq2.substr(1, 1) === '1'))) {
+            pos_before.promote = true;
+        }
+
         if (!CHESS.engine.moveTemp(pos, sq1, sq2)) {
             view.takeSnapshot();
             view.refresh();
             return;
         }
+
+        // Publish the state before the move is played
+        controller.publish(pos_before, 'move_before');
 
         // Apply position
         this.position_array = CHESS.engine.clonePositionArray(pos.position_array);
@@ -508,6 +557,7 @@ CHESS.Board = function (config) {
         if (!this.active) {
             return;
         }
+        
     };
 
     /**
@@ -765,6 +815,19 @@ CHESS.Board = function (config) {
     this.getCanvas = function () {
         return view.canvas;
     };
+    
+    this.move = function (short_move) {
+        var long_move,
+            sq1,
+            sq2;
+
+        long_move = CHESS.engine.getLongNotation(model, short_move);
+        long_move = long_move.split('-');
+        sq1 = long_move[0];
+        sq2 = long_move[1];
+
+        model.move(sq1, sq2);
+    };
 
     /**
     Clear the board.
@@ -878,6 +941,18 @@ CHESS.Board = function (config) {
         view.refresh();
     };
 
+    this.subscribe = function (fn, type) {
+        type = type || 'any';
+        if (controller.subscribers[type] === undefined) {
+            controller.subscribers[type] = [];
+        }
+        controller.subscribers[type].push(fn);
+    };
+    
+    this.unsubscribe = function (fn, type) {
+        controller.visitSubscribers('unsubscribe', fn, type);
+    };
+
     // See declaration comment
     init = function () {
         view.buildHtml(config.container);
@@ -891,10 +966,6 @@ CHESS.Board = function (config) {
         view.canvas.addEventListener('touchmove', controller.myMove, false);
         view.canvas.addEventListener('touchleave', controller.myCancel, false);
         view.canvas.addEventListener('touchcancel', controller.myCancel, false);
-        /*window.onresize = function () {
-            // Use controller instead of board?
-            api.resize(config.height, config.width);
-        };*/
 
         view.highlight_move = (config.highlight_move === true ? true : false);
         view.show_row_col_labels = (config.show_row_col_labels === false ? false : true);
