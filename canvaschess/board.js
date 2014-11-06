@@ -808,6 +808,24 @@ CHESS.Board = function (config) {
     };
 
     /**
+    Get the color of the player to move.
+
+    @returns {string} Color to move (w, b).
+    **/
+    this.getActiveColor = function () {
+        return (model.white_to_move ? 'w' : 'b');
+    };
+
+    /**
+    Get the FEN of the current position.
+
+    @returns {string} FEN string.
+    **/
+    this.getFEN = function () {
+        return CHESS.engine.getFEN(model);
+    };
+
+    /**
     Get a reference to the canvas element.
 
     @returns {object} A reference to the canvas element.
