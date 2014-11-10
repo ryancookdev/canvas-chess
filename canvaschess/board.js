@@ -713,9 +713,6 @@ CHESS.Board = function (config) {
                 // Row (display number)
                 if (this.white_down) {
                     rowcol = 8 - row;
-                    if (rowcol === 1) {
-                        debugger;
-                    }
                 } else {
                     rowcol = row + 1;
                 }
@@ -725,9 +722,6 @@ CHESS.Board = function (config) {
                 // Columns (display letter)
                 if (this.white_down) {
                     rowcol = String.fromCharCode(col + 97);
-                    if (rowcol === 'a') {
-                        debugger;
-                    }
                 } else {
                     rowcol = String.fromCharCode((7 - col) + 97);
                 }
