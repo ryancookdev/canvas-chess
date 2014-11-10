@@ -485,9 +485,7 @@ CHESS.PgnViewer = function (config) {
 
                 // Adjust so the move is in the center of the visible move list
                 scroll_top -= parseInt(view.move_list.offsetHeight / 2, 10);
-                //if () {
 
-                //}
                 view.move_list.scrollTop = scroll_top;
             }
         }

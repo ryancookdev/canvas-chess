@@ -42,6 +42,10 @@ CHESS.Board = function (config) {
             square_size: 80,
             square_color_light: '#ececd7',
             square_color_dark: '#7389b6',
+            square_hover_light: '#b4d990',
+            square_hover_dark: '#85c249',
+            square_light: new Image(),
+            square_dark: new Image(),
             dragok: false,
             drag_piece: '',
             // Array position of piece being dragged
@@ -60,8 +64,8 @@ CHESS.Board = function (config) {
             piece_not_lifted: true,
             // The white pieces are at the bottom of the screen
             white_down: true,
-            display_coordinates: true,
             highlight_move: false,
+            highlight_hover: false,
             show_row_col_labels: true,
             pieces: new Image()
         };
@@ -163,7 +167,9 @@ CHESS.Board = function (config) {
             scale_x,
             scale_y,
             draw_height,
-            rect = myview.canvas.getBoundingClientRect();
+            rect = myview.canvas.getBoundingClientRect(),
+            is_square_light,
+            board_size = myview.square_size * 8;
 
         if (myview.dragok) {
             i = parseInt(myview.top / myview.square_size, 10);
@@ -173,7 +179,7 @@ CHESS.Board = function (config) {
             clip_width = myview.square_size * 3;
             clip_height = myview.square_size * 3;
 
-            // Make sure the piece is over the board
+            // Draw 3x3 from the snapshot
             if (!(i < 0 || i > 7 || j < 0 || j > 7)) {
                 if (clip_start_x < 0) {
                     clip_start_x = 0;
@@ -181,15 +187,17 @@ CHESS.Board = function (config) {
                 if (clip_start_y < 0) {
                     clip_start_y = 0;
                 }
-                if (clip_start_x + clip_width > myview.square_size * 8) {
-                    clip_width = (myview.square_size * 8) - clip_start_x;
+                if (clip_start_x + clip_width > board_size) {
+                    clip_width = board_size - clip_start_x;
                 }
-                if (clip_start_y + clip_height > myview.square_size * 8) {
-                    clip_height = (myview.square_size * 8) - clip_start_y;
+                if (clip_start_y + clip_height > board_size) {
+                    clip_height = board_size - clip_start_y;
                 }
                 // Clear the section of the board where the drag piece was drawn
-                myview.ctx.drawImage(myview.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
+                //myview.ctx.drawImage(myview.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
+                myview.ctx.drawImage(myview.snapshot, 0, 0, board_size, board_size, 0, 0, board_size, board_size);
             }
+
             // Update values
             if (e.hasOwnProperty('clientX')) {
                 // Mouse event
@@ -211,37 +219,47 @@ CHESS.Board = function (config) {
             }
 
             // Highlight hover square
-            myview.ctx.beginPath();
-            if ((i + j) % 2 === 0) {
-                myview.ctx.fillStyle = '#b4d990';
-            } else {
-                myview.ctx.fillStyle = '#85c249';
+            if (myview.highlight_hover) {
+                myview.drawSquare('hover', i * myview.square_size, j * myview.square_size);
             }
-            myview.ctx.rect(j * myview.square_size, i * myview.square_size, myview.square_size, myview.square_size);
-            myview.ctx.fill();
 
             // Clear the piece from the starting square (first time only, in case a quick mouse move didn't allow the square to highlight, and never from piece box)
-            if (myview.piece_not_lifted && myview.drag_clear_i < 8) {
+/*            if (myview.piece_not_lifted && myview.drag_clear_i < 8) {
                 myview.piece_not_lifted = false;
-                myview.ctx.beginPath();
-                if ((myview.drag_clear_i + myview.drag_clear_j) % 2 === 0) {
-                    myview.ctx.fillStyle = this.square_color_light;
-                } else {
-                    myview.ctx.fillStyle = this.square_color_dark;
-                }
+                
                 ii = myview.drag_clear_i;
                 jj = myview.drag_clear_j;
                 if (!myview.white_down) {
                     ii = 7 - ii;
                     jj = 7 - jj;
                 }
-                myview.ctx.rect(jj * myview.square_size, ii * myview.square_size, myview.square_size, myview.square_size);
-                myview.ctx.fill();
-            }
 
+                is_square_light = ((myview.drag_clear_i + myview.drag_clear_j) % 2 === 0);
+                if (is_square_light) {
+                    if (myview.square_light.src !== '') {
+                        myview.drawSquare('light', jj * myview.square_size, ii * myview.square_size, myview.ctx);
+                    } else {
+                        myview.ctx.beginPath();
+                        myview.ctx.fillStyle = myview.square_color_light;
+                        myview.ctx.rect(jj * myview.square_size, ii * myview.square_size, myview.square_size, myview.square_size);
+                        myview.ctx.fill();
+                    }
+                } else {
+                    if (myview.square_dark.src !== '') {
+                        myview.drawSquare('dark', jj * myview.square_size, ii * myview.square_size, myview.ctx);
+                    } else {
+                        myview.ctx.beginPath();
+                        myview.ctx.fillStyle = myview.square_color_dark;
+                        myview.ctx.rect(jj * myview.square_size, ii * myview.square_size, myview.square_size, myview.square_size);
+                        myview.ctx.fill();
+                    }
+                }
+            }*/
+            
             myview.ctx.save();
             scale = (myview.square_size / 55);
             myview.ctx.scale(scale, scale);
+
             // Draw any piece that was sitting on the hover square
             ii = i;
             jj = j;
@@ -293,6 +311,7 @@ CHESS.Board = function (config) {
                     break;
                 }
             }
+
             // Draw drag piece
             piece = myview.drag_piece.substr(0, 2);
             scale_x = parseInt(((myview.left - (myview.square_size / 2)) / scale), 10);
@@ -643,6 +662,81 @@ CHESS.Board = function (config) {
     };
 
     /**
+    Draw a square image to the image buffer.
+
+    @param {string} color - hover, light, dark.
+    @param {number} x - The horizontal position in pixels.
+    @param {number} y - The vertical position in pixels.
+    **/
+    view.drawSquare = function (color, x, y, context) {
+        var ctx = context || this.snapshot_ctx,
+            scale_x,
+            scale_y,
+            scale = 1,
+            image,
+            col = parseInt(x / this.square_size, 10),
+            row = parseInt(y / this.square_size, 10),
+            rowcol,
+            font_size,
+            font_margin_top = parseInt(this.square_size / 55 * 10, 10),
+            font_margin_left = parseInt(this.square_size / 55 * 7, 10);;
+
+        if (color === 'hover') {
+            this.ctx.beginPath();
+            if ((col + row) % 2 === 0) {
+                this.ctx.fillStyle = this.square_hover_light;
+            } else {
+                this.ctx.fillStyle = this.square_hover_dark;
+            }
+            this.ctx.rect(row * this.square_size, col * this.square_size, this.square_size, this.square_size);
+            this.ctx.fill();
+        } else {
+            image = (color === 'light' ? this.square_light : this.square_dark);
+            this.snapshot_ctx.save();
+            // 55 is the standard size of the piece image
+            scale = this.square_size / 55;
+            this.snapshot_ctx.scale(scale, scale);
+            scale_x = x / scale;
+            scale_y = y / scale;
+            this.snapshot_ctx.drawImage(image, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
+            this.snapshot_ctx.restore();
+        }
+
+        // Row/Col labels
+        if (row === 7 || col === 0) {
+            // Font
+            font_size = parseInt(this.square_size / 55 * 11, 10),
+            this.snapshot_ctx.font = font_size + 'px arial';
+            this.snapshot_ctx.fillStyle = (((7 - row) + col) % 2 === 0 ? this.square_color_light : this.square_color_dark);
+
+            if (col === 0) {
+                // Row (display number)
+                if (this.white_down) {
+                    rowcol = 8 - row;
+                    if (rowcol === 1) {
+                        debugger;
+                    }
+                } else {
+                    rowcol = row + 1;
+                }
+                this.snapshot_ctx.fillText(rowcol, 2, (row * this.square_size) + font_margin_top);
+            }
+            if (row === 7) {
+                // Columns (display letter)
+                if (this.white_down) {
+                    rowcol = String.fromCharCode(col + 97);
+                    if (rowcol === 'a') {
+                        debugger;
+                    }
+                } else {
+                    rowcol = String.fromCharCode((7 - col) + 97);
+                }
+                this.snapshot_ctx.fillText(rowcol, ((this.square_size * col) + this.square_size) - font_margin_left, (this.square_size * 8) - 2);
+            }
+        }
+    };
+
+    /**
     Redraw the board from the image buffer.
     **/
     view.refresh = function () {
@@ -660,9 +754,11 @@ CHESS.Board = function (config) {
             jj,
             x,
             y,
+            x_pos,
+            y_pos,
             piece,
             rows = 8,
-            rowcol;
+            is_square_light;
 
         // Prepare canvas for snapshot
         if (model.mode === 'setup') {
@@ -672,45 +768,37 @@ CHESS.Board = function (config) {
         this.snapshot.height = this.square_size * rows;
         this.snapshot_ctx = this.snapshot.getContext('2d');
 
-        // Draw chessboard
-        this.snapshot_ctx.beginPath();
-        this.snapshot_ctx.fillStyle = this.square_color_light;
-        this.snapshot_ctx.rect(0, 0, this.square_size * 8, this.square_size * 8);
-        this.snapshot_ctx.fill();
-        this.snapshot_ctx.beginPath();
-        this.snapshot_ctx.fillStyle = this.square_color_dark;
-        for (y = 0; y < 4; y += 1) {
-            for (x = 0; x < 4; x += 1) {
-                this.snapshot_ctx.rect(x * (this.square_size * 2) + this.square_size, y * (this.square_size * 2), this.square_size, this.square_size);
-            }
-        }
-        for (y = 0; y < 4; y += 1) {
-            for (x = 0; x < 4; x += 1) {
-                this.snapshot_ctx.rect(x * (this.square_size * 2), y * (this.square_size * 2) + this.square_size, this.square_size, this.square_size);
-            }
-        }
-        this.snapshot_ctx.fill();
-
-        // Draw row/column labels
-        if (this.show_row_col_labels) {
-            this.snapshot_ctx.font = '9px arial';
+        // Draw chessboard (light squares)
+        if (this.square_light.src === '') {
+            this.snapshot_ctx.beginPath();
+            this.snapshot_ctx.fillStyle = this.square_color_light;
+            this.snapshot_ctx.rect(0, 0, this.square_size * 8, this.square_size * 8);
+            this.snapshot_ctx.fill();
+        } else {
             for (y = 0; y < 8; y += 1) {
-                if (this.white_down) {
-                    rowcol = 8 - y;
-                } else {
-                    rowcol = y + 1;
+                for (x = 0; x < 8; x += 1) {
+                    if ((x + y) % 2 === 0) {
+                        x_pos = x * this.square_size;
+                        y_pos = y * this.square_size;
+                        this.drawSquare('light', x_pos, y_pos);
+                    }
                 }
-                this.snapshot_ctx.fillStyle = (y % 2 === 0 ? this.square_color_dark : this.square_color_light);
-                this.snapshot_ctx.fillText(rowcol, 2, (y * this.square_size) + 10);
             }
+        }
+        for (y = 0; y < 8; y += 1) {
             for (x = 0; x < 8; x += 1) {
-                if (this.white_down) {
-                    rowcol = String.fromCharCode(x + 97);
-                } else {
-                    rowcol = String.fromCharCode((7 - x) + 97);
+                if ((x + y) % 2 !== 0) {
+                    x_pos = x * this.square_size;
+                    y_pos = y * this.square_size;
+                    if (this.square_dark.src === '') {
+                        this.snapshot_ctx.beginPath();
+                        this.snapshot_ctx.fillStyle = this.square_color_dark;
+                        this.snapshot_ctx.rect(x_pos, y_pos, this.square_size, this.square_size);
+                        this.snapshot_ctx.fill();
+                    } else {
+                        this.drawSquare('dark', x_pos, y_pos);
+                    }
                 }
-                this.snapshot_ctx.fillStyle = (x % 2 === 0 ? this.square_color_light : this.square_color_dark);
-                this.snapshot_ctx.fillText(rowcol, (this.square_size * x) + this.square_size - 7, (this.square_size * 8) - 2);
             }
         }
 
@@ -780,13 +868,26 @@ CHESS.Board = function (config) {
                 i = 7 - this.drag_clear_i;
                 j = 7 - this.drag_clear_j;
             }
-            this.snapshot_ctx.beginPath();
-            this.snapshot_ctx.fillStyle = this.square_color_dark;
-            if ((i + j) % 2 === 0) {
-                this.snapshot_ctx.fillStyle = this.square_color_light;
+            is_square_light = (i + j) % 2 === 0;
+            if (is_square_light) {
+                if (this.square_light.src !== '') {
+                    this.drawSquare('light', j * this.square_size, i * this.square_size, this.ctx);
+                } else {
+                    this.snapshot_ctx.beginPath();
+                    this.snapshot_ctx.fillStyle = this.square_color_light;
+                    this.snapshot_ctx.rect(j * this.square_size, i * this.square_size, this.square_size, this.square_size);
+                    this.snapshot_ctx.fill();
+                }
+            } else {
+                if (this.square_dark.src !== '') {
+                    this.drawSquare('dark', j * this.square_size, i * this.square_size, this.ctx);
+                } else {
+                    this.snapshot_ctx.beginPath();
+                    this.snapshot_ctx.fillStyle = this.square_color_dark;
+                    this.snapshot_ctx.rect(j * this.square_size, i * this.square_size, this.square_size, this.square_size);
+                    this.snapshot_ctx.fill();
+                }
             }
-            this.snapshot_ctx.rect(j * this.square_size, i * this.square_size, this.square_size, this.square_size);
-            this.snapshot_ctx.fill();
         }
     };
 
@@ -986,9 +1087,12 @@ CHESS.Board = function (config) {
         view.canvas.addEventListener('touchcancel', controller.myCancel, false);
 
         view.highlight_move = (config.highlight_move === true ? true : false);
+        view.highlight_hover = (config.highlight_hover === true ? true : false);
         view.show_row_col_labels = (config.show_row_col_labels === false ? false : true);
         view.square_color_light = (config.square_color_light ? config.square_color_light : view.square_color_light);
         view.square_color_dark = (config.square_color_dark ? config.square_color_dark : view.square_color_dark);
+        view.square_hover_light = (config.square_hover_light ? config.square_hover_light : view.square_hover_light);
+        view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
         model.mode = config.mode;
         model.active = true;
 
@@ -1000,12 +1104,26 @@ CHESS.Board = function (config) {
 
         controller.resize(config.height, config.width);
 
-        // Preload pieces
+        // Preload graphics
         view.pieces.src = CHESS.config.library_path + '/img/pieces.png';
         view.pieces.onload = function () {
             view.takeSnapshot();
             view.refresh();
         };
+        if (typeof config.square_dark === 'string') {
+            view.square_dark.src = config.square_dark;
+            view.square_dark.onload = function () {
+                view.takeSnapshot();
+                view.refresh();
+            };
+        }
+        if (typeof config.square_light === 'string') {
+            view.square_light.src = config.square_light;
+            view.square_light.onload = function () {
+                view.takeSnapshot();
+                view.refresh();
+            };
+        }
     };
 
     init();
