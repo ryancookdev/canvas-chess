@@ -768,6 +768,10 @@ CHESS.PgnViewer = function (config) {
             width: config.board_width,
             square_color_light: config.square_color_light,
             square_color_dark: config.square_color_dark,
+            square_hover_dark: config.square_hover_dark,
+            square_hover_light: config.square_hover_light,
+            square_dark: config.square_dark,
+            square_light: config.square_light,
             highlight_move: config.highlight_move,
             show_row_col_labels: config.show_row_col_labels
         });
