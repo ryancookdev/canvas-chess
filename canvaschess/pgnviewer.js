@@ -387,6 +387,13 @@ CHESS.PgnViewer = function (config) {
          * )
          */
         move_array = move_text.match(/^(\{\})|(\d+[.]{1,3}).+?(?=(\d+[.]{1,3})|$)/g);
+
+        // Look for initial comment marker
+        if (move_array[0] === '{}') {
+            comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
+            this.move(null, comment);
+        }
+
         for (i = 0; i < move_array.length; i += 1) {
             // First move
             first_move = move_array[i].match(/\d+[.]{1,3}\s?([^ )]+)\s?(?:\{\})?/);
@@ -442,9 +449,10 @@ CHESS.PgnViewer = function (config) {
 
                     // Look for comment marker
                     comment = '';
-                    if (/{}/.test(second_move[0])) {
+                    if (/\{\}/.test(second_move[0])) {
                         comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
                     }
+
                     // Play second move
                     this.move(second_move[1], comment, nag);
                 }
@@ -612,7 +620,7 @@ CHESS.PgnViewer = function (config) {
             side_to_move;
 
         // Validation
-        if (!move) {
+        if (!move && !comment) {
             return this;
         }
 
@@ -633,6 +641,15 @@ CHESS.PgnViewer = function (config) {
             move_elem.onclick = controller.updateBoard;
             this.move_list.appendChild(move_elem);
             this.current_move = move_elem;
+
+            // Add initial comment if set
+            if (!move && typeof comment === 'string') {
+                move_comment = document.createElement('span');
+                move_comment.setAttribute('class', 'comment');
+                move_comment.innerHTML = comment;
+                move_elem.appendChild(move_comment);
+                return;
+            }
         }
 
         // Determine how to display the move number
