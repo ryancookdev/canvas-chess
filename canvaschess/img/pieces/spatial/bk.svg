@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="700pt"
+   height="700pt"
+   id="svg36220"
+   sodipodi:version="0.32"
+   inkscape:version="0.43"
+   version="1.0"
+   inkscape:export-filename="/home/maurizio/out/bk.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"
+   sodipodi:docbase="/home/maurizio/out1"
+   sodipodi:docname="bk.svg">
+  <defs
+     id="defs36222">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient2459">
+      <stop
+         style="stop-color:#000000;stop-opacity:1"
+         offset="0"
+         id="stop2461" />
+      <stop
+         style="stop-color:#505070;stop-opacity:1"
+         offset="1"
+         id="stop2463" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2459"
+       id="linearGradient2467"
+       gradientUnits="userSpaceOnUse"
+       x1="84.905669"
+       y1="570.25697"
+       x2="798.28417"
+       y2="570.25697" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2459"
+       id="linearGradient2469"
+       gradientUnits="userSpaceOnUse"
+       x1="84.905669"
+       y1="570.25697"
+       x2="798.28417"
+       y2="570.25697" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2459"
+       id="linearGradient2472"
+       gradientUnits="userSpaceOnUse"
+       x1="163.1134"
+       y1="776.63849"
+       x2="702.69696"
+       y2="778.81091" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2459"
+       id="linearGradient2475"
+       gradientUnits="userSpaceOnUse"
+       x1="150.07878"
+       y1="255.25356"
+       x2="694.0072"
+       y2="740.0625" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient2459"
+       id="linearGradient2483"
+       x1="375.06781"
+       y1="176.41568"
+       x2="535.5755"
+       y2="308.93436"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.4603125"
+     inkscape:cx="367.83546"
+     inkscape:cy="501.52274"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="px"
+     inkscape:window-width="1076"
+     inkscape:window-height="896"
+     inkscape:window-x="0"
+     inkscape:window-y="0" />
+  <metadata
+     id="metadata36225">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Maurizio Monge</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Maurizio Monge</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/GPL/2.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/GPL/2.0/">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/Notice" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/ShareAlike" />
+        <cc:requires
+           rdf:resource="http://web.resource.org/cc/SourceCode" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer">
+    <path
+       style="opacity:1;fill:url(#linearGradient2483);fill-opacity:1.0;fill-rule:evenodd;stroke:#808080;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="M 403.00577,110.009 L 403.00577,169.63399 L 324.41202,169.63399 L 324.41202,237.66524 L 403.00577,237.66524 L 403.00577,360.13399 L 465.75577,360.13399 L 465.75577,237.66524 L 560.16202,237.66524 L 560.16202,169.63399 L 465.75577,169.63399 L 465.75577,110.009 L 403.00577,110.009 z "
+       id="rect4417" />
+    <path
+       style="fill:url(#linearGradient2475);fill-opacity:1;fill-rule:evenodd;stroke:#808080;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 510.86219,461.17131 C 710.59973,354.33833 646.59355,557.86445 547.46875,620.78125 C 483.60471,661.31724 450.214,508.36753 484.09375,393.5 L 398.5,394.53125 C 430.06264,496.1798 410.81373,652.385 341.375,620.78125 C 217.68667,564.4868 171.70541,357.35896 369.183,461.26619 C 255.06817,227.98841 77.321595,317.19002 94,435.75 C 112.11779,564.5419 259.11178,680.43263 256.125,732.0625 L 624.96875,732.0625 C 619.05945,672.24271 784.88075,549.22017 790.1875,432.25 C 795.28115,317.80436 597.7631,229.16847 510.86219,461.17131 z "
+       id="path4423"
+       sodipodi:nodetypes="csccscsccsc" />
+    <rect
+       style="fill:url(#linearGradient2472);fill-opacity:1;fill-rule:evenodd;stroke:#808080;stroke-width:16;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4429"
+       width="480"
+       height="66.666664"
+       x="198.33333"
+       y="758.33331" />
+  </g>
+</svg>

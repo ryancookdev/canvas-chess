@@ -67,7 +67,18 @@ CHESS.Board = function (config) {
             highlight_move: false,
             highlight_hover: false,
             show_row_col_labels: true,
-            pieces: new Image()
+            wp: new Image(),
+            wr: new Image(),
+            wn: new Image(),
+            wb: new Image(),
+            wq: new Image(),
+            wk: new Image(),
+            bp: new Image(),
+            br: new Image(),
+            bn: new Image(),
+            bb: new Image(),
+            bq: new Image(),
+            bk: new Image()
         };
 
     /**
@@ -168,7 +179,7 @@ CHESS.Board = function (config) {
             scale_y,
             draw_height,
             rect = myview.canvas.getBoundingClientRect(),
-            is_square_light,
+            //is_square_light,
             board_size = myview.square_size * 8;
 
         if (myview.dragok) {
@@ -271,45 +282,7 @@ CHESS.Board = function (config) {
             if (piece !== '' && !(ii === myview.drag_clear_i && jj === myview.drag_clear_j)) {
                 scale_x = parseInt((j * myview.square_size / scale), 10);
                 scale_y = parseInt((i * myview.square_size / scale), 10);
-
-                switch (piece) {
-                case 'wk':
-                    myview.ctx.drawImage(myview.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'wq':
-                    myview.ctx.drawImage(myview.pieces, 55, 0, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'wr':
-                    myview.ctx.drawImage(myview.pieces, 110, 0, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'wb':
-                    myview.ctx.drawImage(myview.pieces, 160, 0, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'wn':
-                    myview.ctx.drawImage(myview.pieces, 215, 0, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'wp':
-                    myview.ctx.drawImage(myview.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'bk':
-                    myview.ctx.drawImage(myview.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'bq':
-                    myview.ctx.drawImage(myview.pieces, 55, 55, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'br':
-                    myview.ctx.drawImage(myview.pieces, 110, 55, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'bb':
-                    myview.ctx.drawImage(myview.pieces, 160, 55, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'bn':
-                    myview.ctx.drawImage(myview.pieces, 215, 55, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                case 'bp':
-                    myview.ctx.drawImage(myview.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
-                    break;
-                }
+                myview.ctx.drawImage(myview[piece], scale_x, scale_y, 55, 55);
             }
 
             // Draw drag piece
@@ -322,45 +295,9 @@ CHESS.Board = function (config) {
             if (model.mode === 'setup' && myview.top > myview.square_size * 7.5) {
                 draw_height = draw_height - ((myview.top - myview.square_size * 7.5) / scale);
             }
-
-            switch (piece) {
-            case 'wk':
-                 myview.ctx.drawImage(myview.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'wq':
-                 myview.ctx.drawImage(myview.pieces, 55, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'wr':
-                 myview.ctx.drawImage(myview.pieces, 110, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'wb':
-                 myview.ctx.drawImage(myview.pieces, 160, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'wn':
-                 myview.ctx.drawImage(myview.pieces, 215, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'wp':
-                 myview.ctx.drawImage(myview.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'bk':
-                 myview.ctx.drawImage(myview.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'bq':
-                 myview.ctx.drawImage(myview.pieces, 55, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'br':
-                 myview.ctx.drawImage(myview.pieces, 110, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'bb':
-                 myview.ctx.drawImage(myview.pieces, 160, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'bn':
-                 myview.ctx.drawImage(myview.pieces, 215, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            case 'bp':
-                 myview.ctx.drawImage(myview.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, draw_height);
-                break;
-            }
+            
+            // Draw the piece
+            myview.ctx.drawImage(myview[piece], scale_x, scale_y, 55, 55);
             myview.ctx.restore();
         }
     };
@@ -619,45 +556,7 @@ CHESS.Board = function (config) {
         this.snapshot_ctx.scale(scale, scale);
         scale_x = x / scale;
         scale_y = y / scale;
-
-        switch (piece) {
-        case 'wk':
-            this.snapshot_ctx.drawImage(this.pieces, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'wq':
-            this.snapshot_ctx.drawImage(this.pieces, 55, 0, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'wr':
-            this.snapshot_ctx.drawImage(this.pieces, 110, 0, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'wb':
-            this.snapshot_ctx.drawImage(this.pieces, 160, 0, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'wn':
-            this.snapshot_ctx.drawImage(this.pieces, 215, 0, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'wp':
-            this.snapshot_ctx.drawImage(this.pieces, 270, 0, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'bk':
-            this.snapshot_ctx.drawImage(this.pieces, 0, 55, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'bq':
-            this.snapshot_ctx.drawImage(this.pieces, 55, 55, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'br':
-            this.snapshot_ctx.drawImage(this.pieces, 110, 55, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'bb':
-            this.snapshot_ctx.drawImage(this.pieces, 160, 55, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'bn':
-            this.snapshot_ctx.drawImage(this.pieces, 215, 55, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        case 'bp':
-            this.snapshot_ctx.drawImage(this.pieces, 270, 55, 55, 55, scale_x, scale_y, 55, 55);
-            break;
-        }
+        this.snapshot_ctx.drawImage(this[piece], scale_x, scale_y, 55, 55);
         this.snapshot_ctx.restore();
     };
 
@@ -1068,6 +967,8 @@ CHESS.Board = function (config) {
 
     // See declaration comment
     init = function () {
+        var path;
+
         view.buildHtml(config.container);
 
         // Mouse and touch events
@@ -1098,12 +999,22 @@ CHESS.Board = function (config) {
 
         controller.resize(config.height, config.width);
 
+        path = CHESS.config.library_path + '/img/pieces/' + (config.piece_set || 'default') ;
+
         // Preload graphics
-        view.pieces.src = CHESS.config.library_path + '/img/pieces.png';
-        view.pieces.onload = function () {
-            view.takeSnapshot();
-            view.refresh();
-        };
+        view.wp.src = path + '/wp.svg';
+        view.wr.src = path + '/wr.svg';
+        view.wn.src = path + '/wn.svg';
+        view.wb.src = path + '/wb.svg';
+        view.wq.src = path + '/wq.svg';
+        view.wk.src = path + '/wk.svg';
+        view.bp.src = path + '/bp.svg';
+        view.br.src = path + '/br.svg';
+        view.bn.src = path + '/bn.svg';
+        view.bb.src = path + '/bb.svg';
+        view.bq.src = path + '/bq.svg';
+        view.bk.src = path + '/bk.svg';
+
         if (typeof config.square_dark === 'string') {
             view.square_dark.src = config.square_dark;
             view.square_dark.onload = function () {
