@@ -888,6 +888,7 @@ CHESS.Board = function (config) {
         model.gs_castle_kside_b = true;
         model.gs_castle_qside_b = true;
         model.moves = 0;
+        model.active = true;
 
         view.takeSnapshot();
         view.refresh();
@@ -948,6 +949,7 @@ CHESS.Board = function (config) {
     **/
     this.setPosition = function (fen) {
         model.setPosition(fen);
+        model.active = true;
         view.takeSnapshot();
         view.refresh();
     };
