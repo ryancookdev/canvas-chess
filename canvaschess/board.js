@@ -205,8 +205,7 @@ CHESS.Board = function (config) {
                     clip_height = board_size - clip_start_y;
                 }
                 // Clear the section of the board where the drag piece was drawn
-                //myview.ctx.drawImage(myview.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
-                myview.ctx.drawImage(myview.snapshot, 0, 0, board_size, board_size, 0, 0, board_size, board_size);
+                myview.ctx.drawImage(myview.snapshot, clip_start_x, clip_start_y, clip_width, clip_height, clip_start_x, clip_start_y, clip_width, clip_height);
             }
 
             // Update values
@@ -534,6 +533,7 @@ CHESS.Board = function (config) {
         this.canvas.setAttribute('tabindex', 0);
         this.ctx = this.canvas.getContext('2d');
         this.snapshot = document.createElement('canvas');
+        this.snapshot_ctx = this.snapshot.getContext('2d');
         if (container !== undefined) {
             document.getElementById(container).appendChild(this.canvas);
         }
@@ -659,7 +659,6 @@ CHESS.Board = function (config) {
         }
         this.snapshot.width = this.square_size * 8;
         this.snapshot.height = this.square_size * rows;
-        this.snapshot_ctx = this.snapshot.getContext('2d');
 
         // Draw chessboard (light squares)
         if (this.square_light.src === '') {
@@ -1003,17 +1002,76 @@ CHESS.Board = function (config) {
 
         // Preload graphics
         view.wp.src = path + '/wp.svg';
+        view.wp.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.wr.src = path + '/wr.svg';
+        view.wr.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.wn.src = path + '/wn.svg';
+        view.wn.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.wb.src = path + '/wb.svg';
+        view.wb.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.wq.src = path + '/wq.svg';
+        view.wq.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.wk.src = path + '/wk.svg';
+        view.wk.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.bp.src = path + '/bp.svg';
+        view.bp.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.br.src = path + '/br.svg';
+        view.br.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.bn.src = path + '/bn.svg';
+        view.bn.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.bb.src = path + '/bb.svg';
+        view.bb.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.bq.src = path + '/bq.svg';
+        view.bq.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
+
         view.bk.src = path + '/bk.svg';
+        view.bk.onload = function () {
+            view.takeSnapshot();
+            view.refresh();
+        };
 
         if (typeof config.square_dark === 'string') {
             view.square_dark.src = config.square_dark;

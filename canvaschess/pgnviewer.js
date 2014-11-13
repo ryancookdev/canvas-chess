@@ -790,7 +790,8 @@ CHESS.PgnViewer = function (config) {
             square_dark: config.square_dark,
             square_light: config.square_light,
             highlight_move: config.highlight_move,
-            show_row_col_labels: config.show_row_col_labels
+            show_row_col_labels: config.show_row_col_labels,
+            piece_set: config.piece_set
         });
 
         // Create container elements
