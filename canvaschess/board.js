@@ -65,6 +65,7 @@ CHESS.Board = function (config) {
             // The white pieces are at the bottom of the screen
             white_down: true,
             highlight_move: false,
+            highlight_move_color: '#FF0000',
             highlight_hover: false,
             show_row_col_labels: true,
             wp: new Image(),
@@ -602,7 +603,7 @@ CHESS.Board = function (config) {
         }
 
         // Row/Col labels
-        if (row === 7 || col === 0) {
+        if (this.show_row_col_labels && (row === 7 || col === 0)) {
             // Font
             font_size = parseInt(this.square_size / 55 * 11, 10),
             this.snapshot_ctx.font = font_size + 'px arial';
@@ -651,7 +652,8 @@ CHESS.Board = function (config) {
             y_pos,
             piece,
             rows = 8,
-            is_square_light;
+            is_square_light,
+            rgb = CHESS.hexToRgb(this.highlight_move_color);
 
         // Prepare canvas for snapshot
         if (model.mode === 'setup') {
@@ -697,15 +699,16 @@ CHESS.Board = function (config) {
         // Highlight last move, sq1
         if (this.highlight_move) {
             if (typeof model.last_move === 'object' && model.last_move.sq1 !== undefined) {
+                this.snapshot_ctx.beginPath();
+                this.snapshot_ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.5)';
+
                 x = model.last_move.sq1.substr(0, 1);
                 y = model.last_move.sq1.substr(1, 1);
                 if (!this.white_down) {
                     x = 7 - x;
                     y = 7 - y;
                 }
-                this.snapshot_ctx.lineWidth = 2;
-                this.snapshot_ctx.strokeStyle = '#ff8d8d';
-                this.snapshot_ctx.strokeRect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
+                this.snapshot_ctx.rect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
 
                 x = model.last_move.sq2.substr(0, 1);
                 y = model.last_move.sq2.substr(1, 1);
@@ -713,7 +716,9 @@ CHESS.Board = function (config) {
                     x = 7 - x;
                     y = 7 - y;
                 }
-                this.snapshot_ctx.strokeRect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
+                this.snapshot_ctx.rect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
+
+                this.snapshot_ctx.fill();
             }
         }
 
@@ -954,7 +959,7 @@ CHESS.Board = function (config) {
         view.refresh();
     };
 
-    this.subscribe = function (fn, type) {
+    this.subscribe = function (type, fn) {
         type = type || 'any';
         if (controller.subscribers[type] === undefined) {
             controller.subscribers[type] = [];
@@ -987,6 +992,7 @@ CHESS.Board = function (config) {
         view.show_row_col_labels = (config.show_row_col_labels === false ? false : true);
         view.square_color_light = (config.square_color_light ? config.square_color_light : view.square_color_light);
         view.square_color_dark = (config.square_color_dark ? config.square_color_dark : view.square_color_dark);
+        view.highlight_move_color = (config.highlight_move_color ? config.highlight_move_color : view.highlight_move_color);
         view.square_hover_light = (config.square_hover_light ? config.square_hover_light : view.square_hover_light);
         view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
         model.mode = config.mode;
