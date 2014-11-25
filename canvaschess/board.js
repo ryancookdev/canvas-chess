@@ -462,7 +462,9 @@ CHESS.Board = function (config) {
                 player_to_move: (this.white_to_move ? 'w' : 'b'),
                 sq1: sq1,
                 sq2: sq2,
-                promote: false
+                promote: false,
+                mate: false,
+                stalemate: false
             },
             xy1,
             xy2,
@@ -486,6 +488,12 @@ CHESS.Board = function (config) {
             view.takeSnapshot();
             view.refresh();
             return;
+        }
+        
+        if (CHESS.engine.isMate(pos)) {
+            pos_before.mate = true;
+        } else if (CHESS.engine.isStalemate(pos)) {
+            pos_before.stalemate = true;
         }
 
         // Publish the state before the move is played
