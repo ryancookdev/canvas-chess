@@ -7,7 +7,7 @@ Board module
 CHESS.Board = function (config) {
     var
         /**
-        Constructor helper method for initializing a new board.
+        Constructor for initializing a new board.
         @private
         **/
         init,
@@ -387,10 +387,23 @@ CHESS.Board = function (config) {
         }
     };
 
+    /**
+    Notify all subscribers of an event.
+
+    @param {string} publication - The data or message to send to the subscribers.
+    @param {string} type - Type of event.
+    **/
     controller.publish = function (publication, type) {
         this.visitSubscribers('publish', publication, type);
     };
 
+    /**
+    Notify all subscribers of an event, or remove a subscriber from the list.
+
+    @param {string} action - If not "publish", then "unsubscribe" is assumed.
+    @param {object} arg - Arguments to be passed to a callback function, or the callback function itself if unsubscribing.
+    @param {number} type - Type of event.
+    **/
     controller.visitSubscribers = function (action, arg, type) {
         var pubtype = type || 'any',
             subscribers = this.subscribers[pubtype],
@@ -839,13 +852,36 @@ CHESS.Board = function (config) {
     this.getCanvas = function () {
         return view.canvas;
     };
-    
-    this.move = function (short_move) {
+
+    /**
+    Is the current position checkmate?
+
+    @returns {boolean} True or false.
+    **/
+    this.isMate = function () {
+        return CHESS.engine.isMate(model);
+    };
+
+    /**
+    Is the current position stalemate?
+
+    @returns {boolean} True or false.
+    **/
+    this.isStalemate = function () {
+        return CHESS.engine.isStalemate(model);
+    };
+
+    /**
+    Play a move.
+
+    @param {string} san - Move in standard algebraic notation.
+    **/
+    this.move = function (san) {
         var long_move,
             sq1,
             sq2;
 
-        long_move = CHESS.engine.getLongNotation(model, short_move);
+        long_move = CHESS.engine.getLongNotation(model, san);
         long_move = long_move.split('-');
         sq1 = long_move[0];
         sq2 = long_move[1];
@@ -967,6 +1003,12 @@ CHESS.Board = function (config) {
         view.refresh();
     };
 
+    /**
+    Allow other modules to subscribe to board change events.
+
+    @param {string} type - Type of event.
+    @param {function} fn - A callback function.
+    **/
     this.subscribe = function (type, fn) {
         type = type || 'any';
         if (controller.subscribers[type] === undefined) {
@@ -975,6 +1017,12 @@ CHESS.Board = function (config) {
         controller.subscribers[type].push(fn);
     };
     
+    /**
+    Allow other modules to unsubscribe from board change events.
+
+    @param {string} type - Type of event.
+    @param {function} fn - A callback function.
+    **/
     this.unsubscribe = function (fn, type) {
         controller.visitSubscribers('unsubscribe', fn, type);
     };
@@ -1105,5 +1153,6 @@ CHESS.Board = function (config) {
         }
     };
 
+    // Immediately initialize the board when an instance is created.
     init();
 };

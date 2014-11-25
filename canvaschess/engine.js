@@ -189,7 +189,7 @@ CHESS.engine.getFEN = function (pos) {
     return fen_arr.join(' ');
 };
 
-CHESS.engine.isLegal = function (gb, sq1, sq2) {
+CHESS.engine.isLegal = function (pos, sq1, sq2) {
     var i,
         xy1,
         xy2,
@@ -220,14 +220,14 @@ CHESS.engine.isLegal = function (gb, sq1, sq2) {
     y1 = parseInt(xy1.substr(1, 1));
     x2 = parseInt(xy2.substr(0, 1));
     y2 = parseInt(xy2.substr(1, 1));
-    sq1Val = gb.position_array[y1][x1];
-    sq2Val = gb.position_array[y2][x2];
+    sq1Val = pos.position_array[y1][x1];
+    sq2Val = pos.position_array[y2][x2];
     pieceType = sq1Val.substr(1, 1);
     pieceColor = sq1Val.substr(0, 1);
     is_en_passant = false;
 
     // Turn logic
-    if ((gb.white_to_move && pieceColor === 'b') || (!gb.white_to_move && pieceColor === 'w')) {
+    if ((pos.white_to_move && pieceColor === 'b') || (!pos.white_to_move && pieceColor === 'w')) {
         return false;
     }
 
@@ -247,18 +247,18 @@ CHESS.engine.isLegal = function (gb, sq1, sq2) {
             return false;
         }
         // pawns move 1 square (or 2 on first move)
-        if (!(Math.abs(y1 - y2) === 1 || (Math.abs(y1 - y2) === 2 && ((pieceColor === 'w' && y1 === 6 && gb.position_array[5][x1] === '') || (pieceColor === 'b' && y1 === 1 && gb.position_array[2][x1] === ''))))) {
+        if (!(Math.abs(y1 - y2) === 1 || (Math.abs(y1 - y2) === 2 && ((pieceColor === 'w' && y1 === 6 && pos.position_array[5][x1] === '') || (pieceColor === 'b' && y1 === 1 && pos.position_array[2][x1] === ''))))) {
             return false;
         }
         // pawns cannot capture directly forward
-        if (Math.abs(x1 - x2) === 0 && gb.position_array[y2][x2] !== '') {
+        if (Math.abs(x1 - x2) === 0 && pos.position_array[y2][x2] !== '') {
             return false;
         }
         // pawns cannot move horizontally unless capturing 1 square on a forward-diagonal
         if (Math.abs(x1 - x2) > 0) {
             // if side to side movement, only the following situations are valid
             is_capturing_enemy = (sq2Val.substr(0, 1) !== '' && sq2Val.substr(0, 1) !== pieceColor);
-            is_en_passant = gb.en_passant === this.reverseArrayPosition(y2 + '' + x2);
+            is_en_passant = pos.en_passant === this.reverseArrayPosition(y2 + '' + x2);
             if (!(Math.abs(x1 - x2) === 1 && Math.abs(y1 - y2) === 1 && (is_capturing_enemy || is_en_passant))) {
                 return false;
             }
@@ -270,56 +270,56 @@ CHESS.engine.isLegal = function (gb, sq1, sq2) {
         // castling
         if (Math.abs(x1 - x2) === 2) {
             if (pieceColor === 'w') {
-                if (sq2 === 'g1' && gb.gs_castle_kside_w && gb.position_array[7][5] === '' && gb.position_array[7][6] === '') {
+                if (sq2 === 'g1' && pos.gs_castle_kside_w && pos.position_array[7][5] === '' && pos.position_array[7][6] === '') {
                     // castle kingside
                     // check for checks
-                    if (this.isSquareAttacked(gb.position_array, 4, 7, 'w')) {
+                    if (this.isSquareAttacked(pos.position_array, 4, 7, 'w')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 5, 7, 'w')) {
+                    if (this.isSquareAttacked(pos.position_array, 5, 7, 'w')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 6, 7, 'w')) {
+                    if (this.isSquareAttacked(pos.position_array, 6, 7, 'w')) {
                         return false;
                     }
-                } else if (sq2 === 'c1' && gb.gs_castle_qside_w && gb.position_array[7][1] === '' && gb.position_array[7][2] === '' && gb.position_array[7][3] === '') {
+                } else if (sq2 === 'c1' && pos.gs_castle_qside_w && pos.position_array[7][1] === '' && pos.position_array[7][2] === '' && pos.position_array[7][3] === '') {
                     // castle queenside
                     // check for checks
-                    if (this.isSquareAttacked(gb.position_array, 2, 7, 'w')) {
+                    if (this.isSquareAttacked(pos.position_array, 2, 7, 'w')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 3, 7, 'w')) {
+                    if (this.isSquareAttacked(pos.position_array, 3, 7, 'w')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 4, 7, 'w')) {
+                    if (this.isSquareAttacked(pos.position_array, 4, 7, 'w')) {
                         return false;
                     }
                 } else {
                     return false;
                 }
             } else if (pieceColor === 'b') {
-                if (sq2 === 'g8' && gb.gs_castle_kside_b && gb.position_array[0][5] === '' && gb.position_array[0][6] === '') {
+                if (sq2 === 'g8' && pos.gs_castle_kside_b && pos.position_array[0][5] === '' && pos.position_array[0][6] === '') {
                     // castle kingside
                     // check for checks
-                    if (this.isSquareAttacked(gb.position_array, 4, 0, 'b')) {
+                    if (this.isSquareAttacked(pos.position_array, 4, 0, 'b')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 5, 0, 'b')) {
+                    if (this.isSquareAttacked(pos.position_array, 5, 0, 'b')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 6, 0, 'b')) {
+                    if (this.isSquareAttacked(pos.position_array, 6, 0, 'b')) {
                         return false;
                     }
-                } else if (sq2 === 'c8' && gb.gs_castle_qside_b && gb.position_array[0][1] === '' && gb.position_array[0][2] === '' && gb.position_array[0][3] === '') {
+                } else if (sq2 === 'c8' && pos.gs_castle_qside_b && pos.position_array[0][1] === '' && pos.position_array[0][2] === '' && pos.position_array[0][3] === '') {
                     // castle queenside
                     // check for checks
-                    if (this.isSquareAttacked(gb.position_array, 2, 0, 'b')) {
+                    if (this.isSquareAttacked(pos.position_array, 2, 0, 'b')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 3, 0, 'b')) {
+                    if (this.isSquareAttacked(pos.position_array, 3, 0, 'b')) {
                         return false;
                     }
-                    if (this.isSquareAttacked(gb.position_array, 4, 0, 'b')) {
+                    if (this.isSquareAttacked(pos.position_array, 4, 0, 'b')) {
                         return false;
                     }
                 } else {
@@ -383,7 +383,7 @@ CHESS.engine.isLegal = function (gb, sq1, sq2) {
             if (i > 8) {
                 break;
             }
-            if (gb.position_array[parseInt(y1) + i * yInc][parseInt(x1) + i * xInc] !== '') {
+            if (pos.position_array[parseInt(y1) + i * yInc][parseInt(x1) + i * xInc] !== '') {
                 return false;
             }
             i += 1;
@@ -391,7 +391,7 @@ CHESS.engine.isLegal = function (gb, sq1, sq2) {
     }
 
     // KING IN CHECK
-    temp_position_array = this.clonePositionArray(gb.position_array);
+    temp_position_array = this.clonePositionArray(pos.position_array);
     temp_position_array[xy2.substr(1, 1)][xy2.substr(0, 1)] = temp_position_array[xy1.substr(1, 1)][xy1.substr(0, 1)];
     temp_position_array[xy1.substr(1, 1)][xy1.substr(0, 1)] = '';
     if (is_en_passant) {
@@ -424,17 +424,17 @@ CHESS.engine.isCheck = function (temp_position_array, pieceColor) {
     return false;
 };
 
-CHESS.engine.isMate = function (gb) {
+CHESS.engine.isMate = function (pos) {
     var i,
         j,
-        color = (gb.white_to_move ? 'w' : 'b'),
+        color = (pos.white_to_move ? 'w' : 'b'),
         kingX = 0,
         kingY = 0,
         attacker_sq,
         attack_x,
         attack_y,
         friendly_attacker_sq,
-        position_array = this.clonePositionArray(gb.position_array);
+        position_array = this.clonePositionArray(pos.position_array);
 
     // Find king
     for (i = 0; i < 8; i++) {
@@ -538,7 +538,7 @@ CHESS.engine.isMate = function (gb) {
         // Can the attacking piece be captured?
         var sq1 = this.reverseArrayPosition(friendly_attacker_sq);
         var sq2 = this.reverseArrayPosition(attacker_sq);
-        if (this.isLegal(gb, sq1, sq2)) {
+        if (this.isLegal(pos, sq1, sq2)) {
             return false;
         }
     }
@@ -583,7 +583,7 @@ CHESS.engine.isMate = function (gb) {
     // Can en passant save the day?
     if (attacker_type === 'p') {
         // if attacker is vulnerable to en passant
-        if (color === 'w' && attack_y === 3 && gb.en_passant === this.reverseArrayPosition((attack_y - 1) + '' + attack_x)) {
+        if (color === 'w' && attack_y === 3 && pos.en_passant === this.reverseArrayPosition((attack_y - 1) + '' + attack_x)) {
             // ... and if defender can execute en passant
             if (attack_x > 0 && position_array[3][attack_x - 1].substr(0, 2) === 'wp') {
                 return false;
@@ -593,7 +593,7 @@ CHESS.engine.isMate = function (gb) {
             }
         }
         // if attacker is vulnerable to en passant
-        if (color === 'b' && attack_y === 4 && gb.en_passant === this.reverseArrayPosition((attack_y + 1) + '' + attack_x)) {
+        if (color === 'b' && attack_y === 4 && pos.en_passant === this.reverseArrayPosition((attack_y + 1) + '' + attack_x)) {
             // ... and if defender can execute en passant
             if (attack_x > 0 && position_array[4][attack_x - 1].substr(0, 2) === 'bp') {
                 return false;
@@ -1089,19 +1089,19 @@ CHESS.engine.getAttacker = function (temp_position_array, kingX, kingY, pieceCol
     return '';
 };
 
-CHESS.engine.isStalemate = function (gb) {
-    var is_stalemate = !this.getLegalMoves(gb, true);
+CHESS.engine.isStalemate = function (pos) {
+    var is_stalemate = !this.getLegalMoves(pos, true);
     return is_stalemate;
 };
 
-CHESS.engine.getLegalMoves = function (gb, return_bool) {
+CHESS.engine.getLegalMoves = function (pos, return_bool) {
     var i,
         j,
         sq1,
         sq2,
         move = '',
         move_list = [],
-        color = (gb.white_to_move ? 'w' : 'b'),
+        color = (pos.white_to_move ? 'w' : 'b'),
         dir,
         sq = 0,
         en_passant_x;
@@ -1110,7 +1110,7 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
         for (j = 0; j < 8; j++) {
             sq1 = this.reverseArrayPosition (i + '' + j);
             // King
-            if (gb.position_array[i][j] === color + 'k') {
+            if (pos.position_array[i][j] === color + 'k') {
                 // N
                 if (i > 0) {
                     sq2 = this.reverseArrayPosition((i - 1) + '' + j);
@@ -1164,7 +1164,7 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
                 // for stalement. If the king can castle, he can also move one square.
             }
             // Pawn
-            if (gb.position_array[i][j].substr(0, 2) === color + 'p') {
+            if (pos.position_array[i][j].substr(0, 2) === color + 'p') {
                 dir = (color === 'w' ? -1 : 1);
                 // One square
                 sq2 = this.reverseArrayPosition((i + dir) + '' + j);
@@ -1179,8 +1179,8 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
                 // Capture
                 // ...
                 // En Passant
-                if (/[a-h][1-8]/.test(gb.en_passant)) {
-                    en_passant_x = parseInt(this.getArrayPosition(gb.en_passant).substr(0, 1), 10);
+                if (/[a-h][1-8]/.test(pos.en_passant)) {
+                    en_passant_x = parseInt(this.getArrayPosition(pos.en_passant).substr(0, 1), 10);
                 }
                 if (color === 'w' && i === 3) {
                     if (en_passant_x === (j - 1)) {
@@ -1208,7 +1208,7 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
                 }
             }
             // Queen
-            if (gb.position_array[i][j] === color + 'q') {
+            if (pos.position_array[i][j] === color + 'q') {
                 // N
                 sq = 1;
                 while (i - sq >= 0) {
@@ -1275,7 +1275,7 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
                 }
             }
             // Rook
-            if (gb.position_array[i][j] === color + 'r') {
+            if (pos.position_array[i][j] === color + 'r') {
                 // N
                 sq = 1;
                 while (i - sq >= 0) {
@@ -1310,7 +1310,7 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
                 }
             }
             // Bishop
-            if (gb.position_array[i][j] === color + 'b') {
+            if (pos.position_array[i][j] === color + 'b') {
                 // NE
                 sq = 1;
                 while (i - sq >= 0 && j + sq <= 7) {
@@ -1345,7 +1345,7 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
                 }
             }
             // Knight
-            if (gb.position_array[i][j] === color + 'n') {
+            if (pos.position_array[i][j] === color + 'n') {
                 // NNE
                 if (i >= 2 && j <= 6) {
                     sq2 = this.reverseArrayPosition((i - 2) + '' + (j + 1));
@@ -1400,7 +1400,7 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
     for (i = 0; i < move_list.length; i++) {
         sq1 = move_list[i].split('-')[0];
         sq2 = move_list[i].split('-')[1];
-        if (!this.isLegal(gb, sq1, sq2)) {
+        if (!this.isLegal(pos, sq1, sq2)) {
             move_list.splice(i, 1);
             i--;
         } else if (return_bool) {
@@ -1413,24 +1413,24 @@ CHESS.engine.getLegalMoves = function (gb, return_bool) {
     return move_list;
 };
 
-CHESS.engine.getLongNotation = function (gb, move) {
+CHESS.engine.getLongNotation = function (pos, short_notation) {
     var i,
         j,
         long_move = '',
         sq1,
-        sq2 = move.replace(/[#+=xKQRBN]/g, ''),
-        color = (gb.white_to_move ? 'w' : 'b'),
-        piece = move.substring(0, 1),
+        sq2 = short_notation.replace(/[#+=xKQRBN]/g, ''),
+        color = (pos.white_to_move ? 'w' : 'b'),
+        piece = short_notation.substring(0, 1),
         sq1_info = '',
         sq1_info_type = '';
     // Check for castling first
-    if (move === 'O-O') {
+    if (short_notation === 'O-O') {
         if (color === 'w') {
             return 'e1-g1';
         } else {
             return 'e8-g8';
         }
-    } else if (move === 'O-O-O') {
+    } else if (short_notation === 'O-O-O') {
         if (color === 'w') {
             return 'e1-c1';
         } else {
@@ -1461,9 +1461,9 @@ CHESS.engine.getLongNotation = function (gb, move) {
                 continue;
             }
             // Locate a potential piece
-            if (gb.position_array[i][j].length > 1 && gb.position_array[i][j].substr(0, 2) === color + piece) {
+            if (pos.position_array[i][j].length > 1 && pos.position_array[i][j].substr(0, 2) === color + piece) {
                 sq1 = this.reverseArrayPosition (i + '' + j);
-                if (this.isLegal(gb, sq1, sq2)) {
+                if (this.isLegal(pos, sq1, sq2)) {
                     long_move = sq1 + '-' + sq2;
                 }
             }
@@ -1505,7 +1505,7 @@ CHESS.engine.clonePositionArray = function (old_array) {
     return new_array;
 };
 
-CHESS.engine.moveTemp = function (gb, sq1, sq2) {
+CHESS.engine.moveTemp = function (pos, sq1, sq2) {
     var w_sq1,
         w_sq2,
         w_xy1,
@@ -1527,13 +1527,13 @@ CHESS.engine.moveTemp = function (gb, sq1, sq2) {
         piece;
 
     // Do not play if move is illegal
-    if (!this.isLegal(gb, sq1, sq2)) {
+    if (!this.isLegal(pos, sq1, sq2)) {
         return false;
     }
     // Update game values
-    gb.last_move = {'sq1':this.getArrayPosition(sq1), 'sq2':this.getArrayPosition(sq2)};
+    pos.last_move = {'sq1':this.getArrayPosition(sq1), 'sq2':this.getArrayPosition(sq2)};
 
-    if (gb.white_to_move) {
+    if (pos.white_to_move) {
         w_sq1 = sq1;
         w_sq2 = sq2;
         w_xy1 = this.getArrayPosition(w_sq1);
@@ -1542,50 +1542,50 @@ CHESS.engine.moveTemp = function (gb, sq1, sq2) {
         w_y1 = parseInt(w_xy1.substr(1, 1));
         w_x2 = parseInt(w_xy2.substr(0, 1));
         w_y2 = parseInt(w_xy2.substr(1, 1));
-        captured_piece = gb.position_array[w_y2][w_x2];
-        piece = gb.position_array[w_y1][w_x1];
-        gb.position_array[w_y2][w_x2] = gb.position_array[w_y1][w_x1];
-        gb.position_array[w_y1][w_x1] = '';
+        captured_piece = pos.position_array[w_y2][w_x2];
+        piece = pos.position_array[w_y1][w_x1];
+        pos.position_array[w_y2][w_x2] = pos.position_array[w_y1][w_x1];
+        pos.position_array[w_y1][w_x1] = '';
         // Pawn is eligible to be captured en passant
         w_xy1 = this.getArrayPosition(w_sq1);
         if (piece.substr(0, 2) === 'wp' && w_y2 - w_y1 === -2) {
-            gb.en_passant = this.reverseArrayPosition((w_y2 + 1) + '' + w_x2);
+            pos.en_passant = this.reverseArrayPosition((w_y2 + 1) + '' + w_x2);
         } else {
-            gb.en_passant = '';
+            pos.en_passant = '';
         }
         // En passant
         if (piece.substr(0, 2) === 'wp' && w_x2 !== w_x1 && captured_piece === '') {
-            gb.position_array[w_y1][w_x2] = '';
+            pos.position_array[w_y1][w_x2] = '';
             pawn_sq = w_sq2.substr(0, 1) + w_sq1.substr(1, 1);
         }
         // Pawn promotion
         if (piece.substr(0, 2) === 'wp' && w_y2 === 0) {
-            gb.position_array[w_y2][w_x2] = 'wq';
+            pos.position_array[w_y2][w_x2] = 'wq';
         }
         // Castling
         if (piece === 'wk' && w_sq1 === 'e1') {
             if (w_sq2 === 'g1') {
-                gb.position_array[7][5] = 'wrk';
-                gb.position_array[7][7] = '';
+                pos.position_array[7][5] = 'wrk';
+                pos.position_array[7][7] = '';
             } else if (w_sq2 === 'c1') {
-                gb.position_array[7][3] = 'wrq';
-                gb.position_array[7][0] = '';
+                pos.position_array[7][3] = 'wrq';
+                pos.position_array[7][0] = '';
             }
         }
         // Lose castling ability
         if (piece === 'wk') {
-            gb.gs_castle_kside_w = false;
-            gb.gs_castle_qside_w = false;
+            pos.gs_castle_kside_w = false;
+            pos.gs_castle_qside_w = false;
         } else if (piece === 'wr' && w_sq1 === 'h1') {
-            gb.gs_castle_kside_w = false;
+            pos.gs_castle_kside_w = false;
         } else if (piece === 'wr' && w_sq1 === 'a1') {
-            gb.gs_castle_qside_w = false;
+            pos.gs_castle_qside_w = false;
         } else if (captured_piece === 'br' && w_sq2 === 'a8') {
-            gb.gs_castle_qside_b = false;
+            pos.gs_castle_qside_b = false;
         } else if (captured_piece === 'br' && w_sq2 === 'h8') {
-            gb.gs_castle_kside_b = false;
+            pos.gs_castle_kside_b = false;
         }
-        gb.white_to_move = false;
+        pos.white_to_move = false;
     } else {
         // Black's turn
         b_sq1 = sq1;
@@ -1596,54 +1596,54 @@ CHESS.engine.moveTemp = function (gb, sq1, sq2) {
         b_y1 = parseInt(b_xy1.substr(1, 1));
         b_x2 = parseInt(b_xy2.substr(0, 1));
         b_y2 = parseInt(b_xy2.substr(1, 1));
-        captured_piece = gb.position_array[b_y2][b_x2];
-        piece = gb.position_array[b_y1][b_x1];
-        gb.position_array[b_y2][b_x2] = gb.position_array[b_y1][b_x1];
-        gb.position_array[b_y1][b_x1] = '';
+        captured_piece = pos.position_array[b_y2][b_x2];
+        piece = pos.position_array[b_y1][b_x1];
+        pos.position_array[b_y2][b_x2] = pos.position_array[b_y1][b_x1];
+        pos.position_array[b_y1][b_x1] = '';
         // Pawn is eligible to be captured en passant
         b_xy1 = this.getArrayPosition(b_sq1);
         if (piece.substr(0, 2) === 'bp' && b_y2 - b_y1 === 2) {
-            gb.en_passant = this.reverseArrayPosition((b_y2 - 1) + '' + b_x2);
+            pos.en_passant = this.reverseArrayPosition((b_y2 - 1) + '' + b_x2);
         } else {
-            gb.en_passant = '';
+            pos.en_passant = '';
         }
         // En passant
         if (piece.substr(0, 2) === 'bp' && b_x2 !== b_x1 && captured_piece === '') {
-            gb.position_array[b_y1][b_x2] = '';
+            pos.position_array[b_y1][b_x2] = '';
             pawn_sq = b_sq2.substr(0, 1) + b_sq1.substr(1, 1);
         }
         // Pawn promotion
         if (piece.substr(0, 2) === 'bp' && b_y2 === 7) {
-            gb.position_array[b_y2][b_x2] = 'bq';
+            pos.position_array[b_y2][b_x2] = 'bq';
         }
         // Castling
         if (piece === 'bk' && b_sq1 === 'e8') {
             if (b_sq2 === 'g8') {
-                gb.position_array[0][5] = 'brk';
-                gb.position_array[0][7] = '';
+                pos.position_array[0][5] = 'brk';
+                pos.position_array[0][7] = '';
             } else if (b_sq2 === 'c8') {
-                gb.position_array[0][3] = 'brq';
-                gb.position_array[0][0] = '';
+                pos.position_array[0][3] = 'brq';
+                pos.position_array[0][0] = '';
             }
         }
         // Lose castling ability
         if (piece === 'bk') {
-            gb.gs_castle_kside_b = false;
-            gb.gs_castle_qside_b = false;
+            pos.gs_castle_kside_b = false;
+            pos.gs_castle_qside_b = false;
         } else if (piece === 'br' && b_sq1 === 'h8') {
-            gb.gs_castle_kside_b = false;
+            pos.gs_castle_kside_b = false;
         } else if (piece === 'br' && b_sq1 === 'a8') {
-            gb.gs_castle_qside_b = false;
+            pos.gs_castle_qside_b = false;
         } else if (captured_piece === 'wr' && b_sq2 === 'a1') {
-            gb.gs_castle_qside_w = false;
+            pos.gs_castle_qside_w = false;
         } else if (captured_piece === 'wr' && b_sq2 === 'h1') {
-            gb.gs_castle_kside_w = false;
+            pos.gs_castle_kside_w = false;
         }
-        gb.white_to_move = true;
+        pos.white_to_move = true;
     }
     // Check game ending conditions
-    if (this.isMate(gb) || this.isStalemate(gb)) {
-        gb.active = false;
+    if (this.isMate(pos) || this.isStalemate(pos)) {
+        pos.active = false;
     }
     return true;
 };
