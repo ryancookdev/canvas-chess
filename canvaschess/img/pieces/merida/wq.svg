@@ -16,7 +16,40 @@
    inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="wq.svg">
   <defs
-     id="defs3116" />
+     id="defs3116">
+    <filter
+       id="filter3003"
+       style="color-interpolation-filters:sRGB;"
+       inkscape:label="Drop Shadow">
+      <feFlood
+         id="feFlood3005"
+         flood-opacity="0.5"
+         flood-color="rgb(0,0,0)"
+         result="flood" />
+      <feComposite
+         id="feComposite3007"
+         in2="SourceGraphic"
+         in="flood"
+         operator="in"
+         result="composite1" />
+      <feGaussianBlur
+         id="feGaussianBlur3009"
+         in="composite"
+         stdDeviation="2"
+         result="blur" />
+      <feOffset
+         id="feOffset3011"
+         dx="4"
+         dy="4"
+         result="offset" />
+      <feComposite
+         id="feComposite3013"
+         in2="offset"
+         in="SourceGraphic"
+         operator="over"
+         result="composite2" />
+    </filter>
+  </defs>
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -58,7 +91,8 @@
      transform="translate(-325.521,-468.15031)">
     <g
        id="wqueen"
-       transform="translate(-170.51677,274.22798)">
+       transform="translate(-170.51677,274.22798)"
+       style="filter:url(#filter3003)">
       <path
          inkscape:connector-curvature="0"
          style="fill:#000000"

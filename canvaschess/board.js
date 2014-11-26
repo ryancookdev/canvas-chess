@@ -612,15 +612,22 @@ CHESS.Board = function (config) {
             this.ctx.rect(row * this.square_size, col * this.square_size, this.square_size, this.square_size);
             this.ctx.fill();
         } else {
-            image = (color === 'light' ? this.square_light : this.square_dark);
-            this.snapshot_ctx.save();
-            // 55 is the standard size of the piece image
-            scale = this.square_size / 55;
-            this.snapshot_ctx.scale(scale, scale);
             scale_x = x / scale;
             scale_y = y / scale;
-            this.snapshot_ctx.drawImage(image, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
-            this.snapshot_ctx.restore();
+            image = (color === 'light' ? this.square_light : this.square_dark);
+            if (image.src !== '') {
+                this.snapshot_ctx.save();
+                // 55 is the standard size of the piece image
+                scale = this.square_size / 55;
+                this.snapshot_ctx.scale(scale, scale);
+                this.snapshot_ctx.drawImage(image, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.restore();
+            } else {
+                this.snapshot_ctx.beginPath();
+                this.snapshot_ctx.fillStyle = (color === 'light' ? this.square_color_light : this.square_color_dark);
+                this.snapshot_ctx.rect(scale_x, scale_y, this.square_size, this.square_size);
+                this.snapshot_ctx.fill();
+            }
         }
 
         // Row/Col labels
@@ -683,20 +690,13 @@ CHESS.Board = function (config) {
         this.snapshot.width = this.square_size * 8;
         this.snapshot.height = this.square_size * rows;
 
-        // Draw chessboard (light squares)
-        if (this.square_light.src === '') {
-            this.snapshot_ctx.beginPath();
-            this.snapshot_ctx.fillStyle = this.square_color_light;
-            this.snapshot_ctx.rect(0, 0, this.square_size * 8, this.square_size * 8);
-            this.snapshot_ctx.fill();
-        } else {
-            for (y = 0; y < 8; y += 1) {
-                for (x = 0; x < 8; x += 1) {
-                    if ((x + y) % 2 === 0) {
-                        x_pos = x * this.square_size;
-                        y_pos = y * this.square_size;
-                        this.drawSquare('light', x_pos, y_pos);
-                    }
+        // Draw chessboard
+        for (y = 0; y < 8; y += 1) {
+            for (x = 0; x < 8; x += 1) {
+                if ((x + y) % 2 === 0) {
+                    x_pos = x * this.square_size;
+                    y_pos = y * this.square_size;
+                    this.drawSquare('light', x_pos, y_pos);
                 }
             }
         }
@@ -705,14 +705,7 @@ CHESS.Board = function (config) {
                 if ((x + y) % 2 !== 0) {
                     x_pos = x * this.square_size;
                     y_pos = y * this.square_size;
-                    if (this.square_dark.src === '') {
-                        this.snapshot_ctx.beginPath();
-                        this.snapshot_ctx.fillStyle = this.square_color_dark;
-                        this.snapshot_ctx.rect(x_pos, y_pos, this.square_size, this.square_size);
-                        this.snapshot_ctx.fill();
-                    } else {
-                        this.drawSquare('dark', x_pos, y_pos);
-                    }
+                    this.drawSquare('dark', x_pos, y_pos);
                 }
             }
         }
