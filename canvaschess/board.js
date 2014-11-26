@@ -66,6 +66,7 @@ CHESS.Board = function (config) {
             white_down: true,
             highlight_move: false,
             highlight_move_color: '#FF0000',
+            highlight_move_alpha: '0.5',
             highlight_hover: false,
             show_row_col_labels: true,
             wp: new Image(),
@@ -714,7 +715,7 @@ CHESS.Board = function (config) {
         if (this.highlight_move) {
             if (typeof model.last_move === 'object' && model.last_move.sq1 !== undefined) {
                 this.snapshot_ctx.beginPath();
-                this.snapshot_ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', 0.5)';
+                this.snapshot_ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', ' + this.highlight_move_alpha + ')';
 
                 x = model.last_move.sq1.substr(0, 1);
                 y = model.last_move.sq1.substr(1, 1);
@@ -1042,6 +1043,7 @@ CHESS.Board = function (config) {
         view.square_color_light = (config.square_color_light ? config.square_color_light : view.square_color_light);
         view.square_color_dark = (config.square_color_dark ? config.square_color_dark : view.square_color_dark);
         view.highlight_move_color = (config.highlight_move_color ? config.highlight_move_color : view.highlight_move_color);
+        view.highlight_move_alpha = (config.highlight_move_alpha ? config.highlight_move_alpha : view.highlight_move_alpha);
         view.square_hover_light = (config.square_hover_light ? config.square_hover_light : view.square_hover_light);
         view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
         model.mode = config.mode;

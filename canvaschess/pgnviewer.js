@@ -790,6 +790,8 @@ CHESS.PgnViewer = function (config) {
             square_dark: config.square_dark,
             square_light: config.square_light,
             highlight_move: config.highlight_move,
+            highlight_move_color: config.highlight_move_color,
+            highlight_move_alpha: config.highlight_move_alpha,
             show_row_col_labels: config.show_row_col_labels,
             piece_set: config.piece_set
         });
