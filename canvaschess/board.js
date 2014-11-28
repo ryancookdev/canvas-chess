@@ -39,7 +39,7 @@ CHESS.Board = function (config) {
             snapshot: null,
             snapshot_ctx: null,
             snapshot_img: new Image(),
-            square_size: 80,
+            square_size: 0,
             square_color_light: '#ececd7',
             square_color_dark: '#7389b6',
             square_hover_light: '#b4d990',
@@ -95,7 +95,6 @@ CHESS.Board = function (config) {
         view.left = 0;
         view.top = 0;
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -152,7 +151,7 @@ CHESS.Board = function (config) {
                 view.drag_clear_j = j;
                 view.drag_piece = piece;
                 view.dragok = true;
-                view.takeSnapshot();
+                view.takeSnapshot(false);
             } else {
                 view.canvas.style.cursor = 'default';
             }
@@ -384,7 +383,6 @@ CHESS.Board = function (config) {
             }
 
             view.takeSnapshot();
-            view.refresh();
         }
     };
 
@@ -500,7 +498,6 @@ CHESS.Board = function (config) {
 
         if (!CHESS.engine.moveTemp(pos, sq1, sq2)) {
             view.takeSnapshot();
-            view.refresh();
             return;
         }
         
@@ -530,7 +527,6 @@ CHESS.Board = function (config) {
             };
         }
         view.takeSnapshot();
-        view.refresh();
 
         if (!this.active) {
             return;
@@ -572,10 +568,9 @@ CHESS.Board = function (config) {
     view.drawPiece = function (piece, x, y) {
         var scale_x,
             scale_y,
-            scale = 1;
+            scale = this.square_size / 55; // 55 is the standard size of the piece image
+
         this.snapshot_ctx.save();
-        // 55 is the standard size of the piece image
-        scale = this.square_size / 55;
         this.snapshot_ctx.scale(scale, scale);
         scale_x = x / scale;
         scale_y = y / scale;
@@ -592,9 +587,7 @@ CHESS.Board = function (config) {
     **/
     view.drawSquare = function (color, x, y, context) {
         var ctx = context || this.snapshot_ctx,
-            scale_x,
-            scale_y,
-            scale = 1,
+            scale = this.square_size / 55, // 55 is the standard size of the piece image
             image,
             col = parseInt(x / this.square_size, 10),
             row = parseInt(y / this.square_size, 10),
@@ -613,20 +606,16 @@ CHESS.Board = function (config) {
             this.ctx.rect(row * this.square_size, col * this.square_size, this.square_size, this.square_size);
             this.ctx.fill();
         } else {
-            scale_x = x / scale;
-            scale_y = y / scale;
             image = (color === 'light' ? this.square_light : this.square_dark);
             if (image.src !== '') {
                 this.snapshot_ctx.save();
-                // 55 is the standard size of the piece image
-                scale = this.square_size / 55;
                 this.snapshot_ctx.scale(scale, scale);
-                this.snapshot_ctx.drawImage(image, 0, 0, 55, 55, scale_x, scale_y, 55, 55);
+                this.snapshot_ctx.drawImage(image, 0, 0, 55, 55, x, y, 55, 55);
                 this.snapshot_ctx.restore();
             } else {
                 this.snapshot_ctx.beginPath();
                 this.snapshot_ctx.fillStyle = (color === 'light' ? this.square_color_light : this.square_color_dark);
-                this.snapshot_ctx.rect(scale_x, scale_y, this.square_size, this.square_size);
+                this.snapshot_ctx.rect(x, y, this.square_size, this.square_size);
                 this.snapshot_ctx.fill();
             }
         }
@@ -660,17 +649,9 @@ CHESS.Board = function (config) {
     };
 
     /**
-    Redraw the board from the image buffer.
-    **/
-    view.refresh = function () {
-        this.ctx.clearRect(0, this.square_size * 8, this.square_size * 8, this.square_size * 2);
-        this.ctx.drawImage(this.snapshot, 0, 0);
-    };
-
-    /**
     Draw the board to an image buffer.
     **/
-    view.takeSnapshot = function () {
+    view.takeSnapshot = function (refresh) {
         var i,
             j,
             ii,
@@ -801,6 +782,15 @@ CHESS.Board = function (config) {
                 }
             }
         }
+
+        // Redraw the board from the image buffer
+        if (refresh === undefined) {
+            refresh = true;
+        }
+        if (refresh) {
+            this.ctx.clearRect(0, this.square_size * 8, this.square_size * 8, this.square_size * 2);
+            this.ctx.drawImage(this.snapshot, 0, 0);
+        }
     };
 
     /**
@@ -808,7 +798,6 @@ CHESS.Board = function (config) {
     **/
     this.display = function () {
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -817,7 +806,6 @@ CHESS.Board = function (config) {
     this.flip = function () {
         view.white_down = !view.white_down;
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -906,7 +894,6 @@ CHESS.Board = function (config) {
         model.gs_castle_qside_b = true;
         model.moves = 0;
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -934,7 +921,6 @@ CHESS.Board = function (config) {
         model.active = true;
 
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -946,7 +932,6 @@ CHESS.Board = function (config) {
     this.resize = function (height, width) {
         controller.resize(height, width);
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -982,7 +967,6 @@ CHESS.Board = function (config) {
         }
         controller.resize(view.canvas.height, view.canvas.width);
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -994,7 +978,6 @@ CHESS.Board = function (config) {
         model.setPosition(fen);
         model.active = true;
         view.takeSnapshot();
-        view.refresh();
     };
 
     /**
@@ -1063,87 +1046,73 @@ CHESS.Board = function (config) {
         view.wp.src = path + '/wp.svg';
         view.wp.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.wr.src = path + '/wr.svg';
         view.wr.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.wn.src = path + '/wn.svg';
         view.wn.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.wb.src = path + '/wb.svg';
         view.wb.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.wq.src = path + '/wq.svg';
         view.wq.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.wk.src = path + '/wk.svg';
         view.wk.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.bp.src = path + '/bp.svg';
         view.bp.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.br.src = path + '/br.svg';
         view.br.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.bn.src = path + '/bn.svg';
         view.bn.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.bb.src = path + '/bb.svg';
         view.bb.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.bq.src = path + '/bq.svg';
         view.bq.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         view.bk.src = path + '/bk.svg';
         view.bk.onload = function () {
             view.takeSnapshot();
-            view.refresh();
         };
 
         if (typeof config.square_dark === 'string') {
             view.square_dark.src = config.square_dark;
             view.square_dark.onload = function () {
                 view.takeSnapshot();
-                view.refresh();
             };
         }
         if (typeof config.square_light === 'string') {
             view.square_light.src = config.square_light;
             view.square_light.onload = function () {
                 view.takeSnapshot();
-                view.refresh();
             };
         }
     };

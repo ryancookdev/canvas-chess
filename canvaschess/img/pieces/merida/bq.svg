@@ -16,40 +16,7 @@
    inkscape:version="0.48.3.1 r9886"
    sodipodi:docname="bq.svg">
   <defs
-     id="defs3647">
-    <filter
-       id="filter2992"
-       style="color-interpolation-filters:sRGB;"
-       inkscape:label="Drop Shadow">
-      <feFlood
-         id="feFlood2994"
-         flood-opacity="0.5"
-         flood-color="rgb(0,0,0)"
-         result="flood" />
-      <feComposite
-         id="feComposite2996"
-         in2="SourceGraphic"
-         in="flood"
-         operator="in"
-         result="composite1" />
-      <feGaussianBlur
-         id="feGaussianBlur2998"
-         in="composite"
-         stdDeviation="2"
-         result="blur" />
-      <feOffset
-         id="feOffset3000"
-         dx="2"
-         dy="3"
-         result="offset" />
-      <feComposite
-         id="feComposite3002"
-         in2="offset"
-         in="SourceGraphic"
-         operator="over"
-         result="composite2" />
-    </filter>
-  </defs>
+     id="defs3647" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -90,7 +57,7 @@
      id="layer1"
      transform="translate(-325.52102,-468.1503)">
     <g
-       style="display:block;filter:url(#filter2992)"
+       style="display:block"
        id="bqueen"
        transform="translate(-170.51675,474.42399)">
       <path
