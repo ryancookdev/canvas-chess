@@ -175,9 +175,8 @@ CHESS.Board = function (config) {
             clip_start_y,
             clip_width,
             clip_height,
-            scale,
-            scale_x,
-            scale_y,
+            x,
+            y,
             draw_height,
             rect = myview.canvas.getBoundingClientRect(),
             //is_square_light,
@@ -266,10 +265,6 @@ CHESS.Board = function (config) {
                     }
                 }
             }*/
-            
-            myview.ctx.save();
-            scale = (myview.square_size / 55);
-            myview.ctx.scale(scale, scale);
 
             // Draw any piece that was sitting on the hover square
             ii = i;
@@ -280,25 +275,24 @@ CHESS.Board = function (config) {
             }
             piece = model.position_array[ii][jj].substr(0, 2);
             if (piece !== '' && !(ii === myview.drag_clear_i && jj === myview.drag_clear_j)) {
-                scale_x = parseInt((j * myview.square_size / scale), 10);
-                scale_y = parseInt((i * myview.square_size / scale), 10);
-                myview.ctx.drawImage(myview[piece], scale_x, scale_y, 55, 55);
+                x = parseInt((j * myview.square_size), 10);
+                y = parseInt((i * myview.square_size), 10);
+                myview.ctx.drawImage(myview[piece], x, y, myview.square_size, myview.square_size);
             }
 
             // Draw drag piece
             piece = myview.drag_piece.substr(0, 2);
-            scale_x = parseInt(((myview.left - (myview.square_size / 2)) / scale), 10);
-            scale_y = parseInt(((myview.top - (myview.square_size / 2)) / scale), 10);
+            x = parseInt(((myview.left - (myview.square_size / 2))), 10);
+            y = parseInt(((myview.top - (myview.square_size / 2))), 10);
 
             // Trim drawing region so it doesn't go into the piece box
-            draw_height = 55;
+            draw_height = myview.square_size;
             if (model.mode === 'setup' && myview.top > myview.square_size * 7.5) {
-                draw_height = draw_height - ((myview.top - myview.square_size * 7.5) / scale);
+                draw_height = draw_height - ((myview.top - myview.square_size * 7.5));
             }
             
             // Draw the piece
-            myview.ctx.drawImage(myview[piece], scale_x, scale_y, 55, 55);
-            myview.ctx.restore();
+            myview.ctx.drawImage(myview[piece], x, y, myview.square_size, myview.square_size);
         }
     };
 
@@ -566,16 +560,7 @@ CHESS.Board = function (config) {
     @param {number} y - The vertical position in pixels.
     **/
     view.drawPiece = function (piece, x, y) {
-        var scale_x,
-            scale_y,
-            scale = this.square_size / 55; // 55 is the standard size of the piece image
-
-        this.snapshot_ctx.save();
-        this.snapshot_ctx.scale(scale, scale);
-        scale_x = x / scale;
-        scale_y = y / scale;
-        this.snapshot_ctx.drawImage(this[piece], scale_x, scale_y, 55, 55);
-        this.snapshot_ctx.restore();
+        this.snapshot_ctx.drawImage(this[piece], x, y, this.square_size, this.square_size);
     };
 
     /**
