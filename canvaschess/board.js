@@ -572,14 +572,14 @@ CHESS.Board = function (config) {
     **/
     view.drawSquare = function (color, x, y, context) {
         var ctx = context || this.snapshot_ctx,
-            scale = this.square_size / 55, // 55 is the standard size of the piece image
+            scale = this.square_size / 55, // 55 is the standard size of the square image
             image,
             col = parseInt(x / this.square_size, 10),
             row = parseInt(y / this.square_size, 10),
             rowcol,
             font_size,
-            font_margin_top = parseInt(this.square_size / 55 * 10, 10),
-            font_margin_left = parseInt(this.square_size / 55 * 7, 10);;
+            font_margin_top = parseInt(this.square_size / 55 * 11, 10),
+            font_margin_left = parseInt(this.square_size / 55 * 8, 10);;
 
         if (color === 'hover') {
             this.ctx.beginPath();
@@ -608,7 +608,7 @@ CHESS.Board = function (config) {
         // Row/Col labels
         if (this.show_row_col_labels && (row === 7 || col === 0)) {
             // Font
-            font_size = parseInt(this.square_size / 55 * 11, 10),
+            font_size = parseInt(this.square_size / 55 * 12, 10),
             this.snapshot_ctx.font = font_size + 'px arial';
             this.snapshot_ctx.fillStyle = (((7 - row) + col) % 2 === 0 ? this.square_color_light : this.square_color_dark);
 
