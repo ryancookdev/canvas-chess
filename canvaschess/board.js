@@ -578,8 +578,8 @@ CHESS.Board = function (config) {
             row = parseInt(y / this.square_size, 10),
             rowcol,
             font_size,
-            font_margin_top = parseInt(this.square_size / 55 * 11, 10),
-            font_margin_left = parseInt(this.square_size / 55 * 8, 10);;
+            font_margin_top = parseInt(this.square_size / 55 * 13, 10),
+            font_margin_left = parseInt(this.square_size / 55 * 9, 10);;
 
         if (color === 'hover') {
             this.ctx.beginPath();
