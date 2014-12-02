@@ -679,13 +679,6 @@ CHESS.Board = function (config) {
     };
 
     /**
-    Remove an arrow from the arrow list.
-    **/
-    view.arrowRemove = function () {
-        this.arrow_list.pop();
-    };
-
-    /**
     Draw a piece to the image buffer.
 
     @param {string} piece - The piece to draw.
@@ -1062,7 +1055,7 @@ CHESS.Board = function (config) {
     Remove an arrow from the board.
     **/
     this.removeArrow = function () {
-        view.arrowRemove();
+        view.arrow_list.pop();
         view.takeSnapshot();
     };
 
@@ -1070,11 +1063,7 @@ CHESS.Board = function (config) {
     Remove all arrows from the board.
     **/
     this.removeAllArrows = function () {
-        var i;
-
-        for (i = 0; i < view.arrow_list.length; i += 1) {
-            view.arrowRemove();
-        }
+        view.arrow_list = [];
         view.takeSnapshot();
     };
 
