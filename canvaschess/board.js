@@ -69,6 +69,7 @@ CHESS.Board = function (config) {
             highlight_move_alpha: '0.5',
             highlight_hover: false,
             show_row_col_labels: true,
+            arrow_list: [],
             wp: new Image(),
             wr: new Image(),
             wn: new Image(),
@@ -553,6 +554,138 @@ CHESS.Board = function (config) {
     };
 
     /**
+    Add an arrow to the arrow list.
+
+    @param {string} sq1 - Current square (eg. e2).
+    @param {string} sq2 - New square (eg. e4).
+    @param {string} color - Hex code for the color of the arrow.
+    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+    **/
+    view.arrowAdd = function (sq1, sq2, color, opacity) {
+        var rgba = CHESS.hexToRgba(color);
+
+        rgba.a = opacity;
+
+        this.arrow_list.push({
+            sq1: sq1,
+            sq2: sq2,
+            rgba: rgba
+        });
+    };
+
+    /**
+    Draw an arrow on the board.
+
+    @param {string} sq1 - Current square (eg. e2).
+    @param {string} sq2 - New square (eg. e4).
+    @param {object} rgba - An object with properties 'r', 'g', 'b', and 'a', which define the color/opacity of the arrow.
+    **/
+    view.arrowDraw = function (sq1, sq2, rgba) {
+        var xy1,
+            xy2,
+            x1,
+            y1,
+            x2,
+            y2,
+            x2_short, // less distance, leave room for the arrow head
+            y2_short, // less distance, leave room for the arrow head,
+            slope,
+            x_diff,
+            line_width = 10,
+            head_length = 40,
+            angle = Math.PI / 6, // Determines the width of the arrow head,
+            lineangle,
+            head_side_length,
+            angle1,
+            topx,
+            topy,
+            angle2,
+            botx,
+            boty; // The length of a side of the arrow head
+
+        // Position/color values
+        xy1 = CHESS.engine.getArrayPosition(sq1);
+        xy2 = CHESS.engine.getArrayPosition(sq2);
+        x1 = xy1.substr(0, 1) * this.square_size + (this.square_size / 2);
+        y1 = xy1.substr(1, 1) * this.square_size + (this.square_size / 2);
+        x2 = xy2.substr(0, 1) * this.square_size + (this.square_size / 2);
+        y2 = xy2.substr(1, 1) * this.square_size + (this.square_size / 2);
+
+        // Shorten the line by the length of the arrow head
+        if (x1 === x2) {
+            x2_short = x2;
+            y2_short = (y2 > y1 ? y2 - head_length : y2 + head_length);
+        } else {
+            slope = (y2 - y1) / (x2 - x1);
+            x_diff = Math.sqrt(((head_length * head_length) / ( 1 + slope * slope)));
+            x2_short = (x2 > x1 ? x2 - x_diff : x2 + x_diff);
+            y2_short = slope * (x2_short - x2) + y2;
+        }
+
+        // Draw arrow body
+        this.snapshot_ctx.beginPath();
+        this.snapshot_ctx.strokeStyle = 'rgba(' + rgba.r + ',' + rgba.g + ',' + rgba.b + ', ' + rgba.a + ')';
+        this.snapshot_ctx.fillStyle = 'rgba(' + rgba.r + ',' + rgba.g + ',' + rgba.b + ', ' + rgba.a + ')';
+        this.snapshot_ctx.lineWidth = line_width;
+        this.snapshot_ctx.moveTo(x1, y1);
+        this.snapshot_ctx.lineTo(x2_short, y2_short);
+        this.snapshot_ctx.stroke();
+
+        // Math for the arrow head
+        lineangle = Math.atan2(y2 - y1, x2 - x1);
+        head_side_length = Math.abs(head_length / Math.cos(angle));
+        angle1 = lineangle + Math.PI + angle;
+        topx = x2 + Math.cos(angle1) * head_side_length;
+        topy = y2 + Math.sin(angle1) * head_side_length;
+        angle2 = lineangle + Math.PI - angle;
+        botx = x2 + Math.cos(angle2) * head_side_length;
+        boty = y2 + Math.sin(angle2) * head_side_length;
+
+        this.snapshot_ctx.beginPath();
+        this.snapshot_ctx.lineWidth = 2;
+        this.snapshot_ctx.moveTo(botx, boty);
+        this.snapshot_ctx.lineTo(topx, topy);
+        this.snapshot_ctx.lineTo(x2, y2);
+        this.snapshot_ctx.lineTo(botx, boty);
+        this.snapshot_ctx.fill();
+
+/*        
+        // top of head
+        this.snapshot_ctx.lineTo(280,280);
+        // curve of back
+        this.snapshot_ctx.arcTo(280,280, 285,32,8);
+        // bottom of head
+        this.snapshot_ctx.lineTo(290,30);
+        this.snapshot_ctx.stroke();
+        this.snapshot_ctx.fill();
+*/
+    };
+
+    /**
+    Draw all arrows.
+    **/
+    view.arrowDrawAll = function () {
+        var i,
+            sq1,
+            sq2,
+            rgba;
+
+        for (i = 0; i < this.arrow_list.length; i += 1) {
+            sq1 = this.arrow_list[i].sq1;
+            sq2 = this.arrow_list[i].sq2;
+            rgba = this.arrow_list[i].rgba;
+            view.arrowDraw(sq1, sq2, rgba);
+        }
+    };
+
+    /**
+    Remove an arrow from the arrow list.
+    **/
+    view.arrowRemove = function () {
+        this.arrow_list.pop();
+    };
+
+    /**
     Draw a piece to the image buffer.
 
     @param {string} piece - The piece to draw.
@@ -648,7 +781,7 @@ CHESS.Board = function (config) {
             piece,
             rows = 8,
             is_square_light,
-            rgb = CHESS.hexToRgb(this.highlight_move_color);
+            rgba = CHESS.hexToRgba(this.highlight_move_color);
 
         // Prepare canvas for snapshot
         if (model.mode === 'setup') {
@@ -681,7 +814,7 @@ CHESS.Board = function (config) {
         if (this.highlight_move) {
             if (typeof model.last_move === 'object' && model.last_move.sq1 !== undefined) {
                 this.snapshot_ctx.beginPath();
-                this.snapshot_ctx.fillStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ', ' + this.highlight_move_alpha + ')';
+                this.snapshot_ctx.fillStyle = 'rgba(' + rgba.r + ',' + rgba.g + ',' + rgba.b + ', ' + this.highlight_move_alpha + ')';
 
                 x = model.last_move.sq1.substr(0, 1);
                 y = model.last_move.sq1.substr(1, 1);
@@ -768,6 +901,9 @@ CHESS.Board = function (config) {
             }
         }
 
+        // Draw arrows
+        this.arrowDrawAll();
+
         // Redraw the board from the image buffer
         if (refresh === undefined) {
             refresh = true;
@@ -776,6 +912,20 @@ CHESS.Board = function (config) {
             this.ctx.clearRect(0, this.square_size * 8, this.square_size * 8, this.square_size * 2);
             this.ctx.drawImage(this.snapshot, 0, 0);
         }
+    };
+
+    /**
+    Add an arrow on the board.
+
+    @param {string} sq1 - Starting square in algebraic notation.
+    @param {string} sq2 - Ending square in algebraic notation.
+    @param {string} color - Hex code for the color of the arrow.
+    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+    **/
+    this.addArrow = function (sq1, sq2, color, opacity) {
+        opacity = (typeof(opacity) === 'number' && opacity >= 0 && opacity <= 1 ? opacity : 1);
+        view.arrowAdd(sq1, sq2, color, opacity);
+        view.takeSnapshot();
     };
 
     /**
@@ -905,6 +1055,14 @@ CHESS.Board = function (config) {
         model.moves = 0;
         model.active = true;
 
+        view.takeSnapshot();
+    };
+
+    /**
+    Remove an arrow from the board.
+    **/
+    this.removeArrow = function () {
+        view.arrowRemove();
         view.takeSnapshot();
     };
 
