@@ -592,7 +592,7 @@ CHESS.Board = function (config) {
             slope,
             x_diff,
             line_width = 10,
-            head_length = 40,
+            head_length = (this.square_size / 2) - 5,
             angle = Math.PI / 6, // Determines the width of the arrow head,
             lineangle,
             head_side_length,
@@ -1063,6 +1063,18 @@ CHESS.Board = function (config) {
     **/
     this.removeArrow = function () {
         view.arrowRemove();
+        view.takeSnapshot();
+    };
+
+    /**
+    Remove all arrows from the board.
+    **/
+    this.removeAllArrows = function () {
+        var i;
+
+        for (i = 0; i < view.arrow_list.length; i += 1) {
+            view.arrowRemove();
+        }
         view.takeSnapshot();
     };
 
