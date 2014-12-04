@@ -160,6 +160,7 @@
 .move_list .comment
 {
     color: #322E2B;
+    padding-right: 8px;
 }
 
 .move_list .current .move_text

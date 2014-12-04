@@ -8,42 +8,42 @@ CHESS.PgnViewer = function (config) {
         controller = {},
 
         model = {
-            event: '',
-            site: '',
-            date: '',
-            round: '',
-            white: '',
             black: '',
+            date: '',
+            event: '',
             result: '',
+            round: '',
+            site: '',
+            white: '',
             fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
             game_list: []
         },
 
         view = {
             board: null,
-            container: null,
-            main_box: null,
-            header_box: null,
-            header_details_box: null,
-            control_box: null,
-            move_control_box: null,
             board_control_box: null,
-            header_players_elem: null,
-            header_event_elem: null,
-            header_site_elem: null,
-            header_date_elem: null,
-            header_result_elem: null,
-            control_play_elem: null,
-            control_pause_elem: null,
-            control_start_elem: null,
-            control_prev_elem: null,
-            control_next_elem: null,
+            container: null,
+            control_box: null,
             control_end_elem: null,
+            control_next_elem: null,
+            control_pause_elem: null,
+            control_play_elem: null,
+            control_prev_elem: null,
+            control_start_elem: null,
+            current_move: null,
             download_btn: null,
             flip_board_btn: null,
-            move_list: null,
             game_list: null,
-            current_move: null,
+            header_box: null,
+            header_date_elem: null,
+            header_details_box: null,
+            header_event_elem: null,
+            header_players_elem: null,
+            header_result_elem: null,
+            header_site_elem: null,
+            main_box: null,
+            move_control_box: null,
+            move_list: null,
             ply: 0,
             start_end_variation: false
         };
@@ -77,9 +77,30 @@ CHESS.PgnViewer = function (config) {
     };
 
     controller.updateBoard = function (e) {
+        var gc,
+            gc_color;
+
         // Update the board
         view.board.setPosition(e.currentTarget.fen);
         view.board.setLastMove(e.currentTarget.move.sq1, e.currentTarget.move.sq2);
+
+        // Draw graphic commentary
+        view.board.removeAllArrows();
+        if (typeof(e.currentTarget.gc) === 'object') {
+            gc = e.currentTarget.gc;
+            if (gc.color === 'R') {
+                // Red
+                gc_color = '#F00';
+            } else if (gc.color === 'Y') {
+                // Yellow
+                gc_color = '#FF0';
+            } else {
+                // Green
+                gc_color = '#0F0';
+            }
+            view.board.addArrow(gc.sq1, gc.sq2, gc_color);
+        }
+
         view.board.display();
         view.board.setActive(true);
 
@@ -144,7 +165,6 @@ CHESS.PgnViewer = function (config) {
             all_move_btns = document.getElementsByClassName('pgn_ctrl_btn');
             margin_px = parseInt((config.move_list_width - 120) / 8, 10);
             for (i = 0; i < all_move_btns.length; i += 1) {
-
                 all_move_btns[i].style.margin = '0 ' + margin_px + 'px';
             }
         }
@@ -300,7 +320,12 @@ CHESS.PgnViewer = function (config) {
             nag_uncoded,
             nag,
             comments,
-            comment;
+            comment,
+            gc, // graphic commentary
+            gc_arrow,
+            gc_color,
+            gc_sq1,
+            gc_sq2;
 
         // Reset model
         model.event = '';
@@ -322,8 +347,8 @@ CHESS.PgnViewer = function (config) {
         pgn_str = model.game_list[game_index];
 
         // Get array of headers (entire line for each header value)
-        header = pgn_str.match(/\[([^\[]+)\]/g);
-
+        // Must exclude % symbol or it will pick up graphic commentary
+        header = pgn_str.match(/\[([^\[%]+)\]/g);
         for (i = 0; i < header.length; i += 1) {
             // Extract the tag names and values
             header_data = header[i].match(/\[(\S+)\s"(.+?)"\]/);
@@ -391,7 +416,32 @@ CHESS.PgnViewer = function (config) {
         // Look for initial comment marker
         if (move_array[0] === '{}') {
             comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
-            this.move(null, comment);
+
+            // Look for graphic commentary
+            if (/\[%cal/.test(comment)) {
+                gc_arrow = comment.match(/\[%cal ([GYR])(\w{2})(\w{2})\]/);
+                gc_color = gc_arrow[1];
+                gc_sq1 = gc_arrow[2];
+                gc_sq2 = gc_arrow[3];
+
+                // Create graphic commentary object
+                gc = {
+                    type: 'arrow',
+                    color: gc_color,
+                    sq1: gc_sq1,
+                    sq2: gc_sq2
+                };
+
+                // Remove from comment
+                comment = comment.replace(gc_arrow[0], '');
+            }
+
+            // Trim whitespace
+            comment = comment.replace(/^\s+|\s+$/g, '');
+
+            // Play move
+            this.move(null, comment, null, gc);
+            gc = null;
         }
 
         for (i = 0; i < move_array.length; i += 1) {
@@ -420,10 +470,33 @@ CHESS.PgnViewer = function (config) {
                 comment = '';
                 if (/\{\}/.test(first_move[0])) {
                     comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
+
+                    // Look for graphic commentary
+                    if (/\[%cal/.test(comment)) {
+                        gc_arrow = comment.match(/\[%cal ([GYR])(\w{2})(\w{2})\]/);
+                        gc_color = gc_arrow[1];
+                        gc_sq1 = gc_arrow[2];
+                        gc_sq2 = gc_arrow[3];
+                        
+                        // Create graphic commentary object
+                        gc = {
+                            type: 'arrow',
+                            color: gc_color,
+                            sq1: gc_sq1,
+                            sq2: gc_sq2
+                        };
+
+                        // Remove from comment
+                        comment = comment.replace(gc_arrow[0], '');
+                    }
                 }
 
+                // Trim whitespace
+                comment = comment.replace(/^\s+|\s+$/g, '');
+
                 // Play first move
-                this.move(first_move[1], comment, nag);
+                this.move(first_move[1], comment, nag, gc);
+                gc = null;
 
                 // Second move
                 move_array[i] = move_array[i].replace(first_move[0], '');
@@ -451,10 +524,33 @@ CHESS.PgnViewer = function (config) {
                     comment = '';
                     if (/\{\}/.test(second_move[0])) {
                         comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
+
+                        // Look for graphic commentary
+                        if (/\[%cal/.test(comment)) {
+                            gc_arrow = comment.match(/\[%cal ([GYR])(\w{2})(\w{2})\]/);
+                            gc_color = gc_arrow[1];
+                            gc_sq1 = gc_arrow[2];
+                            gc_sq2 = gc_arrow[3];
+
+                            // Create graphic commentary object
+                            gc = {
+                                type: 'arrow',
+                                color: gc_color,
+                                sq1: gc_sq1,
+                                sq2: gc_sq2
+                            };
+
+                            // Remove from comment
+                            comment = comment.replace(gc_arrow[0], '');
+                        }
                     }
 
+                    // Trim whitespace
+                    comment = comment.replace(/^\s+|\s+$/g, '');
+
                     // Play second move
-                    this.move(second_move[1], comment, nag);
+                    this.move(second_move[1], comment, nag, gc);
+                    gc = null;
                 }
                 // Check for start/end variation markers
                 if (/\)/.test(move_array[i])) {
@@ -469,14 +565,15 @@ CHESS.PgnViewer = function (config) {
         // Reset current move to beginning
         this.current_move = view.move_list.getElementsByTagName('li')[0];
         this.board.setPosition(this.current_move.fen);
-        this.board.display();
+        controller.updateBoard({'currentTarget': this.current_move});
 
         // Reset the scroll position
         view.move_list.scrollTop = 0;
     };
 
     view.changeMove = function (new_move_elem) {
-        var scroll_top;
+        var scroll_top,
+            gc;
 
         if (view.current_move !== new_move_elem) {
             if (view.current_move !== null && new_move_elem !== null) {
@@ -607,7 +704,7 @@ CHESS.PgnViewer = function (config) {
         this.changeGame(0);
     };
 
-    view.move = function (move, comment, nag) {
+    view.move = function (move, comment, nag, gc) {
         var move_elem,
             move_text,
             move_comment,
@@ -648,6 +745,12 @@ CHESS.PgnViewer = function (config) {
                 move_comment.setAttribute('class', 'comment');
                 move_comment.innerHTML = comment;
                 move_elem.appendChild(move_comment);
+
+                // Add graphic commendary if set
+                if (gc !== undefined && gc !== null) {
+                    move_elem.gc = gc;
+                }
+
                 return;
             }
         }
@@ -691,9 +794,12 @@ CHESS.PgnViewer = function (config) {
         CHESS.engine.moveTemp(pos, move_array[0], move_array[1]);
         fen = CHESS.engine.getFEN(pos);
 
-        // Add fen/move properties and click event
+        // Add fen/move/gc properties and click event
         move_elem.move = {'sq1': move_array[0], 'sq2': move_array[1]};
         move_elem.fen = fen;
+        if (gc !== undefined && gc !== null) {
+            move_elem.gc = gc;
+        }
         move_elem.onclick = controller.updateBoard;
 
         // Append to document
@@ -789,9 +895,10 @@ CHESS.PgnViewer = function (config) {
             square_hover_light: config.square_hover_light,
             square_dark: config.square_dark,
             square_light: config.square_light,
+            gc_opacity: config.gc_opacity,
             highlight_move: config.highlight_move,
             highlight_move_color: config.highlight_move_color,
-            highlight_move_alpha: config.highlight_move_alpha,
+            highlight_move_opacity: config.highlight_move_opacity,
             show_row_col_labels: config.show_row_col_labels,
             piece_set: config.piece_set
         });

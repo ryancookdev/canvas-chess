@@ -64,9 +64,11 @@ CHESS.Board = function (config) {
             piece_not_lifted: true,
             // The white pieces are at the bottom of the screen
             white_down: true,
+            // Opacity for arrows, squares, lines, X's, etc
+            gc_opacity: '0.8',
             highlight_move: false,
             highlight_move_color: '#FF0000',
-            highlight_move_alpha: '0.5',
+            highlight_move_opacity: '0.5',
             highlight_hover: false,
             show_row_col_labels: true,
             arrow_list: [],
@@ -374,6 +376,7 @@ CHESS.Board = function (config) {
                     }
                 }
             } else {
+                // Play move
                 model.move(sq1, sq2);
             }
 
@@ -491,11 +494,15 @@ CHESS.Board = function (config) {
             pos_before.promote = true;
         }
 
+        // Illegal move
         if (!CHESS.engine.moveTemp(pos, sq1, sq2)) {
             view.takeSnapshot();
             return;
         }
-        
+
+        // Remove graphic commentary
+        view.arrow_list = [];
+
         if (CHESS.engine.isMate(pos)) {
             pos_before.mate = true;
         } else if (CHESS.engine.isStalemate(pos)) {
@@ -606,10 +613,23 @@ CHESS.Board = function (config) {
         // Position/color values
         xy1 = CHESS.engine.getArrayPosition(sq1);
         xy2 = CHESS.engine.getArrayPosition(sq2);
-        x1 = xy1.substr(0, 1) * this.square_size + (this.square_size / 2);
-        y1 = xy1.substr(1, 1) * this.square_size + (this.square_size / 2);
-        x2 = xy2.substr(0, 1) * this.square_size + (this.square_size / 2);
-        y2 = xy2.substr(1, 1) * this.square_size + (this.square_size / 2);
+        x1 = xy1.substr(0, 1);
+        y1 = xy1.substr(1, 1);
+        x2 = xy2.substr(0, 1);
+        y2 = xy2.substr(1, 1);
+
+        // Flip board for black
+        if (!view.white_down) {
+            x1 = 7 - x1;
+            y1 = 7 - y1;
+            x2 = 7 - x2;
+            y2 = 7 - y2;
+        }
+
+        x1 = x1 * this.square_size + (this.square_size / 2);
+        y1 = y1 * this.square_size + (this.square_size / 2);
+        x2 = x2 * this.square_size + (this.square_size / 2);
+        y2 = y2 * this.square_size + (this.square_size / 2);
 
         // Shorten the line by the length of the arrow head
         if (x1 === x2) {
@@ -649,7 +669,7 @@ CHESS.Board = function (config) {
         this.snapshot_ctx.lineTo(botx, boty);
         this.snapshot_ctx.fill();
 
-/*        
+        /*        
         // top of head
         this.snapshot_ctx.lineTo(280,280);
         // curve of back
@@ -658,7 +678,7 @@ CHESS.Board = function (config) {
         this.snapshot_ctx.lineTo(290,30);
         this.snapshot_ctx.stroke();
         this.snapshot_ctx.fill();
-*/
+        */
     };
 
     /**
@@ -807,7 +827,7 @@ CHESS.Board = function (config) {
         if (this.highlight_move) {
             if (typeof model.last_move === 'object' && model.last_move.sq1 !== undefined) {
                 this.snapshot_ctx.beginPath();
-                this.snapshot_ctx.fillStyle = 'rgba(' + rgba.r + ',' + rgba.g + ',' + rgba.b + ', ' + this.highlight_move_alpha + ')';
+                this.snapshot_ctx.fillStyle = 'rgba(' + rgba.r + ',' + rgba.g + ',' + rgba.b + ', ' + this.highlight_move_opacity + ')';
 
                 x = model.last_move.sq1.substr(0, 1);
                 y = model.last_move.sq1.substr(1, 1);
@@ -916,7 +936,14 @@ CHESS.Board = function (config) {
     @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
     **/
     this.addArrow = function (sq1, sq2, color, opacity) {
-        opacity = (typeof(opacity) === 'number' && opacity >= 0 && opacity <= 1 ? opacity : 1);
+        opacity = parseFloat(opacity);
+
+        // Initialize to graphic commentary opacity if not set
+        opacity = (opacity >= 0 && opacity <= 1 ? opacity : view.gc_opacity);
+
+        // Full opacity if graphic commentary opacity is not set
+        opacity = (opacity >= 0 && opacity <= 1 ? opacity : 1);
+
         view.arrowAdd(sq1, sq2, color, opacity);
         view.takeSnapshot();
     };
@@ -1169,8 +1196,9 @@ CHESS.Board = function (config) {
         view.show_row_col_labels = (config.show_row_col_labels === false ? false : true);
         view.square_color_light = (config.square_color_light ? config.square_color_light : view.square_color_light);
         view.square_color_dark = (config.square_color_dark ? config.square_color_dark : view.square_color_dark);
+        view.gc_opacity = (config.gc_opacity ? config.gc_opacity : view.gc_opacity);
         view.highlight_move_color = (config.highlight_move_color ? config.highlight_move_color : view.highlight_move_color);
-        view.highlight_move_alpha = (config.highlight_move_alpha ? config.highlight_move_alpha : view.highlight_move_alpha);
+        view.highlight_move_opacity = (config.highlight_move_opacity ? config.highlight_move_opacity : view.highlight_move_opacity);
         view.square_hover_light = (config.square_hover_light ? config.square_hover_light : view.square_hover_light);
         view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
         model.mode = config.mode;
