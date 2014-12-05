@@ -72,6 +72,7 @@ CHESS.Board = function (config) {
             highlight_hover: false,
             show_row_col_labels: true,
             arrow_list: [],
+            square_list: [],
             wp: new Image(),
             wr: new Image(),
             wn: new Image(),
@@ -699,6 +700,67 @@ CHESS.Board = function (config) {
     };
 
     /**
+    Add a colored square to the square list.
+
+    @param {string} sq - Square (eg. e2).
+    @param {string} color - Hex code for the color of the square.
+    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+    **/
+    view.squareAdd = function (sq, color, opacity) {
+        var rgba = CHESS.hexToRgba(color);
+
+        rgba.a = opacity;
+
+        this.square_list.push({
+            sq: sq,
+            rgba: rgba
+        });
+    };
+
+    /**
+    Draw a colored square on the board.
+
+    @param {string} sq - Current square (eg. e2).
+    @param {object} rgba - An object with properties 'r', 'g', 'b', and 'a', which define the color/opacity of the square.
+    **/
+    view.squareDraw = function (sq, rgba) {
+        var xy,
+            x,
+            y; // The length of a side of the arrow head
+
+        // Position/color values
+        xy = CHESS.engine.getArrayPosition(sq);
+        x = xy.substr(0, 1);
+        y = xy.substr(1, 1);
+
+        // Flip board for black
+        if (!view.white_down) {
+            x = 7 - x;
+            y = 7 - y;
+        }
+
+        this.snapshot_ctx.beginPath();
+        this.snapshot_ctx.fillStyle = 'rgba(' + rgba.r + ',' + rgba.g + ',' + rgba.b + ', ' + rgba.a + ')';
+        this.snapshot_ctx.rect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
+        this.snapshot_ctx.fill();
+    };
+
+    /**
+    Draw all squares.
+    **/
+    view.squareDrawAll = function () {
+        var i,
+            sq,
+            rgba;
+
+        for (i = 0; i < this.square_list.length; i += 1) {
+            sq = this.square_list[i].sq;
+            rgba = this.square_list[i].rgba;
+            view.squareDraw(sq, rgba);
+        }
+    };
+
+    /**
     Draw a piece to the image buffer.
 
     @param {string} piece - The piece to draw.
@@ -849,6 +911,9 @@ CHESS.Board = function (config) {
             }
         }
 
+        // Draw colored squares
+        this.squareDrawAll();
+
         // Draw pieces
         for (i = 0; i < 8; i += 1) {
             for (j = 0; j < 8; j += 1) {
@@ -928,7 +993,7 @@ CHESS.Board = function (config) {
     };
 
     /**
-    Add an arrow on the board.
+    Add an arrow to the board.
 
     @param {string} sq1 - Starting square in algebraic notation.
     @param {string} sq2 - Ending square in algebraic notation.
@@ -945,6 +1010,26 @@ CHESS.Board = function (config) {
         opacity = (opacity >= 0 && opacity <= 1 ? opacity : 1);
 
         view.arrowAdd(sq1, sq2, color, opacity);
+        view.takeSnapshot();
+    };
+
+    /**
+    Add a colored square to the board.
+
+    @param {string} sq - Square in algebraic notation.
+    @param {string} color - Hex code for the color of the square.
+    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+    **/
+    this.addSquare = function (sq, color, opacity) {
+        opacity = parseFloat(opacity);
+
+        // Initialize to graphic commentary opacity if not set
+        opacity = (opacity >= 0 && opacity <= 1 ? opacity : view.gc_opacity);
+
+        // Full opacity if graphic commentary opacity is not set
+        opacity = (opacity >= 0 && opacity <= 1 ? opacity : 1);
+
+        view.squareAdd(sq, color, opacity);
         view.takeSnapshot();
     };
 
@@ -1091,6 +1176,22 @@ CHESS.Board = function (config) {
     **/
     this.removeAllArrows = function () {
         view.arrow_list = [];
+        view.takeSnapshot();
+    };
+
+    /**
+    Remove a colored square from the board.
+    **/
+    this.removeSquare = function () {
+        view.square_list.pop();
+        view.takeSnapshot();
+    };
+
+    /**
+    Remove all colored squares from the board.
+    **/
+    this.removeAllSquares = function () {
+        view.square_list = [];
         view.takeSnapshot();
     };
 

@@ -2,12 +2,14 @@
 var CHESS = CHESS || {};
 
 CHESS.PgnViewer = function (config) {
+
     var
         init,
 
         controller = {},
 
         model = {
+
             black: '',
             date: '',
             event: '',
@@ -17,9 +19,11 @@ CHESS.PgnViewer = function (config) {
             white: '',
             fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
             game_list: []
+
         },
 
         view = {
+
             board: null,
             board_control_box: null,
             container: null,
@@ -46,38 +50,59 @@ CHESS.PgnViewer = function (config) {
             move_list: null,
             ply: 0,
             start_end_variation: false
+
         };
 
     controller.goEnd = function () {
+
         if (view.current_move !== null) {
+
             view.changeMove(view.current_move.parentNode.lastChild);
+
         }
+
     };
 
     controller.goNext = function () {
+
         var next_move;
+
         if (view.current_move !== null) {
+
             next_move = view.getSiblingMove(view.current_move, 1);
             view.changeMove(next_move);
+
         }
+
     };
 
     controller.goPrev = function () {
+
         var prev_move;
+
         if (view.current_move !== null) {
+
             prev_move = view.getSiblingMove(view.current_move, -1);
             view.changeMove(prev_move);
+
         }
+
     };
 
     controller.goStart = function () {
+
         if (view.current_move !== null) {
+
             view.changeMove(view.current_move.parentNode.firstChild);
+
         }
+
     };
 
     controller.updateBoard = function (e) {
-        var gc,
+
+        var i,
+            gc,
             gc_color;
 
         // Update the board
@@ -86,19 +111,62 @@ CHESS.PgnViewer = function (config) {
 
         // Draw graphic commentary
         view.board.removeAllArrows();
+        view.board.removeAllSquares();
+
         if (typeof(e.currentTarget.gc) === 'object') {
+
             gc = e.currentTarget.gc;
-            if (gc.color === 'R') {
-                // Red
-                gc_color = '#F00';
-            } else if (gc.color === 'Y') {
-                // Yellow
-                gc_color = '#FF0';
-            } else {
-                // Green
-                gc_color = '#0F0';
+
+            // Arrows
+            if (gc.arrows.length >= 1) {
+
+                for (i = 0; i < gc.arrows.length; i += 1) {
+
+                    if (gc.arrows[i].color === 'R') {
+
+                        gc_color = '#F00'; // Red
+
+                    } else if (gc.arrows[i].color === 'Y') {
+
+                        gc_color = '#FF0'; // Yellow
+
+                    } else {
+
+                        gc_color = '#0F0'; // Green
+
+                    }
+
+                    view.board.addArrow(gc.arrows[i].sq1, gc.arrows[i].sq2, gc_color);
+
+                }
+
             }
-            view.board.addArrow(gc.sq1, gc.sq2, gc_color);
+
+            // Squares
+            if (gc.squares.length >= 1) {
+
+                for (i = 0; i < gc.squares.length; i += 1) {
+
+                    if (gc.squares[i].color === 'R') {
+
+                        gc_color = '#F00'; // Red
+
+                    } else if (gc.squares[i].color === 'Y') {
+
+                        gc_color = '#FF0'; // Yellow
+
+                    } else {
+
+                        gc_color = '#0F0'; // Green
+
+                    }
+
+                    view.board.addSquare(gc.squares[i].sq, gc_color);
+
+                }
+
+            }
+
         }
 
         view.board.display();
@@ -106,13 +174,18 @@ CHESS.PgnViewer = function (config) {
 
         // Update the current move
         if (view.current_move !== null) {
+
             view.current_move.removeAttribute('class');
+
         }
+
         e.currentTarget.className = 'current';
         view.current_move = e.currentTarget;
+
     };
 
     view.buildHtml = function (config, canvas) {
+
         var i,
             doc = document,
             all_move_btns,
@@ -120,18 +193,23 @@ CHESS.PgnViewer = function (config) {
 
         // Find the container element if the ID was provided
         if (config.id !== undefined) {
+
             this.container = document.getElementById(config.id);
+
         }
 
         // No ID was provided, or element could not be found
         if (this.container === undefined || this.container === null) {
+
             // Create a container element in the location where this script was executed.
             document.write('<div id=\'canvaschess\' class=\'canvaschesspgn\'></div>');
             this.container = document.getElementById('canvaschess');
 
             // Remove ID so more PGN's can be created.
             this.container.removeAttribute('id');
+
         }
+
         this.container.setAttribute('tabindex', 0);
 
         // Main box
@@ -150,12 +228,19 @@ CHESS.PgnViewer = function (config) {
 
         // Calculate sizes if configured
         if (config.width !== null) {
+
             this.container.style.width = config.width + 'px';
+
         }
+
         if (config.board_width !== null) {
+
             this.header_details_box.style.width = config.board_width + 'px';
+
         }
+
         if (config.move_list_width !== null) {
+
             this.game_list.style.width = config.move_list_width + 'px';
             this.move_list.style.width = (config.move_list_width - 30) + 'px';
             this.move_list.style.height = config.board_width + 'px';
@@ -164,13 +249,19 @@ CHESS.PgnViewer = function (config) {
             // Calculate margin for move buttons
             all_move_btns = document.getElementsByClassName('pgn_ctrl_btn');
             margin_px = parseInt((config.move_list_width - 120) / 8, 10);
+
             for (i = 0; i < all_move_btns.length; i += 1) {
+
                 all_move_btns[i].style.margin = '0 ' + margin_px + 'px';
+
             }
+
         }
+
     };
 
     view.buildHtmlControls = function () {
+
         var doc = document;
 
         // Control box
@@ -244,9 +335,11 @@ CHESS.PgnViewer = function (config) {
         this.move_control_box.appendChild(this.control_prev_elem);
         this.move_control_box.appendChild(this.control_next_elem);
         this.move_control_box.appendChild(this.control_end_elem);
+
     };
 
     view.buildHtmlHeader = function () {
+
         var doc = document;
 
         // Header box
@@ -300,14 +393,18 @@ CHESS.PgnViewer = function (config) {
         this.game_list = doc.createElement('select');
         this.game_list.className = 'game_list';
         this.game_list.onchange = function (e) {
+
             view.changeGame(e.currentTarget.value);
+
         };
 
         // Add game list to header box
         this.header_box.appendChild(this.game_list);
+
     };
 
     view.changeGame = function (game_index) {
+
         var i,
             pgn_str,
             header,
@@ -320,12 +417,10 @@ CHESS.PgnViewer = function (config) {
             nag_uncoded,
             nag,
             comments,
-            comment,
-            gc, // graphic commentary
-            gc_arrow,
-            gc_color,
-            gc_sq1,
-            gc_sq2;
+            comment_data = {
+                comment: '',
+                gc: null
+            };
 
         // Reset model
         model.event = '';
@@ -339,8 +434,11 @@ CHESS.PgnViewer = function (config) {
 
         // Reset view
         while (this.move_list.firstChild) {
+
             this.move_list.removeChild(this.move_list.firstChild);
+
         }
+
         this.current_move = null;
 
         // Get the selected game text
@@ -350,10 +448,12 @@ CHESS.PgnViewer = function (config) {
         // Must exclude % symbol or it will pick up graphic commentary
         header = pgn_str.match(/\[([^\[%]+)\]/g);
         for (i = 0; i < header.length; i += 1) {
+
             // Extract the tag names and values
             header_data = header[i].match(/\[(\S+)\s"(.+?)"\]/);
             header_data[1] = header_data[1].replace(/\s+$/, '');
             header_data[2] = header_data[2].replace(/\s+$/, '');
+
             switch (header_data[1].toLowerCase()) {
             case 'event':
                 model.event = header_data[2];
@@ -380,10 +480,13 @@ CHESS.PgnViewer = function (config) {
                 model.fen = header_data[2];
                 break;
             }
+
         }
 
         if (model.fen === '') {
+
             model.fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
         }
 
         this.displayHeader();
@@ -415,151 +518,127 @@ CHESS.PgnViewer = function (config) {
 
         // Look for initial comment marker
         if (move_array[0] === '{}') {
-            comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
 
-            // Look for graphic commentary
-            if (/\[%cal/.test(comment)) {
-                gc_arrow = comment.match(/\[%cal ([GYR])(\w{2})(\w{2})\]/);
-                gc_color = gc_arrow[1];
-                gc_sq1 = gc_arrow[2];
-                gc_sq2 = gc_arrow[3];
-
-                // Create graphic commentary object
-                gc = {
-                    type: 'arrow',
-                    color: gc_color,
-                    sq1: gc_sq1,
-                    sq2: gc_sq2
-                };
-
-                // Remove from comment
-                comment = comment.replace(gc_arrow[0], '');
-            }
-
-            // Trim whitespace
-            comment = comment.replace(/^\s+|\s+$/g, '');
+            comment_data = this.getComment(comments);
 
             // Play move
-            this.move(null, comment, null, gc);
-            gc = null;
+            this.move(null, comment_data.comment, null, comment_data.gc);
+
+            // Clear comment data
+            comment_data.comment = '';
+            comment_data.gc = null;
+
         }
 
         for (i = 0; i < move_array.length; i += 1) {
+
             // First move
             first_move = move_array[i].match(/\d+[.]{1,3}\s?([^ )]+)\s?(?:\{\})?/);
             if (first_move !== null) {
+
                 // Get NAG
                 nag_uncoded = first_move[1].match(/[!?=]+/);
                 nag_uncoded = (nag_uncoded && nag_uncoded[0] ? nag_uncoded[0] : null);
                 nag_coded = first_move[1].match(/\$(\d+)/);
                 nag_coded = (nag_coded && nag_coded[1]? nag_coded[1] : null);
                 nag_coded = CHESS.nag_code[nag_coded];
+
                 if (nag_coded) {
+
                     nag = nag_coded;
+
                 } else if (nag_uncoded) {
+
                     nag = nag_uncoded;
+
                 } else {
+                    
                     nag = '';
+
                 }
+
                 // Strip uncoded NAG
                 first_move[1] = first_move[1].replace(/[^1-8a-hRNBQKOx\-]*$/, '');
+
                 // Strip coded NAG
                 first_move[1] = first_move[1].replace(/\s*\$.*$/, '');
 
                 // Look for comment marker
-                comment = '';
                 if (/\{\}/.test(first_move[0])) {
-                    comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
 
-                    // Look for graphic commentary
-                    if (/\[%cal/.test(comment)) {
-                        gc_arrow = comment.match(/\[%cal ([GYR])(\w{2})(\w{2})\]/);
-                        gc_color = gc_arrow[1];
-                        gc_sq1 = gc_arrow[2];
-                        gc_sq2 = gc_arrow[3];
-                        
-                        // Create graphic commentary object
-                        gc = {
-                            type: 'arrow',
-                            color: gc_color,
-                            sq1: gc_sq1,
-                            sq2: gc_sq2
-                        };
+                    comment_data = this.getComment(comments);
 
-                        // Remove from comment
-                        comment = comment.replace(gc_arrow[0], '');
-                    }
                 }
 
-                // Trim whitespace
-                comment = comment.replace(/^\s+|\s+$/g, '');
-
                 // Play first move
-                this.move(first_move[1], comment, nag, gc);
-                gc = null;
+                this.move(first_move[1], comment_data.comment, nag, comment_data.gc);
+
+                // Clear comment data
+                comment_data.comment = '';
+                comment_data.gc = null;
 
                 // Second move
                 move_array[i] = move_array[i].replace(first_move[0], '');
                 second_move = move_array[i].match(/(\w[^ )]+)\s?(?:\{\})?/);
                 if (second_move !== null) {
+
                     // Get NAG
                     nag_uncoded = second_move[1].match(/[!?=]+/);
                     nag_uncoded = (nag_uncoded && nag_uncoded[0] ? nag_uncoded[0] : null);
                     nag_coded = second_move[1].match(/\$(\d+)/);
                     nag_coded = (nag_coded && nag_coded[1]? nag_coded[1] : null);
                     nag_coded = CHESS.nag_code[nag_coded];
+
                     if (nag_coded) {
+
                         nag = nag_coded;
+
                     } else if (nag_uncoded) {
+
                         nag = nag_uncoded;
+
                     } else {
+
                         nag = '';
+
                     }
+
                     // Strip uncoded NAG
                     second_move[1] = second_move[1].replace(/[^1-8a-hRNBQKOx\-]*$/, '');
                     // Strip coded NAG
                     second_move[1] = second_move[1].replace(/\s*\$.*$/, '');
 
                     // Look for comment marker
-                    comment = '';
                     if (/\{\}/.test(second_move[0])) {
-                        comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
 
-                        // Look for graphic commentary
-                        if (/\[%cal/.test(comment)) {
-                            gc_arrow = comment.match(/\[%cal ([GYR])(\w{2})(\w{2})\]/);
-                            gc_color = gc_arrow[1];
-                            gc_sq1 = gc_arrow[2];
-                            gc_sq2 = gc_arrow[3];
+                        comment_data = this.getComment(comments);
 
-                            // Create graphic commentary object
-                            gc = {
-                                type: 'arrow',
-                                color: gc_color,
-                                sq1: gc_sq1,
-                                sq2: gc_sq2
-                            };
-
-                            // Remove from comment
-                            comment = comment.replace(gc_arrow[0], '');
-                        }
                     }
 
-                    // Trim whitespace
-                    comment = comment.replace(/^\s+|\s+$/g, '');
-
                     // Play second move
-                    this.move(second_move[1], comment, nag, gc);
-                    gc = null;
+                    this.move(second_move[1], comment_data.comment, nag, comment_data.gc);
+
+                    // Clear comment data
+                    comment_data.comment = '';
+                    comment_data.gc = null;
+
                 }
+
                 // Check for start/end variation markers
                 if (/\)/.test(move_array[i])) {
+
                     this.endVariation();
+
                 }
+
                 if (/\(/.test(move_array[i])) {
+
                     this.startVariation();
+
                 }
+
             }
+
         }
 
         // Reset current move to beginning
@@ -569,18 +648,104 @@ CHESS.PgnViewer = function (config) {
 
         // Reset the scroll position
         view.move_list.scrollTop = 0;
+
+    };
+    
+    view.getComment = function (comments) {
+
+        var i,
+            data = {
+                comment: '',
+                gc: {
+                    arrows: [],
+                    squares: []
+                }
+            },
+            gc_text,
+            gc_list,
+            gc_marker,
+            gc_color,
+            gc_sq1,
+            gc_sq2;
+
+        data.comment = comments.shift().replace(/\{/, '').replace(/\}/, '');
+
+        // Look for graphic commentary arrows
+        if (/\[%cal/.test(data.comment)) {
+
+            gc_text = data.comment.match(/\[%cal (?:[GYR]\w{2}\w{2},?\s*)+\]/)[0];
+            gc_list = gc_text.match(/[GYR]\w{2}\w{2},?\s*/g);
+            
+            for (i = 0; i < gc_list.length; i += 1) {
+
+                gc_marker = gc_list[i].match(/([GYR])(\w{2})(\w{2}),?\s*/);
+                gc_color = gc_marker[1];
+                gc_sq1 = gc_marker[2];
+                gc_sq2 = gc_marker[3];
+
+                // Create graphic commentary object
+                data.gc.arrows.push({
+                    color: gc_color,
+                    sq1: gc_sq1,
+                    sq2: gc_sq2
+                });
+
+            }
+
+            // Remove from comment
+            data.comment = data.comment.replace(gc_text, '');
+
+        }
+
+        // Look for graphic commentary squares
+        if (/\[%csl/.test(data.comment)) {
+
+            gc_text = data.comment.match(/\[%csl (?:[GYR]\w{2},?\s*)+\]/)[0];
+            gc_list = gc_text.match(/[GYR]\w{2},?\s*/g);
+            
+            for (i = 0; i < gc_list.length; i += 1) {
+
+                gc_marker = gc_list[i].match(/([GYR])(\w{2}),?\s*/);
+                gc_color = gc_marker[1];
+                gc_sq1 = gc_marker[2];
+
+                // Create graphic commentary object
+                data.gc.squares.push({
+                    color: gc_color,
+                    sq: gc_sq1
+                });
+
+            }
+
+            // Remove from comment
+            data.comment = data.comment.replace(gc_text, '');
+
+        }
+
+        // Trim whitespace
+        data.comment = data.comment.replace(/^\s+|\s+$/g, '');
+
+        return data;
+
     };
 
     view.changeMove = function (new_move_elem) {
+
         var scroll_top,
             gc;
 
         if (view.current_move !== new_move_elem) {
+
             if (view.current_move !== null && new_move_elem !== null) {
+
                 view.current_move.removeAttribute('class');
+
             }
+
             if (new_move_elem !== null) {
+
                 new_move_elem.className = 'current';
+
                 // Manually trigger the click event
                 controller.updateBoard({'currentTarget': new_move_elem});
                 view.current_move = new_move_elem;
@@ -592,8 +757,11 @@ CHESS.PgnViewer = function (config) {
                 scroll_top -= parseInt(view.move_list.offsetHeight / 2, 10);
 
                 view.move_list.scrollTop = scroll_top;
+
             }
+
         }
+
     };
 
     view.displayHeader = function () {
@@ -605,16 +773,21 @@ CHESS.PgnViewer = function (config) {
         this.header_event_elem.innerHTML = model.event;
         this.header_site_elem.innerHTML = model.site;
         this.header_result_elem.innerHTML = model.result;
+
     };
 
     view.endVariation = function () {
+
         this.current_move = this.current_move.parentNode.parentNode.previousSibling;
         this.ply = (+this.current_move.getAttribute('data-ply'));
         this.start_end_variation = true;
+
         return this;
+
     };
 
     view.getPgnDate = function (date) {
+
         var month_list = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Jun', 'Sep', 'Oct', 'Nov', 'Dec'],
             date_array = date.split('.'),
             year = '',
@@ -624,6 +797,7 @@ CHESS.PgnViewer = function (config) {
 
         // Clean date
         if (date_array.length === 3 && date_array[0].length === 4 && date_array[1].length === 2 && date_array[2].length === 2) {
+
             year = date_array[0];
             month = parseInt(date_array[1], 10);
             day = parseInt(date_array[2], 10);
@@ -632,30 +806,49 @@ CHESS.PgnViewer = function (config) {
                      + (month !== '' ? month + ' ' : '')
                      + (year > 0 ? year + ' ' : '');
             date_str = date_str.replace(/\s+$/, '');
+
         }
+
         return date_str;
+
     };
 
     view.getSiblingMove = function (move_elem, direction) {
+        
         if (direction === 1) {
+
             // Next move
             while (move_elem = move_elem.nextSibling) {
+
                 if (!(/variation_list/.test(move_elem.className))) {
+
                     break;
+
                 }
+                
             }
+
         } else if (direction === -1) {
+
             // Previous move
             while (move_elem = move_elem.previousSibling) {
+
                 if (!(/variation_list/.test(move_elem.className))) {
+
                     break;
+
                 }
+
             }
+
         }
+
         return move_elem;
+
     };
 
     view.importFile = function (pgn_str) {
+
         var i,
             game,
             white,
@@ -675,7 +868,9 @@ CHESS.PgnViewer = function (config) {
 
         // Game list
         if (model.game_list.length > 1) {
+
             for (i = 0; i < model.game_list.length; i += 1) {
+
                 game = model.game_list[i];
 
                 // White
@@ -695,16 +890,23 @@ CHESS.PgnViewer = function (config) {
                 game_list_item = document.createElement('option');
                 game_list_item.value = i;
                 game_list_item.text = title;
+
                 this.game_list.appendChild(game_list_item);
+
             }
+
         } else {
+
             this.game_list.style.display = 'none';
+            
         }
 
         this.changeGame(0);
+
     };
 
     view.move = function (move, comment, nag, gc) {
+
         var move_elem,
             move_text,
             move_comment,
@@ -718,29 +920,40 @@ CHESS.PgnViewer = function (config) {
 
         // Validation
         if (!move && !comment) {
+
             return this;
+
         }
 
         // Initialize current move
         if (this.current_move === null) {
+
             move_elem = document.createElement('li');
+
             if (model.fen.length > 0) {
+
                 move_elem.fen = model.fen;
                 fen_info = move_elem.fen.match(/\s+([wbWB])\s+([-kqKQ]+)\s+([-\w]{1,2})\s+(\d+)\s+(\d+)\s*$/);
                 side_to_move = fen_info[1].toLowerCase();
                 fullmove = +fen_info[5];
                 this.ply = (fullmove * 2) - (side_to_move === 'w' ? 2 : 1);
                 move_elem.setAttribute('data-ply', this.ply);
+
             } else {
+
                 move_elem.setAttribute('data-ply', 0);
+
             }
+
             move_elem.move = '';
             move_elem.onclick = controller.updateBoard;
+
             this.move_list.appendChild(move_elem);
             this.current_move = move_elem;
 
             // Add initial comment if set
             if (!move && typeof comment === 'string') {
+
                 move_comment = document.createElement('span');
                 move_comment.setAttribute('class', 'comment');
                 move_comment.innerHTML = comment;
@@ -748,11 +961,15 @@ CHESS.PgnViewer = function (config) {
 
                 // Add graphic commendary if set
                 if (gc !== undefined && gc !== null) {
+
                     move_elem.gc = gc;
+
                 }
 
                 return;
+
             }
+
         }
 
         // Determine how to display the move number
@@ -760,8 +977,11 @@ CHESS.PgnViewer = function (config) {
 
         // Black move number
         if (this.ply % 2 === 1 && this.start_end_variation) {
+
             fullmove = (parseInt((this.ply - 1) / 2, 10) + 1) + '...';
+
         }
+
         this.start_end_variation = false;
 
         // Increment
@@ -779,12 +999,18 @@ CHESS.PgnViewer = function (config) {
 
         // Get the current FEN
         if (this.current_move.fen === undefined) {
+
             if (this.current_move.className === 'variation') {
+
                 // We are at the start of a variation
                 fen = view.getSiblingMove(this.current_move.parentNode.previousSibling, -1).fen;
+
             }
+
         } else {
+
             fen = this.current_move.fen;
+
         }
 
         // Calculate the new FEN based on the current + move
@@ -797,75 +1023,108 @@ CHESS.PgnViewer = function (config) {
         // Add fen/move/gc properties and click event
         move_elem.move = {'sq1': move_array[0], 'sq2': move_array[1]};
         move_elem.fen = fen;
+
         if (gc !== undefined && gc !== null) {
+
             move_elem.gc = gc;
+
         }
+
         move_elem.onclick = controller.updateBoard;
 
         // Append to document
         if (this.current_move.tagName.toLowerCase() === 'ol') {
+
             this.current_move.appendChild(move_elem);
+
         } else {
+
             this.current_move.parentNode.appendChild(move_elem);
+
         }
 
         // Add comment
         if (comment) {
+
             move_comment = document.createElement('span');
             move_comment.setAttribute('class', 'comment');
             move_comment.innerHTML = comment;
             move_elem.appendChild(move_comment);
+
         }
 
         // Update the current move
         this.current_move = move_elem;
 
         return this;
+
     };
 
     view.startVariation = function () {
+
         var variation_list,
             variation;
 
         // Check if there is already a variation list before creating one
         if (this.current_move.nextSibling === null) {
+
             variation_list = document.createElement('li');
             variation_list.setAttribute('class', 'variation_list');
+
         } else {
+
             variation_list = this.current_move.nextSibling;
+
         }
+
         variation = document.createElement('ol');
         variation.setAttribute('class', 'variation');
         variation_list.appendChild(variation);
+
         this.current_move.parentNode.appendChild(variation_list);
         this.current_move = variation;
         this.ply -= 1;
         this.start_end_variation = true;
+
         return this;
+
     };
 
     this.flip = function () {
+
         view.board.flip();
+
     };
 
     this.load = function (url, callback) {
+
         var xmlhttp = new XMLHttpRequest();
 
         view.download_btn.href = url;
 
         // Request the PGN file
         xmlhttp.onreadystatechange = function () {
+
             var pgn_str;
+
             if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+
                 pgn_str = xmlhttp.responseText;
                 view.importFile(pgn_str);
+
                 if (typeof callback === 'function') {
+
                     callback();
+
                 }
+
             }
+
         };
+
         xmlhttp.open('GET', url, true);
         xmlhttp.send();
+
     };
 
     this.loadText = function (pgn_str) {
@@ -873,20 +1132,26 @@ CHESS.PgnViewer = function (config) {
     };
 
     init = function (api) {
+
         if (config.width === undefined) {
+
             // Width will be set by CSS instead
             config.width = null;
             config.board_width = null;
             config.move_list_width = null;
+
         } else {
+
             // 60:40 board to move list
             config.width = parseInt(config.width, 10);
             config.board_width = parseInt((config.width - 10) * 0.54, 10);
             config.move_list_width = parseInt(config.width, 10) - config.board_width;
+
         }
 
         // Initialize the board
         view.board = new CHESS.Board({
+
             height: config.board_width,
             width: config.board_width,
             square_color_light: config.square_color_light,
@@ -901,6 +1166,7 @@ CHESS.PgnViewer = function (config) {
             highlight_move_opacity: config.highlight_move_opacity,
             show_row_col_labels: config.show_row_col_labels,
             piece_set: config.piece_set
+
         });
 
         // Create container elements
@@ -908,30 +1174,50 @@ CHESS.PgnViewer = function (config) {
 
         // Container keyboard control
         view.container.onkeydown = function (e) {
+
             e.stopPropagation();
+
             if (e.keyCode === 37) {
+
                 controller.goPrev();
+
             } else if (e.keyCode === 39) {
+
                 controller.goNext();
+
             }
+
         };
 
         // Canvas keyboard control
         view.container.getElementsByClassName('chessboard')[0].addEventListener('keydown', function (e) {
+
             e.stopPropagation();
+
             if (e.keyCode === 37) {
+
                 controller.goPrev();
+
             } else if (e.keyCode === 39) {
+
                 controller.goNext();
+
             }
+
         });
 
         if (config.url !== undefined) {
+
             api.load(config.url);
+
         } else if (config.pgn_text !== undefined) {
+
             api.loadText(config.pgn_text);
+
         }
+
     };
 
     init(this);
+
 };
