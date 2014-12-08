@@ -780,7 +780,6 @@ CHESS.Board = function (config) {
     **/
     view.drawSquare = function (color, x, y, context) {
         var ctx = context || this.snapshot_ctx,
-            scale = this.square_size / 55, // 55 is the standard size of the square image
             image,
             col = parseInt(x / this.square_size, 10),
             row = parseInt(y / this.square_size, 10),
@@ -801,10 +800,7 @@ CHESS.Board = function (config) {
         } else {
             image = (color === 'light' ? this.square_light : this.square_dark);
             if (image.src !== '') {
-                this.snapshot_ctx.save();
-                this.snapshot_ctx.scale(scale, scale);
-                this.snapshot_ctx.drawImage(image, 0, 0, 55, 55, x, y, 55, 55);
-                this.snapshot_ctx.restore();
+                this.snapshot_ctx.drawImage(image, 0, 0, this.square_size, this.square_size, x, y, this.square_size, this.square_size);
             } else {
                 this.snapshot_ctx.beginPath();
                 this.snapshot_ctx.fillStyle = (color === 'light' ? this.square_color_light : this.square_color_dark);
