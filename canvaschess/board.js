@@ -46,6 +46,7 @@ CHESS.Board = function (config) {
             square_hover_dark: '#85c249',
             square_light: new Image(),
             square_dark: new Image(),
+            dpi_ratio: 1,
             dragok: false,
             drag_piece: '',
             // Array position of piece being dragged
@@ -125,6 +126,10 @@ CHESS.Board = function (config) {
             } else {
                 return;
             }
+
+            // Adjust for hiDPI devices
+            view.top = view.top * view.dpi_ratio;
+            view.left = view.left * view.dpi_ratio;
 
             i = parseInt(view.top / view.square_size, 10);
             j = parseInt(view.left / view.square_size, 10);
@@ -224,6 +229,11 @@ CHESS.Board = function (config) {
             } else {
                 return;
             }
+
+            // Adjust for hiDPI devices
+            myview.top = myview.top * myview.dpi_ratio;
+            myview.left = myview.left * myview.dpi_ratio;
+
             i = parseInt(myview.top / myview.square_size, 10);
             j = parseInt(myview.left / myview.square_size, 10);
 
@@ -309,6 +319,8 @@ CHESS.Board = function (config) {
         var sq1,
             sq2,
             alpha_conversion = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+            my_x,
+            my_y,
             i,
             j,
             xy1,
@@ -320,13 +332,23 @@ CHESS.Board = function (config) {
         if (model.active && view.dragok) {
             if (e.hasOwnProperty('clientX')) {
                 // Mouse event
-                i = parseInt((e.clientY - rect.top) / view.square_size, 10);
-                j = parseInt((e.clientX - rect.left) / view.square_size, 10);
+
+                // Adjust for hiDPI devices
+                my_x = (e.clientX - rect.left) * view.dpi_ratio;
+                my_y = (e.clientY - rect.top) * view.dpi_ratio;
+
+                i = parseInt(my_y / view.square_size, 10);
+                j = parseInt(my_x / view.square_size, 10);
                 view.canvas.style.cursor = 'default';
             } else if (e.hasOwnProperty('changedTouches')) {
                 // Touch event
-                i = parseInt((e.changedTouches[0].pageY - rect.top) / view.square_size, 10);
-                j = parseInt((e.changedTouches[0].pageX - rect.left) / view.square_size, 10);
+
+                // Adjust for hiDPI devices
+                my_x = (e.changedTouches[0].pageX - rect.left) * view.dpi_ratio;
+                my_y = (e.changedTouches[0].pageY - rect.top) * view.dpi_ratio;                
+
+                i = parseInt(my_y / view.square_size, 10);
+                j = parseInt(my_x / view.square_size, 10);
             } else {
                 return;
             }
@@ -428,8 +450,17 @@ CHESS.Board = function (config) {
     @param {number} [width=0] - The new width of the board.
     **/
     controller.resize = function (height, width) {
-        var smaller_size = 0,
-            rows = 8;
+        var old_width,
+            old_height,
+            smaller_size = 0,
+            rows = 8,
+            devicePixelRatio = window.devicePixelRatio || 1,
+            backingStoreRatio =
+                view.ctx.webkitBackingStorePixelRatio ||
+                view.ctx.mozBackingStorePixelRatio || 
+                view.ctx.msBackingStorePixelRatio || 
+                view.ctx.oBackingStorePixelRatio || 
+                view.ctx.BackingStorePixelRatio || 1;
 
         // Clean
         height = height || 0;
@@ -442,13 +473,32 @@ CHESS.Board = function (config) {
             height = parseInt(window.getComputedStyle(view.canvas.parentNode, null).getPropertyValue('height'), 10);
             width = parseInt(window.getComputedStyle(view.canvas.parentNode, null).getPropertyValue('width'), 10);
         }
+
         smaller_size = (height < width ? height : width);
+
         if (model.mode === 'setup') {
             rows = 10;
         }
+
         view.square_size = (height < width ? parseInt(smaller_size / rows, 10) : parseInt(smaller_size / 8, 10));
         view.canvas.height = view.square_size * rows;
         view.canvas.width = view.square_size * 8;
+
+        // Adjust the pixel ratio for hiDPI devices
+        view.dpi_ratio = devicePixelRatio / backingStoreRatio;
+
+        if (devicePixelRatio !== backingStoreRatio) {
+            old_width = view.canvas.width,
+            old_height = view.canvas.height;
+
+            view.canvas.width = old_width * view.dpi_ratio;
+            view.canvas.height = old_height * view.dpi_ratio;
+            view.canvas.style.width = old_width + 'px';
+            view.canvas.style.height = old_height + 'px';
+
+            view.square_size = view.canvas.width / 8;
+        };
+
     };
 
     /**
