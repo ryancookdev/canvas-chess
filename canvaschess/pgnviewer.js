@@ -533,7 +533,7 @@ CHESS.PgnViewer = function (config) {
         for (i = 0; i < move_array.length; i += 1) {
 
             // First move
-            first_move = move_array[i].match(/\d+[.]{1,3}\s?([^ )]+)\s?(?:\{\})?/);
+            first_move = move_array[i].match(/\d+[.]{1,3}\s?((?:[^ )]+)\s?(?:\$[\d]+)?)\s?(?:\{\})?/);
             if (first_move !== null) {
 
                 // Get NAG
@@ -579,7 +579,7 @@ CHESS.PgnViewer = function (config) {
 
                 // Second move
                 move_array[i] = move_array[i].replace(first_move[0], '');
-                second_move = move_array[i].match(/(\w[^ )]+)\s?(?:\{\})?/);
+                second_move = move_array[i].match(/((?:\w[^ )]+)\s?(?:\$[\d]+)?)\s?(?:\{\})?/);
                 if (second_move !== null) {
 
                     // Get NAG
@@ -634,6 +634,32 @@ CHESS.PgnViewer = function (config) {
                 if (/\(/.test(move_array[i])) {
 
                     this.startVariation();
+
+                    // Look for leading comments
+                    if (/\(\{\}/.test(move_array[i])) {
+
+                        comment_data = this.getComment(comments);
+
+                        // This should be handled by move(). Clean up later.
+                        var move_elem = document.createElement('li');
+                        move_elem.move = '';
+                        var move_comment = document.createElement('span');
+                        move_comment.setAttribute('class', 'comment');
+                        move_comment.innerHTML = comment_data.comment;
+                        move_elem.appendChild(move_comment);
+                        if (comment_data.gc !== undefined && comment_data.gc !== null) {
+                            move_elem.gc = comment_data.gc;
+                        }
+                        move_elem.setAttribute('data-ply', this.ply);
+                        move_elem.fen = view.getSiblingMove(this.current_move.parentNode.previousSibling, -1).fen;
+                        move_elem.onclick = controller.updateBoard;
+                        this.current_move.appendChild(move_elem);
+
+                        // Clear comment data
+                        comment_data.comment = '';
+                        comment_data.gc = null;
+
+                    }
 
                 }
 
