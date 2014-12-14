@@ -53,6 +53,8 @@ CHESS.Board = function (config) {
             drag_clear_i: 0,
             // Array position of piece being dragged
             drag_clear_j: 0,
+            // Path to the images folder
+            image_path: 'canvaschess/img/',
             // Coordinate of the mouse/touch event
             left: 0,
             // Coordinate of the mouse/touch event
@@ -71,6 +73,7 @@ CHESS.Board = function (config) {
             highlight_move_color: '#FF0000',
             highlight_move_opacity: '0.5',
             highlight_hover: false,
+            piece_set: 'canvaschess/img/pieces/merida/',
             show_row_col_labels: true,
             arrow_list: [],
             square_list: [],
@@ -1348,6 +1351,7 @@ CHESS.Board = function (config) {
         view.highlight_move_opacity = (config.highlight_move_opacity ? config.highlight_move_opacity : view.highlight_move_opacity);
         view.square_hover_light = (config.square_hover_light ? config.square_hover_light : view.square_hover_light);
         view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
+        view.piece_set = (config.piece_set ? config.piece_set : view.piece_set);
         model.mode = config.mode;
         model.active = true;
 
@@ -1359,7 +1363,8 @@ CHESS.Board = function (config) {
 
         controller.resize(config.height, config.width);
 
-        path = CHESS.config.library_path + '/img/pieces/' + (config.piece_set || 'default') ;
+        path = (config.piece_set || 'pieces/merida') ;
+        path = path.replace(/\/$/, '');
 
         // Preload graphics
         view.wp.src = path + '/wp.svg';

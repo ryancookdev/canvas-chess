@@ -3,10 +3,6 @@
 // Global namespace
 var CHESS = CHESS || {};
 
-CHESS.config = {
-    library_path: 'canvaschess'
-};
-
 CHESS.nag_code = {
     '0': '',
     '1': '!',
@@ -15,7 +11,13 @@ CHESS.nag_code = {
     '4': '??',
     '5': '!?',
     '6': '?!',
-    '10': '='
+    '10': '=',
+    '14': '+/=',
+    '15': '=/+',
+    '16': '+/-',
+    '17': '-/+',
+    '18': '+-',
+    '19': '-+'
 };
 
 CHESS.hexToRgba = function (hex) {
