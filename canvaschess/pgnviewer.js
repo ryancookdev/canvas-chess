@@ -757,8 +757,7 @@ CHESS.PgnViewer = function (config) {
 
     view.changeMove = function (new_move_elem) {
 
-        var scroll_top,
-            gc;
+        var scroll_top;
 
         if (view.current_move !== new_move_elem) {
 
@@ -945,7 +944,7 @@ CHESS.PgnViewer = function (config) {
             side_to_move;
 
         // Validation
-        if (!move && !comment) {
+        if (!move && !comment && !gc) {
 
             return this;
 
