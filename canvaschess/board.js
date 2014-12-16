@@ -1091,10 +1091,21 @@ CHESS.Board = function (config) {
 
     /**
     Flip the board.
+
+    @param {string} color - If provided, it will orient the board for white (w) or black (b).
     **/
-    this.flip = function () {
-        view.white_down = !view.white_down;
+    this.flip = function (color) {
+
+        if (color === 'w') {
+            view.white_down = true;
+        } else if (color === 'b') {
+            view.white_down = false;
+        } else {
+            view.white_down = !view.white_down;
+        }
+
         view.takeSnapshot();
+
     };
 
     /**
