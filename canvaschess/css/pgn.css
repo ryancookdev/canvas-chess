@@ -20,6 +20,11 @@
     user-select: none;
 }
 
+.canvaschesspgn
+{
+    outline: 0;
+}
+
 .chessboard
 {
     float: left;
