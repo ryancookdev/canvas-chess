@@ -4,7 +4,7 @@ var CHESS = CHESS || {};
 /**
 Board module
 **/
-CHESS.Board = function (config) {
+CHESS.Board = function (config, fn) {
     var
         /**
         Constructor for initializing a new board.
@@ -63,6 +63,8 @@ CHESS.Board = function (config) {
             last_draw_left: 0,
             // Coordinate of the last draw of a dragged piece
             last_draw_top: 0,
+            // Number of piece images loaded
+            loaded_pieces: 0,
             // Does the piece need cleared from the starting square at the start of a drag?
             piece_not_lifted: true,
             // The white pieces are at the bottom of the screen
@@ -473,8 +475,10 @@ CHESS.Board = function (config) {
 
         // Attempt to fill the container if no values are found
         if (height === 0 || width === 0) {
-            height = parseInt(window.getComputedStyle(view.canvas.parentNode, null).getPropertyValue('height'), 10);
-            width = parseInt(window.getComputedStyle(view.canvas.parentNode, null).getPropertyValue('width'), 10);
+            if (view.canvas.parentNode) {
+                height = parseInt(window.getComputedStyle(view.canvas.parentNode, null).getPropertyValue('height'), 10);
+                width = parseInt(window.getComputedStyle(view.canvas.parentNode, null).getPropertyValue('width'), 10);
+            }
         }
 
         smaller_size = (height < width ? height : width);
@@ -652,8 +656,8 @@ CHESS.Board = function (config) {
             y2_short, // less distance, leave room for the arrow head,
             slope,
             x_diff,
-            line_width = 10,
-            head_length = (this.square_size / 2) - 5,
+            line_width = view.square_size / 6,
+            head_length = this.square_size / 2.4,
             angle = Math.PI / 6, // Determines the width of the arrow head,
             lineangle,
             head_side_length,
@@ -853,7 +857,7 @@ CHESS.Board = function (config) {
         } else {
             image = (color === 'light' ? this.square_light : this.square_dark);
             if (image.src !== '') {
-                this.snapshot_ctx.drawImage(image, 0, 0, this.square_size, this.square_size, x, y, this.square_size, this.square_size);
+                this.snapshot_ctx.drawImage(image, x, y, this.square_size, this.square_size);
             } else {
                 this.snapshot_ctx.beginPath();
                 this.snapshot_ctx.fillStyle = (color === 'light' ? this.square_color_light : this.square_color_dark);
@@ -1134,6 +1138,26 @@ CHESS.Board = function (config) {
     this.getCanvas = function () {
         return view.canvas;
     };
+    
+    /**
+    Get a PNG format image of the current board.
+
+    @returns {object} Image.
+    **/
+    this.getImage = function () {
+	var image = new Image();
+	image.src = view.canvas.toDataURL('image/png');
+	return image;
+    };
+
+    /**
+    Is the current position a draw by insufficient material?
+
+    @returns {boolean} True or false.
+    **/
+    this.isInsufficientMaterial = function () {
+        return CHESS.engine.isInsufficientMaterial(model);
+    };
 
     /**
     Is the current position checkmate?
@@ -1340,6 +1364,12 @@ CHESS.Board = function (config) {
     init = function () {
         var path;
 
+        function callback () {
+            if (typeof fn === 'function' && view.loaded_pieces === 12) {
+                fn();
+            }
+        }
+
         view.buildHtml(config.container);
 
         // Mouse and touch events
@@ -1380,62 +1410,109 @@ CHESS.Board = function (config) {
         // Preload graphics
         view.wp.src = path + '/wp.svg';
         view.wp.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+            }
         };
 
         view.wr.src = path + '/wr.svg';
         view.wr.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.wn.src = path + '/wn.svg';
         view.wn.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.wb.src = path + '/wb.svg';
         view.wb.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.wq.src = path + '/wq.svg';
         view.wq.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.wk.src = path + '/wk.svg';
         view.wk.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.bp.src = path + '/bp.svg';
         view.bp.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.br.src = path + '/br.svg';
         view.br.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.bn.src = path + '/bn.svg';
         view.bn.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.bb.src = path + '/bb.svg';
         view.bb.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.bq.src = path + '/bq.svg';
         view.bq.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         view.bk.src = path + '/bk.svg';
         view.bk.onload = function () {
-            view.takeSnapshot();
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+                callback();
+            }
         };
 
         if (typeof config.square_dark === 'string') {
