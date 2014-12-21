@@ -636,7 +636,7 @@ CHESS.PgnViewer = function (config) {
                     this.startVariation();
 
                     // Look for leading comments
-                    if (/\(\{\}/.test(move_array[i])) {
+                    if (/\(\s?\{\}/.test(move_array[i])) {
 
                         comment_data = this.getComment(comments);
 
