@@ -1016,7 +1016,7 @@ CHESS.PgnViewer = function (config) {
         move_figurine = move;
 
         // Change to check for figurine config setting
-        if (config.figurine) {
+        if (config.figurine !== false) {
             switch (move.charAt(0)) {
                 case 'K':
                     move_figurine = "<span class='figurine fig_k'>K</span>" + move.substring(1);
