@@ -934,6 +934,7 @@ CHESS.PgnViewer = function (config) {
 
         var move_elem,
             move_text,
+            move_figurine,
             move_comment,
             fullmove,
             fen,
@@ -1012,10 +1013,33 @@ CHESS.PgnViewer = function (config) {
         // Increment
         this.ply += 1;
 
+        move_figurine = move;
+
+        // Change to check for figurine config setting
+        if (config.figurine) {
+            switch (move.charAt(0)) {
+                case 'K':
+                    move_figurine = "<span class='figurine fig_k'>K</span>" + move.substring(1);
+                    break;
+                case 'Q':
+                    move_figurine = "<span class='figurine fig_q'>Q</span>" + move.substring(1);
+                    break;
+                case 'R':
+                    move_figurine = "<span class='figurine fig_r'>R</span>" + move.substring(1);
+                    break;
+                case 'B':
+                    move_figurine = "<span class='figurine fig_b'>B</span>" + move.substring(1);
+                    break;
+                case 'N':
+                    move_figurine = "<span class='figurine fig_n'>N</span>" + move.substring(1);
+                    break;
+            }
+        }
+
         // Create move text element
         move_text = document.createElement('span');
         move_text.setAttribute('class', 'move_text');
-        move_text.innerHTML = fullmove + move + nag + ' ';
+        move_text.innerHTML = fullmove + move_figurine + nag + ' ';
 
         // Create move element
         move_elem = document.createElement('li');

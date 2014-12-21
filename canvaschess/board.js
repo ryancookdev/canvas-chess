@@ -825,6 +825,11 @@ CHESS.Board = function (config, fn) {
     @param {number} y - The vertical position in pixels.
     **/
     view.drawPiece = function (piece, x, y) {
+
+        if (!/[bw][kqrbnp]/.test(piece)) {
+            return;
+        }
+
         this.snapshot_ctx.drawImage(this[piece], x, y, this.square_size, this.square_size);
     };
 
