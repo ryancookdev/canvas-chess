@@ -243,7 +243,7 @@ CHESS.PgnViewer = function (config) {
 
             this.game_list.style.width = config.move_list_width + 'px';
             this.move_list.style.width = (config.move_list_width - 30) + 'px';
-            this.move_list.style.height = config.board_width + 'px';
+            this.move_list.style.height = (parseInt(config.board_width / 8, 10) * 8) + 'px';
             this.move_control_box.style.width = config.move_list_width + 'px';
 
             // Calculate margin for move buttons
@@ -356,31 +356,26 @@ CHESS.PgnViewer = function (config) {
         this.header_players_elem = doc.createElement('span');
         this.header_players_elem.className = 'pgn_players';
         this.header_players_elem.title = 'Players';
-        this.header_players_elem.innerHTML = 'Players';
 
         // Event
         this.header_event_elem = doc.createElement('span');
         this.header_event_elem.className = 'pgn_event';
         this.header_event_elem.title = 'Event';
-        this.header_event_elem.innerHTML = 'Event';
 
         // Site
         this.header_site_elem = doc.createElement('span');
         this.header_site_elem.className = 'pgn_site';
         this.header_site_elem.title = 'Site';
-        this.header_site_elem.innerHTML = 'Site';
 
         // Date
         this.header_date_elem = doc.createElement('span');
         this.header_date_elem.className = 'pgn_date';
         this.header_date_elem.title = 'Date';
-        this.header_date_elem.innerHTML = 'Date';
 
         // Result
         this.header_result_elem = doc.createElement('span');
         this.header_result_elem.className = 'pgn_result';
         this.header_result_elem.title = 'Result';
-        this.header_result_elem.innerHTML = 'Result';
 
         // Add game details to header details box
         this.header_details_box.appendChild(this.header_players_elem);
@@ -791,13 +786,21 @@ CHESS.PgnViewer = function (config) {
 
     view.displayHeader = function () {
 
-        this.header_date_elem.innerHTML = this.getPgnDate(model.date);
+        if (config.show_tags === false) {
 
-        // Other headers
-        this.header_players_elem.innerHTML = model.white + ' vs ' + model.black;
-        this.header_event_elem.innerHTML = model.event;
-        this.header_site_elem.innerHTML = model.site;
-        this.header_result_elem.innerHTML = model.result;
+            this.header_details_box.style.display = 'none';
+
+        } else {
+            
+            this.header_date_elem.innerHTML = this.getPgnDate(model.date);
+
+            // Other headers
+            this.header_players_elem.innerHTML = model.white + ' vs ' + model.black;
+            this.header_event_elem.innerHTML = model.event;
+            this.header_site_elem.innerHTML = model.site;
+            this.header_result_elem.innerHTML = model.result;
+
+        }
 
     };
 
@@ -1181,6 +1184,8 @@ CHESS.PgnViewer = function (config) {
     };
 
     init = function (api) {
+        var ratio_arr,
+            ratio;
 
         if (config.width === undefined) {
 
@@ -1191,9 +1196,25 @@ CHESS.PgnViewer = function (config) {
 
         } else {
 
-            // 60:40 board to move list
+            // Set the ratio for board:movelist
+            ratio = 0.5;
+            if (config.board_movelist_ratio !== undefined) {
+                ratio_arr = config.board_movelist_ratio.split(':');
+                if (ratio_arr.length === 2) {
+                    ratio_arr[0] = parseInt(ratio_arr[0], 10);
+                    ratio_arr[1] = parseInt(ratio_arr[1], 10);
+                    if (ratio_arr[1] !== 0) {
+                        ratio = ratio_arr[0] / (ratio_arr[0] + ratio_arr[1]);
+                        if (ratio > 3) {
+                            ratio = 3;
+                        } else if (ratio < 0.3) {
+                            ratio = 0.3;
+                        }
+                    }
+                }
+            }
             config.width = parseInt(config.width, 10);
-            config.board_width = parseInt((config.width - 10) * 0.54, 10);
+            config.board_width = parseInt((config.width) * ratio, 10);
             config.move_list_width = parseInt(config.width, 10) - config.board_width;
 
         }

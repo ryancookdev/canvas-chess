@@ -150,6 +150,7 @@ CHESS.Board = function (config, fn) {
                 piece = model.position_array[i][j];
             } else {
                 // Dragging a piece in the piece box
+// TODO: UPDATE SETUP
                 if (model.mode === 'setup') {
                     piece = model.piecebox_array[i - 8][j];
                 }
@@ -252,39 +253,6 @@ CHESS.Board = function (config, fn) {
                 myview.drawSquare('hover', i * myview.square_size, j * myview.square_size);
             }
 
-            // Clear the piece from the starting square (first time only, in case a quick mouse move didn't allow the square to highlight, and never from piece box)
-/*            if (myview.piece_not_lifted && myview.drag_clear_i < 8) {
-                myview.piece_not_lifted = false;
-                
-                ii = myview.drag_clear_i;
-                jj = myview.drag_clear_j;
-                if (!myview.white_down) {
-                    ii = 7 - ii;
-                    jj = 7 - jj;
-                }
-
-                is_square_light = ((myview.drag_clear_i + myview.drag_clear_j) % 2 === 0);
-                if (is_square_light) {
-                    if (myview.square_light.src !== '') {
-                        myview.drawSquare('light', jj * myview.square_size, ii * myview.square_size, myview.ctx);
-                    } else {
-                        myview.ctx.beginPath();
-                        myview.ctx.fillStyle = myview.square_color_light;
-                        myview.ctx.rect(jj * myview.square_size, ii * myview.square_size, myview.square_size, myview.square_size);
-                        myview.ctx.fill();
-                    }
-                } else {
-                    if (myview.square_dark.src !== '') {
-                        myview.drawSquare('dark', jj * myview.square_size, ii * myview.square_size, myview.ctx);
-                    } else {
-                        myview.ctx.beginPath();
-                        myview.ctx.fillStyle = myview.square_color_dark;
-                        myview.ctx.rect(jj * myview.square_size, ii * myview.square_size, myview.square_size, myview.square_size);
-                        myview.ctx.fill();
-                    }
-                }
-            }*/
-
             // Draw any piece that was sitting on the hover square
             ii = i;
             jj = j;
@@ -306,12 +274,13 @@ CHESS.Board = function (config, fn) {
 
             // Trim drawing region so it doesn't go into the piece box
             draw_height = myview.square_size;
+// TODO: UPDATE SETUP
             if (model.mode === 'setup' && myview.top > myview.square_size * 7.5) {
                 draw_height = draw_height - ((myview.top - myview.square_size * 7.5));
             }
             
             // Draw the piece
-            myview.ctx.drawImage(myview[piece], x, y, myview.square_size, myview.square_size);
+            myview.ctx.drawImage(myview[piece], x, y, myview.square_size, draw_height);
         }
     };
 
@@ -389,7 +358,7 @@ CHESS.Board = function (config, fn) {
 
             xy1 = CHESS.engine.getArrayPosition(sq1);
             xy2 = CHESS.engine.getArrayPosition(sq2);
-
+// TODO: UPDATE SETUP
             if (model.mode === 'setup') {
                 if (sq1 !== sq2 && sq1 !== 'piecebox' && sq2 !== 'piecebox') {
                     model.position_array[xy2.substr(1, 1)][xy2.substr(0, 1)] = drag_piece_temp;
@@ -992,7 +961,7 @@ CHESS.Board = function (config, fn) {
                 }
             }
         }
-
+// TODO: UPDATE SETUP
         if (model.mode === 'setup') {
             // Draw piece box pieces
             for (i = 0; i < 2; i += 1) {
