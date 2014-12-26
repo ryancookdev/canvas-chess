@@ -401,6 +401,7 @@ CHESS.PgnViewer = function (config) {
     view.changeGame = function (game_index) {
 
         var i,
+            j,
             pgn_str,
             header,
             header_data,
@@ -415,7 +416,8 @@ CHESS.PgnViewer = function (config) {
             comment_data = {
                 comment: '',
                 gc: null
-            };
+            },
+            end_count;
 
         // Reset model
         model.event = '';
@@ -622,7 +624,13 @@ CHESS.PgnViewer = function (config) {
                 // Check for start/end variation markers
                 if (/\)/.test(move_array[i])) {
 
-                    this.endVariation();
+                    end_count = move_array[i].match(/\)/g).length;
+
+                    for (j = 0; j < end_count; j += 1) {
+
+                        this.endVariation();
+
+                    }
 
                 }
 
