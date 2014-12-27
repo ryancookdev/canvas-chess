@@ -118,6 +118,7 @@ CHESS.Board = function (config, fn) {
             piece,
             piece_color,
             rect = view.canvas.getBoundingClientRect();
+
         if (model.active) {
             if (e.hasOwnProperty('clientX')) {
                 // Mouse event
@@ -155,6 +156,13 @@ CHESS.Board = function (config, fn) {
                     piece = model.piecebox_array[i - 8][j];
                 }
             }
+
+            if (piece === undefined) {
+                // Prevent dragging if coordinate system is broken (this can happen with mobile devices when the page is zoomed)
+                view.active = false;
+                return;
+            }
+
             piece_color = piece.substr(0, 1);
             if (model.mode !== 'setup' && ((model.white_to_move && piece_color === 'b') || (!model.white_to_move && piece_color === 'w'))) {
                 view.canvas.style.cursor = 'default';
@@ -1378,8 +1386,7 @@ CHESS.Board = function (config, fn) {
 
         controller.resize(config.height, config.width);
 
-        path = (config.piece_set || 'pieces/merida') ;
-        path = path.replace(/\/$/, '');
+        path = view.piece_set.replace(/\/$/, '');
 
         // Preload graphics
         view.wp.src = path + '/wp.svg';

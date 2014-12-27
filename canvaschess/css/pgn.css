@@ -27,7 +27,8 @@
 
 .chessboard
 {
-    outline: 1px solid #555;
+    outline: 0;
+    border: 1px solid #555;
 }
 
 .pgn_header_box
