@@ -26,7 +26,7 @@ CHESS.Board = function (config, fn) {
         Holds the internal state of the board.
         @private
         **/
-        model = CHESS.engine.createPosition(),
+        model = CHESS.util.createPosition(),
 
         /**
         Contains methods for updating the user interface.
@@ -364,8 +364,8 @@ CHESS.Board = function (config, fn) {
                 sq2 = alpha_conversion[j] + (8 - i);
             }
 
-            xy1 = CHESS.engine.getArrayPosition(sq1);
-            xy2 = CHESS.engine.getArrayPosition(sq2);
+            xy1 = CHESS.util.getArrayPosition(sq1);
+            xy2 = CHESS.util.getArrayPosition(sq2);
 // TODO: UPDATE SETUP
             if (model.mode === 'setup') {
                 if (sq1 !== sq2 && sq1 !== 'piecebox' && sq2 !== 'piecebox') {
@@ -493,7 +493,7 @@ CHESS.Board = function (config, fn) {
     **/
     model.move = function (sq1, sq2) {
         var pos = {
-                position_array: CHESS.engine.clonePositionArray(this.position_array),
+                position_array: CHESS.util.clonePositionArray(this.position_array),
                 white_to_move: this.white_to_move,
                 en_passant: this.en_passant,
                 active: this.active,
@@ -503,7 +503,7 @@ CHESS.Board = function (config, fn) {
                 gs_castle_qside_b: this.gs_castle_qside_b
             },
             pos_before = {
-                fen: CHESS.engine.getFEN(this),
+                fen: CHESS.util.getFEN(this),
                 player_to_move: (this.white_to_move ? 'w' : 'b'),
                 sq1: sq1,
                 sq2: sq2,
@@ -522,15 +522,15 @@ CHESS.Board = function (config, fn) {
             };
         }
 
-        xy1 = CHESS.engine.getArrayPosition(sq1);
-        xy2 = CHESS.engine.getArrayPosition(sq2);
+        xy1 = CHESS.util.getArrayPosition(sq1);
+        xy2 = CHESS.util.getArrayPosition(sq2);
         piece = model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)].substr(1, 1);
         if (piece === 'p' && ((model.white_to_move && sq2.substr(1, 1) === '8') || (!model.white_to_move && sq2.substr(1, 1) === '1'))) {
             pos_before.promote = true;
         }
 
         // Illegal move
-        if (!CHESS.engine.moveTemp(pos, sq1, sq2)) {
+        if (!CHESS.util.move(pos, sq1, sq2)) {
             view.takeSnapshot();
             return;
         }
@@ -538,9 +538,9 @@ CHESS.Board = function (config, fn) {
         // Remove graphic commentary
         view.arrow_list = [];
 
-        if (CHESS.engine.isMate(pos)) {
+        if (CHESS.util.isMate(pos)) {
             pos_before.mate = true;
-        } else if (CHESS.engine.isStalemate(pos)) {
+        } else if (CHESS.util.isStalemate(pos)) {
             pos_before.stalemate = true;
         }
 
@@ -548,7 +548,7 @@ CHESS.Board = function (config, fn) {
         controller.publish(pos_before, 'move_before');
 
         // Apply position
-        this.position_array = CHESS.engine.clonePositionArray(pos.position_array);
+        this.position_array = CHESS.util.clonePositionArray(pos.position_array);
         this.white_to_move = pos.white_to_move;
         this.en_passant = pos.en_passant;
         this.active = pos.active;
@@ -577,7 +577,7 @@ CHESS.Board = function (config, fn) {
     @param {string} fen - FEN representation of the position.
     **/
     model.setPosition = function (fen) {
-        CHESS.engine.setPosition(this, fen);
+        CHESS.util.setPosition(this, fen);
     };
 
     /**
@@ -646,8 +646,8 @@ CHESS.Board = function (config, fn) {
             boty; // The length of a side of the arrow head
 
         // Position/color values
-        xy1 = CHESS.engine.getArrayPosition(sq1);
-        xy2 = CHESS.engine.getArrayPosition(sq2);
+        xy1 = CHESS.util.getArrayPosition(sq1);
+        xy2 = CHESS.util.getArrayPosition(sq2);
         x1 = xy1.substr(0, 1);
         y1 = xy1.substr(1, 1);
         x2 = xy2.substr(0, 1);
@@ -734,6 +734,38 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
+    Activate/Inactivate the board.
+
+    @param {boolean} active - True or False.
+    **/
+    view.setActive = function (active) {
+
+        model.active = (active === true);
+
+        if (model.active) {
+
+            // Mouse and touch events
+            view.canvas.onmousedown = controller.myDown;
+            view.canvas.onmouseup = controller.myUp;
+            view.canvas.onmousemove = controller.myMove;
+            view.canvas.addEventListener('touchstart', controller.myDown, false);
+            view.canvas.addEventListener('touchend', controller.myUp, false);
+            view.canvas.addEventListener('touchmove', controller.myMove, false);
+            view.canvas.addEventListener('touchleave', controller.myCancel, false);
+            view.canvas.addEventListener('touchcancel', controller.myCancel, false);
+
+        } else {
+
+            view.canvas.removeEventListener('touchstart', controller.myDown);
+            view.canvas.removeEventListener('touchend', controller.myUp);
+            view.canvas.removeEventListener('touchmove', controller.myMove);
+            view.canvas.removeEventListener('touchleave', controller.myCancel);
+            view.canvas.removeEventListener('touchcancel', controller.myCancel);
+
+        }
+    };
+
+    /**
     Add a colored square to the square list.
 
     @param {string} sq - Square (eg. e2).
@@ -763,7 +795,7 @@ CHESS.Board = function (config, fn) {
             y; // The length of a side of the arrow head
 
         // Position/color values
-        xy = CHESS.engine.getArrayPosition(sq);
+        xy = CHESS.util.getArrayPosition(sq);
         x = xy.substr(0, 1);
         y = xy.substr(1, 1);
 
@@ -1109,7 +1141,7 @@ CHESS.Board = function (config, fn) {
     @returns {string} FEN string.
     **/
     this.getFEN = function () {
-        return CHESS.engine.getFEN(model);
+        return CHESS.util.getFEN(model);
     };
 
     /**
@@ -1138,7 +1170,7 @@ CHESS.Board = function (config, fn) {
     @returns {boolean} True or false.
     **/
     this.isInsufficientMaterial = function () {
-        return CHESS.engine.isInsufficientMaterial(model);
+        return CHESS.util.isInsufficientMaterial(model);
     };
 
     /**
@@ -1147,7 +1179,7 @@ CHESS.Board = function (config, fn) {
     @returns {boolean} True or false.
     **/
     this.isMate = function () {
-        return CHESS.engine.isMate(model);
+        return CHESS.util.isMate(model);
     };
 
     /**
@@ -1156,7 +1188,7 @@ CHESS.Board = function (config, fn) {
     @returns {boolean} True or false.
     **/
     this.isStalemate = function () {
-        return CHESS.engine.isStalemate(model);
+        return CHESS.util.isStalemate(model);
     };
 
     /**
@@ -1169,7 +1201,7 @@ CHESS.Board = function (config, fn) {
             sq1,
             sq2;
 
-        long_move = CHESS.engine.getLongNotation(model, san);
+        long_move = CHESS.util.getLongNotation(model, san);
         long_move = long_move.split('-');
         sq1 = long_move[0];
         sq2 = long_move[1];
@@ -1224,8 +1256,8 @@ CHESS.Board = function (config, fn) {
         model.gs_castle_kside_b = true;
         model.gs_castle_qside_b = true;
         model.moves = 0;
-        model.active = true;
 
+        //view.setActive(true);
         view.takeSnapshot();
     };
 
@@ -1278,7 +1310,7 @@ CHESS.Board = function (config, fn) {
     @param {boolean} active - True or False.
     **/
     this.setActive = function (active) {
-        model.active = (active === true);
+        view.setActive(active);
     };
 
     /**
@@ -1288,8 +1320,8 @@ CHESS.Board = function (config, fn) {
     @param {string} sq2 - Letter and number of the end square.
     **/
     this.setLastMove = function (sq1, sq2) {
-        sq1 = CHESS.engine.getArrayPosition(sq1);
-        sq2 = CHESS.engine.getArrayPosition(sq2);
+        sq1 = CHESS.util.getArrayPosition(sq1);
+        sq2 = CHESS.util.getArrayPosition(sq2);
         model.last_move = {'sq1': sq1, 'sq2': sq2};
     };
 
@@ -1301,7 +1333,7 @@ CHESS.Board = function (config, fn) {
     this.setMode = function (mode) {
         model.mode = mode;
         if (mode === 'setup') {
-            model.active = true;
+            //view.setActive(true);
         }
         controller.resize(view.canvas.height, view.canvas.width);
         view.takeSnapshot();
@@ -1314,7 +1346,7 @@ CHESS.Board = function (config, fn) {
     **/
     this.setPosition = function (fen) {
         model.setPosition(fen);
-        model.active = true;
+        //view.setActive(true);
         view.takeSnapshot();
     };
 
@@ -1354,15 +1386,7 @@ CHESS.Board = function (config, fn) {
 
         view.buildHtml(config.container);
 
-        // Mouse and touch events
-        view.canvas.onmousedown = controller.myDown;
-        view.canvas.onmouseup = controller.myUp;
-        view.canvas.onmousemove = controller.myMove;
-        view.canvas.addEventListener('touchstart', controller.myDown, false);
-        view.canvas.addEventListener('touchend', controller.myUp, false);
-        view.canvas.addEventListener('touchmove', controller.myMove, false);
-        view.canvas.addEventListener('touchleave', controller.myCancel, false);
-        view.canvas.addEventListener('touchcancel', controller.myCancel, false);
+        //view.setActive(true);
 
         view.highlight_move = (config.highlight_move === true ? true : false);
         view.highlight_hover = (config.highlight_hover === true ? true : false);
@@ -1376,7 +1400,6 @@ CHESS.Board = function (config, fn) {
         view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
         view.piece_set = (config.piece_set ? config.piece_set : view.piece_set);
         model.mode = config.mode;
-        model.active = true;
 
         if (config.fen) {
             model.setPosition(config.fen);
