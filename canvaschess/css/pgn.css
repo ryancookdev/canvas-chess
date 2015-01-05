@@ -184,6 +184,41 @@
     transition: all 200ms linear;
 }
 
+/* Mobile styles */
+
+.canvaschesspgn.mobile .pgn_header_box
+{
+    float: left;
+}
+
+.canvaschesspgn.mobile .pgn_main_box
+{
+    clear: left;
+    float: left;
+}
+
+.canvaschesspgn.mobile .pgn_control_box
+{
+    clear: left;
+}
+
+.canvaschesspgn.mobile .move_list
+{
+    position: relative;
+    height: 15rem !important;
+}
+
+.canvaschesspgn.mobile .move_controls
+{
+    display: block;
+    position: relative;
+}
+
+.canvaschesspgn.mobile .move_controls a
+{
+    margin: 0 0 0 10% !important;
+}
+
 /* SVG icons and figurines */
 
 .board_flip

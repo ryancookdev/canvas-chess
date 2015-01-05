@@ -170,7 +170,6 @@ CHESS.PgnViewer = function (config) {
         }
 
         view.board.display();
-        view.board.setActive(true);
 
         // Update the current move
         if (view.current_move !== null) {
@@ -184,17 +183,95 @@ CHESS.PgnViewer = function (config) {
 
     };
 
-    view.buildHtml = function (config, canvas) {
+    view.resize = function () {
 
         var i,
-            doc = document,
+            w = window,
+            d = document,
+            e = d.documentElement,
+            g = d.getElementsByTagName('body')[0],
+            page_width = w.innerWidth || e.clientWidth || g.clientWidth,
+            board_size,
             all_move_btns,
-            margin_px;
+            margin_px,
+            ratio,
+            ratio_arr;
+
+        // Check if mobile mode should be activated
+        if (config.width > page_width) {
+
+            page_width = parseInt(page_width / 9, 10) * 8;
+            board_size = page_width;
+
+            this.header_details_box.style.width = page_width + 'px';
+
+            this.game_list.style.width = page_width + 'px';
+            this.move_list.style.width = (page_width - 30) + 'px';
+            this.move_control_box.style.width = page_width + 'px';
+
+            this.container.classList.add('mobile');
+
+        } else {
+
+            // Set the ratio for board:movelist
+            ratio = 0.5;
+            if (config.board_movelist_ratio !== undefined) {
+                ratio_arr = config.board_movelist_ratio.split(':');
+                if (ratio_arr.length === 2) {
+                    ratio_arr[0] = parseInt(ratio_arr[0], 10);
+                    ratio_arr[1] = parseInt(ratio_arr[1], 10);
+                    if (ratio_arr[1] !== 0) {
+                        ratio = ratio_arr[0] / (ratio_arr[0] + ratio_arr[1]);
+                        if (ratio > 3) {
+                            ratio = 3;
+                        } else if (ratio < 0.3) {
+                            ratio = 0.3;
+                        }
+                    }
+                }
+            }
+            board_size = parseInt((config.width) * ratio, 10);
+            config.move_list_width = parseInt(config.width, 10) - board_size;
+
+            this.container.style.width = config.width + 'px';
+            this.header_details_box.style.width = board_size + 'px';
+
+            if (config.move_list_width !== null) {
+
+                this.game_list.style.width = config.move_list_width + 'px';
+                this.move_list.style.width = (config.move_list_width - 30) + 'px';
+                this.move_list.style.height = (parseInt(board_size / 8, 10) * 8) + 'px';
+                this.move_control_box.style.width = config.move_list_width + 'px';
+
+                // Calculate margin for move buttons
+                all_move_btns = document.getElementsByClassName('pgn_ctrl_btn');
+                margin_px = parseInt((config.move_list_width - 120) / 8, 10);
+
+                for (i = 0; i < all_move_btns.length; i += 1) {
+
+                    all_move_btns[i].style.margin = '0 ' + margin_px + 'px';
+
+                }
+
+            }
+
+            this.container.classList.remove('mobile');
+
+        }
+
+        view.board.resize(board_size, board_size);
+
+
+    };
+
+    view.buildHtml = function (config, canvas) {
+
+        var doc = document;
 
         // Find the container element if the ID was provided
         if (config.id !== undefined) {
 
-            this.container = document.getElementById(config.id);
+            this.container = doc.getElementById(config.id);
 
         }
 
@@ -202,11 +279,18 @@ CHESS.PgnViewer = function (config) {
         if (this.container === undefined || this.container === null) {
 
             // Create a container element in the location where this script was executed.
-            document.write('<div id=\'canvaschess\' class=\'canvaschesspgn\'></div>');
-            this.container = document.getElementById('canvaschess');
+            doc.write('<div id=\'canvaschess\' class=\'canvaschesspgn\'></div>');
+            this.container = doc.getElementById('canvaschess');
 
             // Remove ID so more PGN's can be created.
             this.container.removeAttribute('id');
+
+        }
+
+        // Set mobile class
+        if (config.mobile) {
+
+            this.container.classList.add('mobile');
 
         }
 
@@ -227,36 +311,7 @@ CHESS.PgnViewer = function (config) {
         this.main_box.appendChild(this.move_list);
 
         // Calculate sizes if configured
-        if (config.width !== null) {
-
-            this.container.style.width = config.width + 'px';
-
-        }
-
-        if (config.board_width !== null) {
-
-            this.header_details_box.style.width = config.board_width + 'px';
-
-        }
-
-        if (config.move_list_width !== null) {
-
-            this.game_list.style.width = config.move_list_width + 'px';
-            this.move_list.style.width = (config.move_list_width - 30) + 'px';
-            this.move_list.style.height = (parseInt(config.board_width / 8, 10) * 8) + 'px';
-            this.move_control_box.style.width = config.move_list_width + 'px';
-
-            // Calculate margin for move buttons
-            all_move_btns = document.getElementsByClassName('pgn_ctrl_btn');
-            margin_px = parseInt((config.move_list_width - 120) / 8, 10);
-
-            for (i = 0; i < all_move_btns.length; i += 1) {
-
-                all_move_btns[i].style.margin = '0 ' + margin_px + 'px';
-
-            }
-
-        }
+        view.resize();
 
     };
 
@@ -447,7 +502,7 @@ CHESS.PgnViewer = function (config) {
         for (i = 0; i < header.length; i += 1) {
 
             // Extract the tag names and values
-            header_data = header[i].match(/\[(\S+)\s"(.+?)"\]/);
+            header_data = header[i].match(/\[(\S+)\s"(.*)"\]/);
             header_data[1] = header_data[1].replace(/\s+$/, '');
             header_data[2] = header_data[2].replace(/\s+$/, '');
 
@@ -1192,40 +1247,15 @@ CHESS.PgnViewer = function (config) {
     };
 
     init = function (api) {
-        var ratio_arr,
-            ratio;
 
-        if (config.width === undefined) {
+        // Resize board when the window size changes
+        window.onresize = function () {
 
-            // Width will be set by CSS instead
-            config.width = null;
-            config.board_width = null;
-            config.move_list_width = null;
+            view.resize();
 
-        } else {
+        };
 
-            // Set the ratio for board:movelist
-            ratio = 0.5;
-            if (config.board_movelist_ratio !== undefined) {
-                ratio_arr = config.board_movelist_ratio.split(':');
-                if (ratio_arr.length === 2) {
-                    ratio_arr[0] = parseInt(ratio_arr[0], 10);
-                    ratio_arr[1] = parseInt(ratio_arr[1], 10);
-                    if (ratio_arr[1] !== 0) {
-                        ratio = ratio_arr[0] / (ratio_arr[0] + ratio_arr[1]);
-                        if (ratio > 3) {
-                            ratio = 3;
-                        } else if (ratio < 0.3) {
-                            ratio = 0.3;
-                        }
-                    }
-                }
-            }
-            config.width = parseInt(config.width, 10);
-            config.board_width = parseInt((config.width) * ratio, 10);
-            config.move_list_width = parseInt(config.width, 10) - config.board_width;
-
-        }
+        config.width = parseInt(config.width, 10) || 680;
 
         // Initialize the board
         view.board = new CHESS.Board({
@@ -1246,6 +1276,9 @@ CHESS.PgnViewer = function (config) {
             piece_set: config.piece_set
 
         });
+
+        // Set inactive for now, need to add analysis button to be displayed based on device support
+        view.board.setActive(false);
 
         // Create container elements
         view.buildHtml(config, view.board.getCanvas());
