@@ -183,87 +183,6 @@ CHESS.PgnViewer = function (config) {
 
     };
 
-    view.resize = function () {
-
-        var i,
-            w = window,
-            d = document,
-            e = d.documentElement,
-            g = d.getElementsByTagName('body')[0],
-            page_width = w.innerWidth || e.clientWidth || g.clientWidth,
-            board_size,
-            all_move_btns,
-            margin_px,
-            ratio,
-            ratio_arr;
-
-        // Check if mobile mode should be activated
-        if (config.width > page_width) {
-
-            page_width = parseInt(page_width / 9, 10) * 8;
-            board_size = page_width;
-
-            this.header_details_box.style.width = page_width + 'px';
-
-            this.game_list.style.width = page_width + 'px';
-            this.move_list.style.width = (page_width - 30) + 'px';
-            this.move_control_box.style.width = page_width + 'px';
-
-            this.container.classList.add('mobile');
-
-        } else {
-
-            // Set the ratio for board:movelist
-            ratio = 0.5;
-            if (config.board_movelist_ratio !== undefined) {
-                ratio_arr = config.board_movelist_ratio.split(':');
-                if (ratio_arr.length === 2) {
-                    ratio_arr[0] = parseInt(ratio_arr[0], 10);
-                    ratio_arr[1] = parseInt(ratio_arr[1], 10);
-                    if (ratio_arr[1] !== 0) {
-                        ratio = ratio_arr[0] / (ratio_arr[0] + ratio_arr[1]);
-                        if (ratio > 3) {
-                            ratio = 3;
-                        } else if (ratio < 0.3) {
-                            ratio = 0.3;
-                        }
-                    }
-                }
-            }
-            board_size = parseInt((config.width) * ratio, 10);
-            config.move_list_width = parseInt(config.width, 10) - board_size;
-
-            this.container.style.width = config.width + 'px';
-            this.header_details_box.style.width = board_size + 'px';
-
-            if (config.move_list_width !== null) {
-
-                this.game_list.style.width = config.move_list_width + 'px';
-                this.move_list.style.width = (config.move_list_width - 30) + 'px';
-                this.move_list.style.height = (parseInt(board_size / 8, 10) * 8) + 'px';
-                this.move_control_box.style.width = config.move_list_width + 'px';
-
-                // Calculate margin for move buttons
-                all_move_btns = document.getElementsByClassName('pgn_ctrl_btn');
-                margin_px = parseInt((config.move_list_width - 120) / 8, 10);
-
-                for (i = 0; i < all_move_btns.length; i += 1) {
-
-                    all_move_btns[i].style.margin = '0 ' + margin_px + 'px';
-
-                }
-
-            }
-
-            this.container.classList.remove('mobile');
-
-        }
-
-        view.board.resize(board_size, board_size);
-
-
-    };
-
     view.buildHtml = function (config, canvas) {
 
         var doc = document;
@@ -1008,7 +927,8 @@ CHESS.PgnViewer = function (config) {
             long_notation,
             move_array,
             fen_info,
-            side_to_move;
+            side_to_move,
+            promotion;
 
         // Validation
         if (!move && !comment && !gc) {
@@ -1128,12 +1048,20 @@ CHESS.PgnViewer = function (config) {
 
         }
 
-        // Calculate the new FEN based on the current + move
-        pos = CHESS.engine.createPosition(fen);
-        long_notation = CHESS.engine.getLongNotation(pos, move);
+        // Prepare to get the new FEN
+        pos = CHESS.util.createPosition(fen);
+        long_notation = CHESS.util.getLongNotation(pos, move);
         move_array = long_notation.split('-');
-        CHESS.engine.moveTemp(pos, move_array[0], move_array[1]);
-        fen = CHESS.engine.getFEN(pos);
+
+        if (/=[QRBN]/.test(move)) {
+
+            promotion = move.match(/=([QRBN])/)[1];
+
+        }
+
+        // Calculate the new FEN based on the current + move
+        CHESS.util.move(pos, move_array[0], move_array[1], promotion);
+        fen = CHESS.util.getFEN(pos);
 
         // Add fen/move/gc properties and click event
         move_elem.move = {'sq1': move_array[0], 'sq2': move_array[1]};
@@ -1172,6 +1100,94 @@ CHESS.PgnViewer = function (config) {
         this.current_move = move_elem;
 
         return this;
+
+    };
+
+    view.resize = function () {
+
+        var i,
+            w = window,
+            d = document,
+            e = d.documentElement,
+            g = d.getElementsByTagName('body')[0],
+            page_width = w.innerWidth || e.clientWidth || g.clientWidth,
+            page_height = w.innerHeight || e.clientHeight || g.clientHeight,
+            board_size,
+            all_move_btns,
+            margin_px,
+            ratio,
+            ratio_arr;
+
+        // Check if mobile mode should be activated
+        if (config.allow_mobile === undefined) {
+
+            config.allow_mobile = true;
+
+        }
+
+        if (config.allow_mobile && config.width > page_width && page_width < page_height) {
+
+            page_width = parseInt(page_width / 9, 10) * 8;
+            board_size = page_width;
+
+            this.header_details_box.style.width = page_width + 'px';
+
+            this.game_list.style.width = page_width + 'px';
+            this.move_list.style.width = (page_width - 30) + 'px';
+            this.move_control_box.style.width = page_width + 'px';
+
+            this.container.classList.add('mobile');
+
+        } else {
+
+            // Set the ratio for board:movelist
+            ratio = 0.5;
+            if (config.board_movelist_ratio !== undefined) {
+                ratio_arr = config.board_movelist_ratio.split(':');
+                if (ratio_arr.length === 2) {
+                    ratio_arr[0] = parseInt(ratio_arr[0], 10);
+                    ratio_arr[1] = parseInt(ratio_arr[1], 10);
+                    if (ratio_arr[1] !== 0) {
+                        ratio = ratio_arr[0] / (ratio_arr[0] + ratio_arr[1]);
+                        if (ratio > 3) {
+                            ratio = 3;
+                        } else if (ratio < 0.3) {
+                            ratio = 0.3;
+                        }
+                    }
+                }
+            }
+            board_size = parseInt((config.width) * ratio, 10);
+            config.move_list_width = parseInt(config.width, 10) - board_size;
+
+            this.container.style.width = config.width + 'px';
+            this.header_details_box.style.width = board_size + 'px';
+
+            if (config.move_list_width !== null) {
+
+                this.game_list.style.width = config.move_list_width + 'px';
+                this.move_list.style.width = (config.move_list_width - 30) + 'px';
+                this.move_list.style.height = (parseInt(board_size / 8, 10) * 8) + 'px';
+                this.move_control_box.style.width = config.move_list_width + 'px';
+
+                // Calculate margin for move buttons
+                all_move_btns = document.getElementsByClassName('pgn_ctrl_btn');
+                margin_px = parseInt((config.move_list_width - 120) / 8, 10);
+
+                for (i = 0; i < all_move_btns.length; i += 1) {
+
+                    all_move_btns[i].style.margin = '0 ' + margin_px + 'px';
+
+                }
+
+            }
+
+            this.container.classList.remove('mobile');
+
+        }
+
+        view.board.resize(board_size, board_size);
+
 
     };
 
@@ -1254,6 +1270,14 @@ CHESS.PgnViewer = function (config) {
             view.resize();
 
         };
+
+        // Mobile browsers may not fire a resize event on pinch/zoom
+        //window.addEventListener('touchend', view.resize, false);
+        window.addEventListener('touchend', function () {
+
+            view.resize();
+
+        }, false);
 
         config.width = parseInt(config.width, 10) || 680;
 
