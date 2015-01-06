@@ -10,7 +10,6 @@
     font-weight: normal;
     color: #000000;
     outline: 0;
-    overflow: hidden;
     
     /* Disable text highlighting */
     -webkit-touch-callout: none;
@@ -186,6 +185,11 @@
 }
 
 /* Mobile styles */
+
+.canvaschesspgn.mobile
+{
+    margin-bottom: 50px;
+}
 
 .canvaschesspgn.mobile .pgn_header_box
 {
