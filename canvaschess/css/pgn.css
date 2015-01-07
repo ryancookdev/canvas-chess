@@ -167,6 +167,18 @@
     text-indent: -9999px;
 }
 
+.nagcode
+{
+    font-size: 120%;
+    font-weight: normal;
+    line-height: 1em;
+}
+
+.nagcode:hover
+{
+    background-color: #CED8F6;
+}
+
 /* Transitions/Animations */
 
 .pgn_ctrl_btn:hover, .board_ctrl_btn:hover

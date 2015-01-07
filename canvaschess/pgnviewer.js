@@ -385,6 +385,7 @@ CHESS.PgnViewer = function (config) {
             second_move,
             nag_coded,
             nag_uncoded,
+            nag_info,
             nag,
             comments,
             comment_data = {
@@ -508,11 +509,17 @@ CHESS.PgnViewer = function (config) {
             if (first_move !== null) {
 
                 // Get NAG
-                nag_uncoded = first_move[1].match(/[!?=]+/);
+                nag_uncoded = first_move[1].match(/([!?=]+)\s*$/);
                 nag_uncoded = (nag_uncoded && nag_uncoded[0] ? nag_uncoded[0] : null);
                 nag_coded = first_move[1].match(/\$(\d+)/);
                 nag_coded = (nag_coded && nag_coded[1]? nag_coded[1] : null);
-                nag_coded = CHESS.nag_code[nag_coded];
+
+                if (nag_coded !== null) {
+
+                    nag_info = CHESS.nag_code[nag_coded];
+                    nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+    
+                }
 
                 if (nag_coded) {
 
@@ -554,11 +561,17 @@ CHESS.PgnViewer = function (config) {
                 if (second_move !== null) {
 
                     // Get NAG
-                    nag_uncoded = second_move[1].match(/[!?=]+/);
+                    nag_uncoded = second_move[1].match(/([!?=]+)\s*$/);
                     nag_uncoded = (nag_uncoded && nag_uncoded[0] ? nag_uncoded[0] : null);
                     nag_coded = second_move[1].match(/\$(\d+)/);
                     nag_coded = (nag_coded && nag_coded[1]? nag_coded[1] : null);
-                    nag_coded = CHESS.nag_code[nag_coded];
+
+                    if (nag_coded !== null) {
+
+                        nag_info = CHESS.nag_code[nag_coded];
+                        nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+
+                    }
 
                     if (nag_coded) {
 
@@ -928,7 +941,8 @@ CHESS.PgnViewer = function (config) {
             move_array,
             fen_info,
             side_to_move,
-            promotion;
+            promotion,
+            check_symbol = '';
 
         // Validation
         if (!move && !comment && !gc) {
@@ -1025,7 +1039,6 @@ CHESS.PgnViewer = function (config) {
         // Create move text element
         move_text = document.createElement('span');
         move_text.setAttribute('class', 'move_text');
-        move_text.innerHTML = fullmove + move_figurine + nag + ' ';
 
         // Create move element
         move_elem = document.createElement('li');
@@ -1062,6 +1075,21 @@ CHESS.PgnViewer = function (config) {
         // Calculate the new FEN based on the current + move
         CHESS.util.move(pos, move_array[0], move_array[1], promotion);
         fen = CHESS.util.getFEN(pos);
+
+        // Determine if check
+        if (CHESS.util.isCheck(pos.position_array, (pos.white_to_move ? 'w' : 'b'))) {
+
+            check_symbol = '+';
+
+            // Determine if mate
+            if (CHESS.util.isMate(pos)) {
+                check_symbol = '#';
+            }
+
+        }
+
+        // Set the move text
+        move_text.innerHTML = fullmove + move_figurine + check_symbol + ' ' + nag + ' ';
 
         // Add fen/move/gc properties and click event
         move_elem.move = {'sq1': move_array[0], 'sq2': move_array[1]};
