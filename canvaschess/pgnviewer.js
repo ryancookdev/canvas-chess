@@ -517,7 +517,18 @@ CHESS.PgnViewer = function (config) {
                 if (nag_coded !== null) {
 
                     nag_info = CHESS.nag_code[nag_coded];
-                    nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+
+                    if (/\.svg/.test(nag_info.symbol)) {
+    
+                        // Use SVG
+                        nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='canvaschess/img/nags/" + nag_info.symbol + "'>";
+
+                    } else {
+
+                        // Use text
+                        nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+
+                    }
     
                 }
 
@@ -569,7 +580,18 @@ CHESS.PgnViewer = function (config) {
                     if (nag_coded !== null) {
 
                         nag_info = CHESS.nag_code[nag_coded];
-                        nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+
+                        if (/\.svg/.test(nag_info.symbol)) {
+
+                            // Use SVG
+                            nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='canvaschess/img/nags/" + nag_info.symbol + "'>";
+
+                        } else {
+
+                            // Use text
+                            nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+
+                        }
 
                     }
 

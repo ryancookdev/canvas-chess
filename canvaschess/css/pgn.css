@@ -167,11 +167,16 @@
     text-indent: -9999px;
 }
 
-.nagcode
+img.nagcode
 {
-    font-size: 120%;
-    font-weight: normal;
+    height: 1em;
+    vertical-align: text-top;
+}
+
+span.nagcode
+{
     line-height: 1em;
+    font-weight: normal;
 }
 
 .nagcode:hover
