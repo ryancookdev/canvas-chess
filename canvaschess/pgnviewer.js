@@ -521,7 +521,8 @@ CHESS.PgnViewer = function (config) {
                     if (/\.svg/.test(nag_info.symbol)) {
     
                         // Use SVG
-                        nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='canvaschess/img/nags/" + nag_info.symbol + "'>";
+                        //nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='/canvasviewer/canvaschess/img/nags/" + nag_info.symbol + "'>";
+                        nag_coded = "<span class='nagcode nagsvg nag" + nag_coded + "' title='" + nag_info.desc + "'>&nbsp;</span>";
 
                     } else {
 
@@ -551,6 +552,9 @@ CHESS.PgnViewer = function (config) {
 
                 // Strip coded NAG
                 first_move[1] = first_move[1].replace(/\s*\$.*$/, '');
+
+                // Once more to strip any remaining symbols (eg. +)
+                first_move[1] = first_move[1].replace(/[^1-8a-hRNBQKOx\-]*$/, '');
 
                 // Look for comment marker
                 if (/\{\}/.test(first_move[0])) {
@@ -584,7 +588,9 @@ CHESS.PgnViewer = function (config) {
                         if (/\.svg/.test(nag_info.symbol)) {
 
                             // Use SVG
-                            nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='canvaschess/img/nags/" + nag_info.symbol + "'>";
+                            //nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='canvaschess/img/nags/" + nag_info.symbol + "'>";
+                            nag_coded = "<span class='nagcode nagsvg nag" + nag_coded + "' title='" + nag_info.desc + "'>&nbsp;</span>";
+
 
                         } else {
 
@@ -1039,6 +1045,7 @@ CHESS.PgnViewer = function (config) {
 
         // Change to check for figurine config setting
         if (config.figurine !== false) {
+
             switch (move.charAt(0)) {
                 case 'K':
                     move_figurine = "<span class='figurine fig_k'>K</span>" + move.substring(1);

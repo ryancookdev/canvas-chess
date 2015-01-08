@@ -1649,13 +1649,13 @@ CHESS.util.move = function (pos, sq1, sq2, promotion) {
         // Pawn promotion
         if (piece.substr(0, 2) === 'bp' && b_y2 === 7) {
             if (promotion === 'r') {
-                pos.position_array[w_y2][w_x2] = 'bq';
+                pos.position_array[b_y2][b_x2] = 'bq';
             } else if (promotion === 'b') {
-                pos.position_array[w_y2][w_x2] = 'bb';
+                pos.position_array[b_y2][b_x2] = 'bb';
             } else if (promotion === 'n') {
-                pos.position_array[w_y2][w_x2] = 'bn';
+                pos.position_array[b_y2][b_x2] = 'bn';
             } else {
-                pos.position_array[w_y2][w_x2] = 'bq';
+                pos.position_array[b_y2][b_x2] = 'bq';
             }
         }
         // Castling
