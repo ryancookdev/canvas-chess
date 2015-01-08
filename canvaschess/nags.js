@@ -45,7 +45,7 @@ CHESS.nag_code = {
     },
     11: {
         symbol: '=',
-        desc: 'Equal chances, quite position'
+        desc: 'Equal chances, quiet position'
     },
     12: {
         symbol: '=',
