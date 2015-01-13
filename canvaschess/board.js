@@ -44,8 +44,8 @@ CHESS.Board = function (config, fn) {
             square_color_dark: '#7389b6',
             square_hover_light: '#b4d990',
             square_hover_dark: '#85c249',
-            square_light: new Image(),
-            square_dark: new Image(),
+            square_uri_light: new Image(),
+            square_uri_dark: new Image(),
             dpi_ratio: 1,
             dragok: false,
             drag_piece: '',
@@ -75,8 +75,9 @@ CHESS.Board = function (config, fn) {
             highlight_move_color: '#FF0000',
             highlight_move_opacity: '0.5',
             highlight_hover: false,
+            // Assumes that the HTML file is in the same directory as canvaschess
             piece_set: 'canvaschess/img/pieces/merida/',
-            show_row_col_labels: true,
+            show_labels: true,
             arrow_list: [],
             square_list: [],
             wp: new Image(),
@@ -869,7 +870,7 @@ CHESS.Board = function (config, fn) {
             this.ctx.rect(row * this.square_size, col * this.square_size, this.square_size, this.square_size);
             this.ctx.fill();
         } else {
-            image = (color === 'light' ? this.square_light : this.square_dark);
+            image = (color === 'light' ? this.square_uri_light : this.square_uri_dark);
             if (image.src !== '') {
                 this.snapshot_ctx.drawImage(image, x, y, this.square_size, this.square_size);
             } else {
@@ -881,7 +882,7 @@ CHESS.Board = function (config, fn) {
         }
 
         // Row/Col labels
-        if (this.show_row_col_labels && (row === 7 || col === 0)) {
+        if (this.show_labels && (row === 7 || col === 0)) {
             // Font
             font_size = parseInt(this.square_size / 55 * 12, 10),
             this.snapshot_ctx.font = font_size + 'px arial';
@@ -1026,7 +1027,7 @@ CHESS.Board = function (config, fn) {
             }
             is_square_light = (i + j) % 2 === 0;
             if (is_square_light) {
-                if (this.square_light.src !== '') {
+                if (this.square_uri_light.src !== '') {
                     this.drawSquare('light', j * this.square_size, i * this.square_size, this.ctx);
                 } else {
                     this.snapshot_ctx.beginPath();
@@ -1035,7 +1036,7 @@ CHESS.Board = function (config, fn) {
                     this.snapshot_ctx.fill();
                 }
             } else {
-                if (this.square_dark.src !== '') {
+                if (this.square_uri_dark.src !== '') {
                     this.drawSquare('dark', j * this.square_size, i * this.square_size, this.ctx);
                 } else {
                     this.snapshot_ctx.beginPath();
@@ -1390,7 +1391,7 @@ CHESS.Board = function (config, fn) {
 
         view.highlight_move = (config.highlight_move === true ? true : false);
         view.highlight_hover = (config.highlight_hover === true ? true : false);
-        view.show_row_col_labels = (config.show_row_col_labels === false ? false : true);
+        view.show_labels = (config.show_labels === false ? false : true);
         view.square_color_light = (config.square_color_light ? config.square_color_light : view.square_color_light);
         view.square_color_dark = (config.square_color_dark ? config.square_color_dark : view.square_color_dark);
         view.gc_opacity = (config.gc_opacity ? config.gc_opacity : view.gc_opacity);
@@ -1409,6 +1410,7 @@ CHESS.Board = function (config, fn) {
 
         controller.resize(config.height, config.width);
 
+        // Remove trailing slash if present
         path = view.piece_set.replace(/\/$/, '');
 
         // Preload graphics
@@ -1519,15 +1521,15 @@ CHESS.Board = function (config, fn) {
             }
         };
 
-        if (typeof config.square_dark === 'string') {
-            view.square_dark.src = config.square_dark;
-            view.square_dark.onload = function () {
+        if (typeof config.square_uri_dark === 'string') {
+            view.square_uri_dark.src = config.square_uri_dark;
+            view.square_uri_dark.onload = function () {
                 view.takeSnapshot();
             };
         }
-        if (typeof config.square_light === 'string') {
-            view.square_light.src = config.square_light;
-            view.square_light.onload = function () {
+        if (typeof config.square_uri_light === 'string') {
+            view.square_uri_light.src = config.square_uri_light;
+            view.square_uri_light.onload = function () {
                 view.takeSnapshot();
             };
         }

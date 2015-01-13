@@ -1284,11 +1284,11 @@ CHESS.PgnViewer = function (config) {
 
     };
 
-    this.load = function (url, callback) {
+    this.load = function (uri, callback) {
 
         var xmlhttp = new XMLHttpRequest();
 
-        view.download_btn.href = url;
+        view.download_btn.href = uri;
 
         // Request the PGN file
         xmlhttp.onreadystatechange = function () {
@@ -1310,7 +1310,7 @@ CHESS.PgnViewer = function (config) {
 
         };
 
-        xmlhttp.open('GET', url, true);
+        xmlhttp.open('GET', uri, true);
         xmlhttp.send();
 
     };
@@ -1320,6 +1320,11 @@ CHESS.PgnViewer = function (config) {
     };
 
     init = function (api) {
+
+        // TODO: Delete this code when the old properties are no longer supported
+        config.pgn_uri = config.pgn_uri || config.url;
+        config.square_uri_dark = config.square_uri_dark || config.square_dark;
+        config.square_uri_light = config.square_uri_light || config.square_light;
 
         // Resize board when the window size changes
         window.onresize = function () {
@@ -1347,13 +1352,13 @@ CHESS.PgnViewer = function (config) {
             square_color_dark: config.square_color_dark,
             square_hover_dark: config.square_hover_dark,
             square_hover_light: config.square_hover_light,
-            square_dark: config.square_dark,
-            square_light: config.square_light,
+            square_uri_dark: config.square_uri_dark,
+            square_uri_light: config.square_uri_light,
             gc_opacity: config.gc_opacity,
             highlight_move: config.highlight_move,
             highlight_move_color: config.highlight_move_color,
             highlight_move_opacity: config.highlight_move_opacity,
-            show_row_col_labels: config.show_row_col_labels,
+            show_labels: config.show_labels,
             piece_set: config.piece_set
 
         });
@@ -1398,9 +1403,9 @@ CHESS.PgnViewer = function (config) {
 
         });
 
-        if (config.url !== undefined) {
+        if (config.pgn_uri !== undefined) {
 
-            api.load(config.url);
+            api.load(config.pgn_uri);
 
         } else if (config.pgn_text !== undefined) {
 
