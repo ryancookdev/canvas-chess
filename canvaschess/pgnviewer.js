@@ -518,19 +518,23 @@ CHESS.PgnViewer = function (config) {
 
                     nag_info = CHESS.nag_code[nag_coded];
 
-                    if (/\.svg/.test(nag_info.symbol)) {
-    
-                        // Use SVG
-                        //nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='/canvasviewer/canvaschess/img/nags/" + nag_info.symbol + "'>";
-                        nag_coded = "<span class='nagcode nagsvg nag" + nag_coded + "' title='" + nag_info.desc + "'>&nbsp;</span>";
+                    if (nag_info) {
 
-                    } else {
+                        if (/\.svg/.test(nag_info.symbol)) {
 
-                        // Use text
-                        nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+                            // Use SVG
+                            //nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='/canvasviewer/canvaschess/img/nags/" + nag_info.symbol + "'>";
+                            nag_coded = "<span class='nagcode nagsvg nag" + nag_coded + "' title='" + nag_info.desc + "'>&nbsp;</span>";
+
+                        } else {
+
+                            // Use text
+                            nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+
+                        }
 
                     }
-    
+
                 }
 
                 if (nag_coded) {
@@ -585,17 +589,21 @@ CHESS.PgnViewer = function (config) {
 
                         nag_info = CHESS.nag_code[nag_coded];
 
-                        if (/\.svg/.test(nag_info.symbol)) {
+                        if (nag_info) {
 
-                            // Use SVG
-                            //nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='canvaschess/img/nags/" + nag_info.symbol + "'>";
-                            nag_coded = "<span class='nagcode nagsvg nag" + nag_coded + "' title='" + nag_info.desc + "'>&nbsp;</span>";
+                            if (nag_info && /\.svg/.test(nag_info.symbol)) {
+
+                                // Use SVG
+                                //nag_coded = "<img class='nagcode' title='" + nag_info.desc + "' src='canvaschess/img/nags/" + nag_info.symbol + "'>";
+                                nag_coded = "<span class='nagcode nagsvg nag" + nag_coded + "' title='" + nag_info.desc + "'>&nbsp;</span>";
 
 
-                        } else {
+                            } else {
 
                             // Use text
                             nag_coded = "<span class='nagcode' title='" + nag_info.desc + "'>" + nag_info.symbol + "</span>";
+
+                        }
 
                         }
 
