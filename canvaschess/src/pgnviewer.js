@@ -224,10 +224,6 @@ CHESS.PgnViewer = function (config) {
         this.buildHtmlHeader();
         this.buildHtmlControls();
 
-        if (config.show_screen !== false) {
-            this.buildHtmlScreen();
-        }
-
         // Move the canvas to the main box and add the move list
         this.main_box.appendChild(canvas);
         this.move_list = doc.createElement('ol');
@@ -236,6 +232,12 @@ CHESS.PgnViewer = function (config) {
 
         // Calculate sizes if configured
         view.resize();
+
+        if (config.show_screen !== false) {
+
+            this.buildHtmlScreen();
+
+        }
 
     };
 
@@ -386,15 +388,16 @@ CHESS.PgnViewer = function (config) {
 
         var doc = document;
 
-        // Header box
         this.screen = doc.createElement('div');
         this.screen.className = 'pgn_screen';
         this.container.insertBefore(this.screen, this.container.firstChild);
+        view.move_list.style.overflowY = 'hidden';
 
         this.screen.onclick = function (e) {
 
             e.preventDefault();
             e.currentTarget.style.display = 'none';
+            view.move_list.style.overflowY = 'scroll';
 
         };
 
@@ -1242,10 +1245,11 @@ CHESS.PgnViewer = function (config) {
 
         }
 
-        if (config.allow_mobile && config.width > page_width && page_width < page_height) {
+        if (config.allow_mobile && (config.width + this.container.offsetLeft) > page_width && page_width < page_height) {
 
             width = board_size;
 
+            this.container.style.width = width + 'px';
             this.header_details_box.style.width = width + 'px';
 
             this.game_list.style.width = width + 'px';
@@ -1382,7 +1386,7 @@ CHESS.PgnViewer = function (config) {
 
         }, false);
 
-        config.width = parseInt(config.width, 10) || 680;
+        config.width = parseInt(config.width, 10) || 600;
 
         // Initialize the board
         view.board = new CHESS.Board({

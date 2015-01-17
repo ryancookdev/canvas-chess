@@ -44,8 +44,11 @@
     right: 0;
     top: 0;
     bottom: 0;
+    height: 100%;
+    width: 100%;
     z-index: 10;
     opacity: 0.3;
+    -webkit-backface-visibility: hidden;
     background-color: white;
 }
 
