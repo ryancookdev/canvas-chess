@@ -1,6 +1,6 @@
-// Global namespace
-var CHESS = CHESS || {};
-
+/**
+Utility library
+**/
 CHESS.util = {};
 
 CHESS.util.createPosition = function (fen) {
@@ -406,9 +406,9 @@ CHESS.util.isLegal = function (pos, sq1, sq2) {
 CHESS.util.isCheck = function (temp_position_array, pieceColor) {
     // Find the king
     var i,
-    j,
-    kingX = 0,
-    kingY = 0;
+        j,
+        kingX = 0,
+        kingY = 0;
 
     for (i = 0; i < 8; i++) {
         for (j = 0; j < 8; j++) {
@@ -607,9 +607,10 @@ CHESS.util.isMate = function (pos) {
 };
 
 CHESS.util.isSquareAttacked = function (temp_position_array, kingX, kingY, pieceColor) {
-    var attacker;
-    kingX = parseInt(kingX);
-    kingY = parseInt(kingY);
+    var i,
+        attacker,
+        kingX = parseInt(kingX),
+        kingY = parseInt(kingY);
 
      // Look for knight checks
      if (kingY > 0 && kingX > 1 && temp_position_array[kingY - 1][kingX - 2].substr(1, 1) === 'n' && temp_position_array[kingY - 1][kingX - 2].substr(0, 1) !== pieceColor) {
@@ -768,9 +769,10 @@ CHESS.util.isSquareAttacked = function (temp_position_array, kingX, kingY, piece
 };
 
 CHESS.util.isSquareBlockable = function (temp_position_array, squareX, squareY, pieceColor) {
-    var attacker;
-    squareX = parseInt(squareX);
-    squareY = parseInt(squareY);
+    var i,
+        attacker,
+        squareX = parseInt(squareX),
+        squareY = parseInt(squareY);
 
      // Look for knight blocks
      if (squareY > 0 && squareX > 1 && temp_position_array[squareY - 1][squareX - 2].substr(1, 1) === 'n' && temp_position_array[squareY - 1][squareX - 2].substr(0, 1) !== pieceColor) {
@@ -929,9 +931,10 @@ CHESS.util.isSquareBlockable = function (temp_position_array, squareX, squareY, 
 };
 
 CHESS.util.getAttacker = function (temp_position_array, kingX, kingY, pieceColor) {
-    var attacker;
-    kingX = parseInt(kingX);
-    kingY = parseInt(kingY);
+    var i,
+        attacker,
+        kingX = parseInt(kingX),
+        kingY = parseInt(kingY);
 
      // Look for knight checks
      if (kingY > 0 && kingX > 1 && temp_position_array[kingY - 1][kingX - 2].substr(1, 1) === 'n' && temp_position_array[kingY - 1][kingX - 2].substr(0, 1) !== pieceColor) {

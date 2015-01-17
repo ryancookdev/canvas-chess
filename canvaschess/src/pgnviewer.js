@@ -1,6 +1,6 @@
-// Global namespace
-var CHESS = CHESS || {};
-
+/**
+PgnViewer module
+**/
 CHESS.PgnViewer = function (config) {
 
     var

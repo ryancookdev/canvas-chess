@@ -1,10 +1,8 @@
-// Global namespace
-var CHESS = CHESS || {};
-
 /**
 Board module
 **/
 CHESS.Board = function (config, fn) {
+
     var
         /**
         Constructor for initializing a new board.
@@ -582,21 +580,6 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Create the canvas element and an image buffer.
-    **/
-    view.buildHtml = function (container) {
-        this.canvas = document.createElement('canvas');
-        this.canvas.className = 'chessboard';
-        this.canvas.setAttribute('tabindex', 0);
-        this.ctx = this.canvas.getContext('2d');
-        this.snapshot = document.createElement('canvas');
-        this.snapshot_ctx = this.snapshot.getContext('2d');
-        if (container !== undefined) {
-            document.getElementById(container).appendChild(this.canvas);
-        }
-    };
-
-    /**
     Add an arrow to the arrow list.
 
     @param {string} sq1 - Current square (eg. e2).
@@ -605,7 +588,7 @@ CHESS.Board = function (config, fn) {
     @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
     **/
     view.arrowAdd = function (sq1, sq2, color, opacity) {
-        var rgba = CHESS.hexToRgba(color);
+        var rgba = view.hexToRgba(color);
 
         rgba.a = opacity;
 
@@ -735,6 +718,43 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
+    Create the canvas element and an image buffer.
+    **/
+    view.buildHtml = function (container) {
+        this.canvas = document.createElement('canvas');
+        this.canvas.className = 'chessboard';
+        this.canvas.setAttribute('tabindex', 0);
+        this.ctx = this.canvas.getContext('2d');
+        this.snapshot = document.createElement('canvas');
+        this.snapshot_ctx = this.snapshot.getContext('2d');
+        if (container !== undefined) {
+            document.getElementById(container).appendChild(this.canvas);
+        }
+    };
+
+    /**
+    Convert a hex color string to RGBA object.
+
+    @param {string} hex - Color string in hex format.
+    @returns {object} RGBA color object.
+    **/
+    view.hexToRgba = function (hex) {
+        // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+            return r + r + g + g + b + b;
+        });
+
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return (result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16),
+            a: 1
+        } : null);
+    };
+
+    /**
     Activate/Inactivate the board.
 
     @param {boolean} active - True or False.
@@ -774,7 +794,7 @@ CHESS.Board = function (config, fn) {
     @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
     **/
     view.squareAdd = function (sq, color, opacity) {
-        var rgba = CHESS.hexToRgba(color);
+        var rgba = view.hexToRgba(color);
 
         rgba.a = opacity;
 
@@ -924,7 +944,7 @@ CHESS.Board = function (config, fn) {
             piece,
             rows = 8,
             is_square_light,
-            rgba = CHESS.hexToRgba(this.highlight_move_color);
+            rgba = view.hexToRgba(this.highlight_move_color);
 
         // Prepare canvas for snapshot
         if (model.mode === 'setup') {
@@ -1537,4 +1557,5 @@ CHESS.Board = function (config, fn) {
 
     // Immediately initialize the board when an instance is created.
     init();
+
 };
