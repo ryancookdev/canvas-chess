@@ -1220,8 +1220,8 @@ CHESS.PgnViewer = function (config) {
 
         // Set the ratio for board:movelist
         ratio = 0.5;
-        if (config.board_movelist_ratio !== undefined) {
-            ratio_arr = config.board_movelist_ratio.split(':');
+        if (config.ratio !== undefined) {
+            ratio_arr = config.ratio.split(':');
             if (ratio_arr.length === 2) {
                 ratio_arr[0] = parseInt(ratio_arr[0], 10);
                 ratio_arr[1] = parseInt(ratio_arr[1], 10);
