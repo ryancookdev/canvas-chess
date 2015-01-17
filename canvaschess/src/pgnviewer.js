@@ -49,6 +49,7 @@ CHESS.PgnViewer = function (config) {
             move_control_box: null,
             move_list: null,
             ply: 0,
+            screen: null,
             start_end_variation: false
 
         };
@@ -223,6 +224,10 @@ CHESS.PgnViewer = function (config) {
         this.buildHtmlHeader();
         this.buildHtmlControls();
 
+        if (config.show_screen !== false) {
+            this.buildHtmlScreen();
+        }
+
         // Move the canvas to the main box and add the move list
         this.main_box.appendChild(canvas);
         this.move_list = doc.createElement('ol');
@@ -321,6 +326,9 @@ CHESS.PgnViewer = function (config) {
         this.header_box.className = 'pgn_header_box';
         this.container.insertBefore(this.header_box, this.container.firstChild);
 
+        // Hide content
+        this.header_box.style.opacity = '0';
+
         // Header details box
         this.header_details_box = doc.createElement('div');
         this.header_details_box.className = 'pgn_header_details_box';
@@ -330,11 +338,13 @@ CHESS.PgnViewer = function (config) {
         this.header_players_elem = doc.createElement('span');
         this.header_players_elem.className = 'pgn_players';
         this.header_players_elem.title = 'Players';
+        this.header_players_elem.innerHTML = '&nbsp;';
 
         // Event
         this.header_event_elem = doc.createElement('span');
         this.header_event_elem.className = 'pgn_event';
         this.header_event_elem.title = 'Event';
+        this.header_event_elem.innerHTML = '&nbsp;';
 
         // Site
         this.header_site_elem = doc.createElement('span');
@@ -369,6 +379,24 @@ CHESS.PgnViewer = function (config) {
 
         // Add game list to header box
         this.header_box.appendChild(this.game_list);
+
+    };
+
+    view.buildHtmlScreen = function () {
+
+        var doc = document;
+
+        // Header box
+        this.screen = doc.createElement('div');
+        this.screen.className = 'pgn_screen';
+        this.container.insertBefore(this.screen, this.container.firstChild);
+
+        this.screen.onclick = function (e) {
+
+            e.preventDefault();
+            e.currentTarget.style.display = 'none';
+
+        };
 
     };
 
@@ -831,6 +859,9 @@ CHESS.PgnViewer = function (config) {
             this.header_site_elem.innerHTML = model.site;
             this.header_result_elem.innerHTML = model.result;
 
+            // Show content
+            this.header_box.style.opacity = '1';
+
         }
 
     };
@@ -1177,11 +1208,32 @@ CHESS.PgnViewer = function (config) {
             g = d.getElementsByTagName('body')[0],
             page_width = w.innerWidth || e.clientWidth || g.clientWidth,
             page_height = w.innerHeight || e.clientHeight || g.clientHeight,
+            width,
             board_size,
             all_move_btns,
             margin_px,
             ratio,
             ratio_arr;
+
+        // Set the ratio for board:movelist
+        ratio = 0.5;
+        if (config.board_movelist_ratio !== undefined) {
+            ratio_arr = config.board_movelist_ratio.split(':');
+            if (ratio_arr.length === 2) {
+                ratio_arr[0] = parseInt(ratio_arr[0], 10);
+                ratio_arr[1] = parseInt(ratio_arr[1], 10);
+                if (ratio_arr[1] !== 0) {
+                    ratio = ratio_arr[0] / (ratio_arr[0] + ratio_arr[1]);
+                    if (ratio > 3) {
+                        ratio = 3;
+                    } else if (ratio < 0.3) {
+                        ratio = 0.3;
+                    }
+                }
+            }
+        }
+
+        board_size = parseInt((config.width) * ratio, 10);
 
         // Check if mobile mode should be activated
         if (config.allow_mobile === undefined) {
@@ -1192,37 +1244,18 @@ CHESS.PgnViewer = function (config) {
 
         if (config.allow_mobile && config.width > page_width && page_width < page_height) {
 
-            page_width = parseInt(page_width / 9, 10) * 8;
-            board_size = page_width;
+            width = board_size;
 
-            this.header_details_box.style.width = page_width + 'px';
+            this.header_details_box.style.width = width + 'px';
 
-            this.game_list.style.width = page_width + 'px';
-            this.move_list.style.width = (page_width - 30) + 'px';
-            this.move_control_box.style.width = page_width + 'px';
+            this.game_list.style.width = width + 'px';
+            this.move_list.style.width = (width - 30) + 'px';
+            this.move_control_box.style.width = width + 'px';
 
             this.container.classList.add('mobile');
 
         } else {
 
-            // Set the ratio for board:movelist
-            ratio = 0.5;
-            if (config.board_movelist_ratio !== undefined) {
-                ratio_arr = config.board_movelist_ratio.split(':');
-                if (ratio_arr.length === 2) {
-                    ratio_arr[0] = parseInt(ratio_arr[0], 10);
-                    ratio_arr[1] = parseInt(ratio_arr[1], 10);
-                    if (ratio_arr[1] !== 0) {
-                        ratio = ratio_arr[0] / (ratio_arr[0] + ratio_arr[1]);
-                        if (ratio > 3) {
-                            ratio = 3;
-                        } else if (ratio < 0.3) {
-                            ratio = 0.3;
-                        }
-                    }
-                }
-            }
-            board_size = parseInt((config.width) * ratio, 10);
             config.move_list_width = parseInt(config.width, 10) - board_size;
 
             this.container.style.width = config.width + 'px';

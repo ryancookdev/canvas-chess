@@ -2,6 +2,7 @@
 
 .canvaschesspgn
 {
+    position: relative;
     font-size: 13px;
     line-height: 20px;
     vertical-align: baseline;
@@ -25,10 +26,32 @@
     position: relative;
 }
 
+.pgn_control_box
+{
+    overflow: hidden;
+}
+
 .chessboard
 {
     outline: 0;
     border: 1px solid #555;
+}
+
+.pgn_screen
+{
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 10;
+    opacity: 0.3;
+    background-color: white;
+}
+
+.pgn_screen:hover
+{
+    opacity: 0.2;
 }
 
 .pgn_header_box
