@@ -1239,13 +1239,13 @@ CHESS.PgnViewer = function (config) {
         board_size = parseInt((config.width) * ratio, 10);
 
         // Check if mobile mode should be activated
-        if (config.allow_mobile === undefined) {
+        if (config.responsive === undefined) {
 
-            config.allow_mobile = true;
+            config.responsive = true;
 
         }
 
-        if (config.allow_mobile && (config.width + this.container.offsetLeft) > page_width && page_width < page_height) {
+        if (config.responsive && (config.width + this.container.offsetLeft) > page_width && page_width < page_height) {
 
             width = board_size;
 
