@@ -230,14 +230,14 @@ CHESS.PgnViewer = function (config) {
         this.move_list.className = 'move_list';
         this.main_box.appendChild(this.move_list);
 
-        // Calculate sizes if configured
-        view.resize();
-
         if (config.show_screen !== false) {
 
             this.buildHtmlScreen();
 
         }
+
+        // Calculate sizes if configured
+        view.resize();
 
     };
 
@@ -833,7 +833,7 @@ CHESS.PgnViewer = function (config) {
                 view.current_move = new_move_elem;
 
                 // Scroll so that the move is at the top of the visible move list
-                scroll_top = view.current_move.offsetTop - view.move_list.offsetTop;
+                scroll_top = view.current_move.offsetTop;
 
                 // Adjust so the move is in the center of the visible move list
                 scroll_top -= parseInt(view.move_list.offsetHeight / 2, 10);
@@ -1072,7 +1072,7 @@ CHESS.PgnViewer = function (config) {
         fullmove = (this.ply % 2 === 0 ? (parseInt(this.ply / 2, 10) + 1) + '.&nbsp;' : '');
 
         // Black move number
-        if (this.ply % 2 === 1 && this.start_end_variation) {
+        if (this.ply % 2 === 1 && (side_to_move === 'b' || this.start_end_variation)) {
 
             fullmove = (parseInt((this.ply - 1) / 2, 10) + 1) + '...';
 
@@ -1211,12 +1211,16 @@ CHESS.PgnViewer = function (config) {
             g = d.getElementsByTagName('body')[0],
             page_width = w.innerWidth || e.clientWidth || g.clientWidth,
             page_height = w.innerHeight || e.clientHeight || g.clientHeight,
+            viewport_offset = this.container.getBoundingClientRect(),
             width,
             board_size,
             all_move_btns,
             margin_px,
             ratio,
-            ratio_arr;
+            ratio_arr,
+            play_left,
+            play_top,
+            move_list_height;
 
         // Set the ratio for board:movelist
         ratio = 0.5;
@@ -1238,6 +1242,11 @@ CHESS.PgnViewer = function (config) {
 
         board_size = parseInt((config.width) * ratio, 10);
 
+        // Reposition the inactive screen's play button
+        play_left = (board_size / 2) - 65;
+        play_top = play_left + this.header_box.clientHeight;
+        this.screen.style.backgroundPosition = play_left + 'px ' + play_top + 'px';
+
         // Check if mobile mode should be activated
         if (config.responsive === undefined) {
 
@@ -1245,7 +1254,7 @@ CHESS.PgnViewer = function (config) {
 
         }
 
-        if (config.responsive && (config.width + this.container.offsetLeft) > page_width && page_width < page_height) {
+        if (config.responsive && (config.width + viewport_offset.left) > page_width && page_width < page_height) {
 
             width = board_size;
 
@@ -1253,10 +1262,27 @@ CHESS.PgnViewer = function (config) {
             this.header_details_box.style.width = width + 'px';
 
             this.game_list.style.width = width + 'px';
-            this.move_list.style.width = (width - 30) + 'px';
+            this.move_list.style.width = '';
             this.move_control_box.style.width = width + 'px';
 
             this.container.classList.add('mobile');
+
+            // Adjust height
+            if (page_height < board_size * 2 + this.control_box.clientHeight + this.header_box.clientHeight) {
+
+                move_list_height = (page_height - (board_size + this.control_box.clientHeight + this.header_box.clientHeight + 20));
+
+                if (move_list_height < 100) {
+                    move_list_height = 100;
+                }
+
+                this.move_list.style.height = move_list_height + 'px';
+
+            } else {
+
+                this.move_list.style.height = '';
+
+            }
 
         } else {
 
