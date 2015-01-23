@@ -862,10 +862,10 @@ CHESS.PgnViewer = function (config) {
             this.header_site_elem.innerHTML = model.site;
             this.header_result_elem.innerHTML = model.result;
 
-            // Show content
-            this.header_box.style.opacity = '1';
-
         }
+
+        // Show content
+        this.header_box.style.opacity = '1';
 
     };
 
