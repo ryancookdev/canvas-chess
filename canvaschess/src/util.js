@@ -533,7 +533,7 @@ CHESS.util.isMate = function (pos) {
     if (color === 'b') {
         opposite_color = 'w';
     }
-    friendly_attacker_sq = this.getAttacker(position_array, attack_y, attack_x, opposite_color);
+    friendly_attacker_sq = this.getAttacker(position_array, attack_x, attack_y, opposite_color);
     if (friendly_attacker_sq !== '') {
         // Can the attacking piece be captured?
         var sq1 = this.reverseArrayPosition(friendly_attacker_sq);
@@ -608,9 +608,10 @@ CHESS.util.isMate = function (pos) {
 
 CHESS.util.isSquareAttacked = function (temp_position_array, kingX, kingY, pieceColor) {
     var i,
-        attacker,
-        kingX = parseInt(kingX),
-        kingY = parseInt(kingY);
+        attacker;
+
+    kingX = parseInt(kingX),
+    kingY = parseInt(kingY);
 
      // Look for knight checks
      if (kingY > 0 && kingX > 1 && temp_position_array[kingY - 1][kingX - 2].substr(1, 1) === 'n' && temp_position_array[kingY - 1][kingX - 2].substr(0, 1) !== pieceColor) {
@@ -770,133 +771,134 @@ CHESS.util.isSquareAttacked = function (temp_position_array, kingX, kingY, piece
 
 CHESS.util.isSquareBlockable = function (temp_position_array, squareX, squareY, pieceColor) {
     var i,
-        attacker,
-        squareX = parseInt(squareX),
-        squareY = parseInt(squareY);
+        attacker;
 
-     // Look for knight blocks
-     if (squareY > 0 && squareX > 1 && temp_position_array[squareY - 1][squareX - 2].substr(1, 1) === 'n' && temp_position_array[squareY - 1][squareX - 2].substr(0, 1) !== pieceColor) {
-         return true;
-     }
-     if (squareY > 0 && squareX < 6 && temp_position_array[squareY - 1][squareX + 2].substr(1, 1) === 'n' && temp_position_array[squareY - 1][squareX + 2].substr(0, 1) !== pieceColor) {
-         return true;
-     }
-     if (squareY < 7 && squareX > 1 && temp_position_array[squareY + 1][squareX - 2].substr(1, 1) === 'n' && temp_position_array[squareY + 1][squareX - 2].substr(0, 1) !== pieceColor) {
-         return true;
-     }
-     if (squareY < 7 && squareX < 6 && temp_position_array[squareY + 1][squareX + 2].substr(1, 1) === 'n' && temp_position_array[squareY + 1][squareX + 2].substr(0, 1) !== pieceColor) {
-         return true;
-     }
-     if (squareY > 1 && squareX > 0 && temp_position_array[squareY - 2][squareX - 1].substr(1, 1) === 'n' && temp_position_array[squareY - 2][squareX - 1].substr(0, 1) !== pieceColor) {
-         return true;
-     }
-     if (squareY > 1 && squareX < 7 && temp_position_array[squareY - 2][squareX + 1].substr(1, 1) === 'n' && temp_position_array[squareY - 2][squareX + 1].substr(0, 1) !== pieceColor) {
-         return true;
-     }
-     if (squareY < 6 && squareX > 0 && temp_position_array[squareY + 2][squareX - 1].substr(1, 1) === 'n' && temp_position_array[squareY + 2][squareX - 1].substr(0, 1) !== pieceColor) {
-         return true;
-     }
-     if (squareY < 6 && squareX < 7 && temp_position_array[squareY + 2][squareX + 1].substr(1, 1) === 'n' && temp_position_array[squareY + 2][squareX + 1].substr(0, 1) !== pieceColor) {
+    squareX = parseInt(squareX),
+    squareY = parseInt(squareY);
+
+    // Look for knight blocks
+    if (squareY > 0 && squareX > 1 && temp_position_array[squareY - 1][squareX - 2].substr(1, 1) === 'n' && temp_position_array[squareY - 1][squareX - 2].substr(0, 1) !== pieceColor) {
+        return true;
+    }
+    if (squareY > 0 && squareX < 6 && temp_position_array[squareY - 1][squareX + 2].substr(1, 1) === 'n' && temp_position_array[squareY - 1][squareX + 2].substr(0, 1) !== pieceColor) {
+        return true;
+    }
+    if (squareY < 7 && squareX > 1 && temp_position_array[squareY + 1][squareX - 2].substr(1, 1) === 'n' && temp_position_array[squareY + 1][squareX - 2].substr(0, 1) !== pieceColor) {
+        return true;
+    }
+    if (squareY < 7 && squareX < 6 && temp_position_array[squareY + 1][squareX + 2].substr(1, 1) === 'n' && temp_position_array[squareY + 1][squareX + 2].substr(0, 1) !== pieceColor) {
+        return true;
+    }
+    if (squareY > 1 && squareX > 0 && temp_position_array[squareY - 2][squareX - 1].substr(1, 1) === 'n' && temp_position_array[squareY - 2][squareX - 1].substr(0, 1) !== pieceColor) {
+        return true;
+    }
+    if (squareY > 1 && squareX < 7 && temp_position_array[squareY - 2][squareX + 1].substr(1, 1) === 'n' && temp_position_array[squareY - 2][squareX + 1].substr(0, 1) !== pieceColor) {
+        return true;
+    }
+    if (squareY < 6 && squareX > 0 && temp_position_array[squareY + 2][squareX - 1].substr(1, 1) === 'n' && temp_position_array[squareY + 2][squareX - 1].substr(0, 1) !== pieceColor) {
+        return true;
+    }
+    if (squareY < 6 && squareX < 7 && temp_position_array[squareY + 2][squareX + 1].substr(1, 1) === 'n' && temp_position_array[squareY + 2][squareX + 1].substr(0, 1) !== pieceColor) {
          return true;
      }
 
-     // Q/R blocks: E
-     i = 1;
-     while(squareX + i < 8) {
-        attacker = temp_position_array[squareY][squareX + i];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     // Q/R blocks: W
-     i = 1;
-     while(squareX - i >= 0) {
-        attacker = temp_position_array[squareY][squareX - i];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     // Q/R blocks: N
-     i = 1;
-     while(squareY - i >= 0) {
-        attacker = temp_position_array[squareY - i][squareX];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     // Q/R blocks: S
-     i = 1;
-     while(squareY + i < 8) {
-        attacker = temp_position_array[squareY + i][squareX];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     // Q/B blocks: NE
-     i = 1;
-     while(squareX + i < 8 && squareY - i >= 0) {
-        attacker = temp_position_array[squareY - i][squareX + i];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     // Q/B blocks: SE
-     i = 1;
-     while(squareX + i < 8 && squareY + i < 8) {
-        attacker = temp_position_array[squareY + i][squareX + i];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     // Q/B blocks: SW
-     i = 1;
-     while(squareX - i >= 0 && squareY + i < 8) {
-        attacker = temp_position_array[squareY + i][squareX - i];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     // Q/B blocks: NW
-     i = 1;
-     while(squareX - i >= 0 && squareY - i >= 0) {
-        attacker = temp_position_array[squareY - i][squareX - i];
-        if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
-            return true;
-        }
-        if (attacker !== '') {
-            break;
-        }
-        i += 1;
-     }
-     if (pieceColor === 'w') {
+    // Q/R blocks: E
+    i = 1;
+    while(squareX + i < 8) {
+       attacker = temp_position_array[squareY][squareX + i];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    // Q/R blocks: W
+    i = 1;
+    while(squareX - i >= 0) {
+       attacker = temp_position_array[squareY][squareX - i];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    // Q/R blocks: N
+    i = 1;
+    while(squareY - i >= 0) {
+       attacker = temp_position_array[squareY - i][squareX];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    // Q/R blocks: S
+    i = 1;
+    while(squareY + i < 8) {
+       attacker = temp_position_array[squareY + i][squareX];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'r' || attacker.substr(1, 1) === 'q')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    // Q/B blocks: NE
+    i = 1;
+    while(squareX + i < 8 && squareY - i >= 0) {
+       attacker = temp_position_array[squareY - i][squareX + i];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    // Q/B blocks: SE
+    i = 1;
+    while(squareX + i < 8 && squareY + i < 8) {
+       attacker = temp_position_array[squareY + i][squareX + i];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    // Q/B blocks: SW
+    i = 1;
+    while(squareX - i >= 0 && squareY + i < 8) {
+       attacker = temp_position_array[squareY + i][squareX - i];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    // Q/B blocks: NW
+    i = 1;
+    while(squareX - i >= 0 && squareY - i >= 0) {
+       attacker = temp_position_array[squareY - i][squareX - i];
+       if (attacker !== '' && attacker.substr(0, 1) !== pieceColor && (attacker.substr(1, 1) === 'q' || attacker.substr(1, 1) === 'b')) {
+           return true;
+       }
+       if (attacker !== '') {
+           break;
+       }
+       i += 1;
+    }
+    if (pieceColor === 'w') {
         // P blocks: 1 square
         if (squareY - 1 >= 0) {
             attacker = temp_position_array[squareY - 1][squareX];
@@ -932,9 +934,10 @@ CHESS.util.isSquareBlockable = function (temp_position_array, squareX, squareY, 
 
 CHESS.util.getAttacker = function (temp_position_array, kingX, kingY, pieceColor) {
     var i,
-        attacker,
-        kingX = parseInt(kingX),
-        kingY = parseInt(kingY);
+        attacker;
+
+    kingX = parseInt(kingX),
+    kingY = parseInt(kingY);
 
      // Look for knight checks
      if (kingY > 0 && kingX > 1 && temp_position_array[kingY - 1][kingX - 2].substr(1, 1) === 'n' && temp_position_array[kingY - 1][kingX - 2].substr(0, 1) !== pieceColor) {
