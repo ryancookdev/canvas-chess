@@ -47,17 +47,18 @@
     height: 100%;
     width: 100%;
     z-index: 10;
-    opacity: 0.4;
+    opacity: 0;
     -webkit-backface-visibility: hidden;
+    background: rgba(255,255,255,.5) no-repeat center center;
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3Ardf%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xml%3Aspace%3D%22preserve%22%20height%3D%2216px%22%20viewBox%3D%220%200%20500%20500%22%20width%3D%2216px%22%20version%3D%221.1%22%20y%3D%220px%22%20x%3D%220px%22%20xmlns%3Acc%3D%22http%3A%2F%2Fcreativecommons.org%2Fns%23%22%20xmlns%3Adc%3D%22http%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%22%3E%3Cmetadata%3E%3Crdf%3ARDF%3E%3Ccc%3AWork%20rdf%3Aabout%3D%22%22%3E%3Cdc%3Aformat%3Eimage%2Fsvg%2Bxml%3C%2Fdc%3Aformat%3E%3Cdc%3Atype%20rdf%3Aresource%3D%22http%3A%2F%2Fpurl.org%2Fdc%2Fdcmitype%2FStillImage%22%2F%3E%3Cdc%3Atitle%2F%3E%3C%2Fcc%3AWork%3E%3C%2Frdf%3ARDF%3E%3C%2Fmetadata%3E%20%3Cpath%20fill-opacity%3D%220.66666669%22%20fill%3D%22%23000%22%20d%3D%22m250%2C35.71q58.32%2C0%2C107.6%2C28.74%2C49.25%2C28.74%2C77.98%2C77.98%2C28.74%2C49.25%2C28.74%2C107.6%2C0.001%2C58.32-28.74%2C107.6-28.74%2C49.25-77.98%2C77.98-49.24%2C28.74-107.6%2C28.74-58.32%2C0-107.6-28.74-49.21-28.8-77.95-78-28.74-49.3-28.74-107.6%2C0.01-58.3%2C28.74-107.6%2C28.74-49.21%2C77.95-77.95%2C49.3-28.74%2C107.6-28.74zm107.1%2C229.6q8.929-5.022%2C8.929-15.35%2C0-10.32-8.929-15.35l-151.7-89.2q-8.649-5.301-17.86-0.279-8.929%2C5.301-8.929%2C15.62v178.6q0%2C10.32%2C8.929%2C15.62%2C4.464%2C2.232%2C8.929%2C2.232%2C4.743%2C0%2C8.929-2.511z%22%2F%3E%3Cpath%20style%3D%22enable-background%3Aaccumulate%3Bcolor%3A%23000000%3B%22%20d%3D%22M5.892%2C11.22c-0.122-0.14-0.13-0.3-0.148-3.19l-0.019-3.047%2C0.2-0.2c0.1101-0.1101%2C0.2579-0.2002%2C0.3284-0.2002%2C0.2198%2C0%2C5.259%2C3.007%2C5.371%2C3.205%2C0.2232%2C0.3943%2C0.1704%2C0.4366-2.575%2C2.061-2.713%2C1.611-2.874%2C1.681-3.153%2C1.371z%22%20stroke-opacity%3D%220%22%20fill-rule%3D%22evenodd%22%20transform%3D%22scale(31.25%2C31.25)%22%20stroke-miterlimit%3D%224%22%20fill%3D%22%23FFF%22%2F%3E%3C%2Fsvg%3E");
-    background-size: 40% 40%;
-    background-position: center center;
-    background-repeat: no-repeat;
+    background-size: 130px 130px;
+    transition: opacity .4s;
 }
 
 .pgn_screen:hover
 {
-    opacity: 0.5;
+    opacity: 0.6;
+    transition: opacity 1s;
 }
 
 .pgn_header_box
@@ -227,57 +228,85 @@ span.nagcode
 
 .pgn_ctrl_btn:hover, .board_ctrl_btn:hover
 {
-    -ms-transform: scale(1.1); /* IE 9 */
-    -webkit-transform: scale(1.1); /* Chrome, Safari, Opera */
-    transform: scale(1.1);
-}
-
-.board_flip:hover
-{
-    -ms-transform: rotateX(180deg); /* IE 9 */
-    -webkit-transform: rotateX(180deg); /* Chrome, Safari, Opera */
-    transform: translateX(180deg);
-    transition: all 200ms linear;
+    -ms-transform: scale(1.2); /* IE 9 */
+    -webkit-transform: scale(1.2); /* Chrome, Safari, Opera */
+    transform: scale(1.2);
 }
 
 /* Mobile styles */
 
-.canvaschesspgn.mobile
+.mobile
 {
     margin-bottom: 50px;
 }
 
-.canvaschesspgn.mobile .pgn_header_box
+.mobile .pgn_header_box
 {
     float: left;
 }
 
-.canvaschesspgn.mobile .pgn_main_box
+.mobile .pgn_main_box
 {
     clear: left;
     float: left;
 }
 
-.canvaschesspgn.mobile .pgn_control_box
+.mobile .pgn_control_box
 {
+    padding: 10px 0;
     clear: left;
 }
 
-.canvaschesspgn.mobile .move_list
+.mobile .pgn_control_box a
+{
+    -ms-transform: scale(1.8); /* IE 9 */
+    -webkit-transform: scale(1.8); /* Chrome, Safari, Opera */
+    transform: scale(1.8);
+    opacity: .8;
+    background-repeat: no-repeat;
+}
+
+.mobile .pgn_control_box a:hover
+{
+    -ms-transform: scale(2); /* IE 9 */
+    -webkit-transform: scale(2); /* Chrome, Safari, Opera */
+    transform: scale(2);
+    opacity: 1;
+    background-color: #ddd;
+}
+
+.mobile .move_list
 {
     position: relative;
-    height: 13rem !important;
+    padding: 0;
+    width: 100%;
+    line-height: 1.5em;
 }
 
-.canvaschesspgn.mobile .move_controls
+.mobile .move_controls
 {
     display: block;
     position: relative;
 }
 
-.canvaschesspgn.mobile .move_controls a
+.mobile .move_controls a
 {
     margin: 0 0 0 10% !important;
+}
+
+.mobile .board_download
+{
+    display: none;
+}
+
+.mobile .board_flip
+{
+    margin-left: 10px;
+}
+
+.mobile .pgn_event, .mobile .pgn_site, .mobile .pgn_date, .mobile .pgn_result
+{
+    display: none;
 }
 
 /* SVG icons */
