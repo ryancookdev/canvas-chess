@@ -237,7 +237,7 @@ CHESS.PgnViewer = function (config) {
         }
 
         // Calculate sizes if configured
-        view.resize();
+        this.resize();
 
     };
 
@@ -1243,9 +1243,13 @@ CHESS.PgnViewer = function (config) {
         board_size = parseInt((config.width) * ratio, 10);
 
         // Reposition the inactive screen's play button
-        play_left = (board_size / 2) - 65;
-        play_top = play_left + this.header_box.clientHeight;
-        this.screen.style.backgroundPosition = play_left + 'px ' + play_top + 'px';
+        if (this.screen !== null) {
+
+            play_left = (board_size / 2) - 65;
+            play_top = play_left + this.header_box.clientHeight;
+            this.screen.style.backgroundPosition = play_left + 'px ' + play_top + 'px';
+
+        }
 
         // Check if mobile mode should be activated
         if (config.responsive === undefined) {
