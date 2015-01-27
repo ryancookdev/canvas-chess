@@ -1391,7 +1391,10 @@ CHESS.PgnViewer = function (config) {
     };
 
     this.loadText = function (pgn_str) {
+
+        pgn_str = decodeURIComponent(pgn_str);
         view.importFile(pgn_str);
+
     };
 
     init = function (api) {
