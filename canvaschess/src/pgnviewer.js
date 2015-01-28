@@ -577,7 +577,7 @@ CHESS.PgnViewer = function (config) {
                     nag = nag_uncoded;
 
                 } else {
-                    
+
                     nag = '';
 
                 }
@@ -733,7 +733,7 @@ CHESS.PgnViewer = function (config) {
         view.move_list.scrollTop = 0;
 
     };
-    
+
     view.getComment = function (comments) {
 
         var i,
@@ -758,7 +758,7 @@ CHESS.PgnViewer = function (config) {
 
             gc_text = data.comment.match(/\[%cal (?:[GYR]\w{2}\w{2},?\s*)+\]/)[0];
             gc_list = gc_text.match(/[GYR]\w{2}\w{2},?\s*/g);
-            
+
             for (i = 0; i < gc_list.length; i += 1) {
 
                 gc_marker = gc_list[i].match(/([GYR])(\w{2})(\w{2}),?\s*/);
@@ -785,7 +785,7 @@ CHESS.PgnViewer = function (config) {
 
             gc_text = data.comment.match(/\[%csl (?:[GYR]\w{2},?\s*)+\]/)[0];
             gc_list = gc_text.match(/[GYR]\w{2},?\s*/g);
-            
+
             for (i = 0; i < gc_list.length; i += 1) {
 
                 gc_marker = gc_list[i].match(/([GYR])(\w{2}),?\s*/);
@@ -853,7 +853,7 @@ CHESS.PgnViewer = function (config) {
             this.header_details_box.style.display = 'none';
 
         } else {
-            
+
             this.header_date_elem.innerHTML = this.getPgnDate(model.date);
 
             // Other headers
@@ -907,7 +907,7 @@ CHESS.PgnViewer = function (config) {
     };
 
     view.getSiblingMove = function (move_elem, direction) {
-        
+
         if (direction === 1) {
 
             // Next move
@@ -918,7 +918,7 @@ CHESS.PgnViewer = function (config) {
                     break;
 
                 }
-                
+
             }
 
         } else if (direction === -1) {
@@ -991,7 +991,7 @@ CHESS.PgnViewer = function (config) {
         } else {
 
             this.game_list.style.display = 'none';
-            
+
         }
 
         this.changeGame(0);
