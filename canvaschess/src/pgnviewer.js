@@ -503,6 +503,9 @@ CHESS.PgnViewer = function (config) {
         move_text = move_text.replace(/\s*1\/2-1\/2\s*$/, '');
         move_text = move_text.replace(/\s*\*\s*$/, '');
 
+        // Combine comments where they are not already combined
+        move_text = move_text.replace(/\}[\s]*\{/g, ' ');
+
         // Extract comments
         comments = move_text.match(/\{[^{]*\}/g);
         move_text = move_text.replace(/\{[^{]*\}/g, '{}');
