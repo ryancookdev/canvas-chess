@@ -1108,7 +1108,62 @@ CHESS.util.isInsufficientMaterial = function (pos) {
     // * Fortress
     // * Drawing balance of forces
 
-    var is_im = false;
+    var i,
+        is_im = false,
+        fen,
+        w_has_q,
+        w_has_r,
+        w_has_p,
+        w_has_bn,
+        w_has_bb,
+        b_has_q,
+        b_has_r,
+        b_has_p,
+        b_has_bn,
+        b_has_bb;
+
+    fen = this.getFEN(pos).split(' ')[0];
+
+    // Count white pieces
+    if (/Q/.test(fen)) {
+        w_has_q = true;
+    }
+    if (/R/.test(fen)) {
+        w_has_r = true;
+    }
+    if (/B/.test(fen) && /N/.test(fen)) {
+        w_has_bn = true;
+    }
+    if (/P/.test(fen)) {
+        w_has_p = true;
+    }
+    i = fen.indexOf('B');
+    if (i !== -1 && fen.indexOf('B', i + 1) !== -1) {
+        w_has_bb;
+    }
+
+    // Count black pieces
+    if (/q/.test(fen)) {
+        w_has_q = true;
+    }
+    if (/r/.test(fen)) {
+        w_has_r = true;
+    }
+    if (/b/.test(fen) && /n/.test(fen)) {
+        w_has_bn = true;
+    }
+    if (/p/.test(fen)) {
+        w_has_p = true;
+    }
+    i = fen.indexOf('b');
+    if (i !== -1 && fen.indexOf('b', i + 1) !== -1) {
+        w_has_bb;
+    }
+
+    if (!w_has_q && !w_has_r && !w_has_p && !w_has_bb && !w_has_bn &&
+            !b_has_q && !b_has_r && !b_has_p && !b_has_bb && !b_has_bn) {
+        is_im = true;
+    }
 
     // TODO: complete
 
