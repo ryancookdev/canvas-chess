@@ -119,12 +119,12 @@ CHESS.Board = function (config, fn) {
             rect = view.canvas.getBoundingClientRect();
 
         if (model.active) {
-            if (e.hasOwnProperty('clientX')) {
+            if ('clientX' in e) {
                 // Mouse event
                 view.left = e.clientX - rect.left;
                 view.top = e.clientY - rect.top;
                 view.canvas.style.cursor = 'move';
-            } else if (e.hasOwnProperty('changedTouches')) {
+            } else if ('changedTouches' in e) {
                 // Touch event
                 view.left = e.changedTouches[0].pageX - rect.left;
                 view.top = e.changedTouches[0].pageY - rect.top;
@@ -231,11 +231,11 @@ CHESS.Board = function (config, fn) {
             }
 
             // Update values
-            if (e.hasOwnProperty('clientX')) {
+            if ('clientX' in e) {
                 // Mouse event
                 myview.left = e.clientX - rect.left;
                 myview.top = e.clientY - rect.top;
-            } else if (e.hasOwnProperty('changedTouches')) {
+            } else if ('changedTouches' in e) {
                 // Touch event
                 myview.left = e.changedTouches[0].pageX - rect.left;
                 myview.top = e.changedTouches[0].pageY - rect.top;
@@ -311,7 +311,7 @@ CHESS.Board = function (config, fn) {
 
         // Cannot move unless game is active and a piece has been selected
         if (model.active && view.dragok) {
-            if (e.hasOwnProperty('clientX')) {
+            if ('clientX' in e) {
                 // Mouse event
 
                 // Adjust for hiDPI devices
@@ -321,7 +321,7 @@ CHESS.Board = function (config, fn) {
                 i = parseInt(my_y / view.square_size, 10);
                 j = parseInt(my_x / view.square_size, 10);
                 view.canvas.style.cursor = 'default';
-            } else if (e.hasOwnProperty('changedTouches')) {
+            } else if ('changedTouches' in e) {
                 // Touch event
 
                 // Adjust for hiDPI devices
