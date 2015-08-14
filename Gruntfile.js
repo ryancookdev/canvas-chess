@@ -1,39 +1,76 @@
 module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
-        concat: {
-            options: {
-                separator: '\n'
-            },
-            dist: {
-                src: [
-                    'src/canvaschess.js',
-                    'src/nags.js',
-                    'src/util.js',
-                    'src/board.js',
-                    'src/amd.js'
-                ],
-                dest: 'dist/<%= pkg.name %>-<%= pkg.version %>.js'
+        jshint: {
+            beforeconcat: ['src/js/**'],
+        },
+        copy: {
+            main: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'src/js/',
+                        src: '**',
+                        flatten: true,
+                        dest: 'dist/temp/'
+                    },
+                    {
+                        expand: true,
+                        src: 'img/**',
+                        dest: 'dist/'
+                    },
+                    {
+                        expand: true,
+                        cwd: 'src/css/',
+                        src: '**',
+                        flatten: true,
+                        dest: 'dist/temp/'
+                    }
+                ]
             }
         },
-        
+        concat: {
+            options: {
+                separator: ';\n'
+            },
+            canvasChess: {
+                src: [
+                    'dist/temp/canvaschess.js',
+                    'dist/temp/nags.js',
+                    'dist/temp/math.js',
+                    'dist/temp/piece.js',
+                    'dist/temp/position.js',
+                    'dist/temp/util.js',
+                    'dist/temp/board.js',
+                    'dist/temp/amd.js'
+                ],
+                dest: 'dist/<%= pkg.name %>-<%= pkg.version %>.js'
+            },
+            pgnViewer: {
+                src: ['dist/temp/pgnviewer.js'],
+                dest: 'dist/pgnviewer-<%= pkg.version %>.js'
+            },
+            css: {
+                src: ['dist/temp/pgn.css'],
+                dest: 'dist/pgn.css'
+            }
+        },
         uglify: {
-            dist: {
+            main: {
                 files: {
                     'dist/<%= pkg.name %>-<%= pkg.version %>.min.js': ['dist/<%= pkg.name %>-<%= pkg.version %>.js'],
-                    'dist/pgnviewer-<%= pkg.version %>.min.js': ['src/pgnviewer.js']
+                    'dist/pgnviewer-<%= pkg.version %>.min.js': ['dist/pgnviewer-<%= pkg.version %>.js']
                 }
             }
         },
         cssmin: {
-            target: {
-                files: {
-                    'dist/pgn.min.css': ['src/css/pgn.css']
-                }
+            main: {
+                src: 'dist/pgn.css',
+                dest: 'dist/pgn.min.css'
             }
         },
         clean: {
-            js: ['dist/*.js', '!dist/*.min.js']
+            main: ['dist/temp/']
         },
         compress: {
             main: {
@@ -41,11 +78,17 @@ module.exports = function (grunt) {
                     archive: '<%= pkg.name %>.zip'
                 },
                 files: [
-                    {expand: true, cwd: 'dist/', src: ['**'], dest: '<%= pkg.name %>'}
+                    {
+                        expand: true,
+                        cwd: 'dist/',
+                        src: '**',
+                        dest: '<%= pkg.name %>'
+                    }
                 ]
             }
         }
     });
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-csslint');
     grunt.loadNpmTasks('grunt-contrib-concat');
@@ -53,5 +96,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-compress');
-    grunt.registerTask('default', ['concat', 'uglify', 'cssmin', 'clean', 'compress']);
+
+    grunt.registerTask('deploy-dev', ['copy', 'concat', 'clean']);
+    grunt.registerTask('deploy', ['concat', 'uglify', 'cssmin', 'clean', 'copy', 'compress']);
 };

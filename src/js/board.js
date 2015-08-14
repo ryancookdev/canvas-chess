@@ -1,35 +1,35 @@
 /**
-Board module
-**/
+ * Board module
+ */
 CHESS.Board = function (config, fn) {
 
     var
-        /**
-        Constructor for initializing a new board.
-        @private
-        **/
         init,
-
         /**
-        Contains methods for responding to user interaction. Updates the model and the view.
-        @private
-        **/
+         * Contains methods for responding to user interaction. Updates the model and the view.
+         * @private
+         */
         controller = {
             subscribers: {
                 any: []
             }
         },
-
         /**
-        Holds the internal state of the board.
-        @private
-        **/
-        model = CHESS.util.createPosition(),
-
+         * Holds the internal state of the board.
+         * @private
+         */
+        model = {
+            active: false, // Might not be used/needed
+            position: new CHESS.Position(),
+            piecebox: [
+                ['-', 'wk', 'wq', 'wr', 'wb', 'wn', 'wp', '-'],
+                ['-', 'bk', 'bq', 'br', 'bb', 'bn', 'bp', '-']
+            ]
+        },
         /**
-        Contains methods for updating the user interface.
-        @private
-        **/
+         * Contains methods for updating the user interface.
+         * @private
+         */
         view = {
             container: null,
             canvas: null,
@@ -93,10 +93,10 @@ CHESS.Board = function (config, fn) {
         };
 
     /**
-    Respond to touch-leave or touch-cancel.
-
-    @param e - The event object.
-    **/
+     * Respond to touch-leave or touch-cancel.
+     *
+     * @param e - The event object.
+     */
     controller.myCancel = function (e) {
         e.preventDefault();
         view.dragok = false;
@@ -107,10 +107,10 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Respond to mouse-down or touch-start.
-
-    @param e - The event object.
-    **/
+     * Respond to mouse-down or touch-start.
+     *
+     * @param e - The event object.
+     */
     controller.myDown = function (e) {
         var i,
             j,
@@ -147,31 +147,30 @@ CHESS.Board = function (config, fn) {
 
             if (i < 8) {
                 // Dragging a piece on the board
-                piece = model.position_array[i][j];
+                piece = model.position.getPiece(i, j);
             } else {
                 // Dragging a piece in the piece box
-// TODO: UPDATE SETUP
                 if (model.mode === 'setup') {
-                    piece = model.piecebox_array[i - 8][j];
+                    piece = new CHESS.Piece(model.piecebox[i - 8][j]);
                 }
             }
 
-            if (piece === undefined) {
+            // TODO: determine how to handle this now that piece is no longer a string.
+            /*if (piece === undefined) {
                 // Prevent dragging if coordinate system is broken (this can happen with mobile devices when the page is zoomed)
                 view.active = false;
                 return;
-            }
+            }*/
 
-            piece_color = piece.substr(0, 1);
-            if (model.mode !== 'setup' && ((model.white_to_move && piece_color === 'b') || (!model.white_to_move && piece_color === 'w'))) {
+            if (model.mode !== 'setup' && ((model.position.isWhiteToMove() && piece.isBlack()) || (!model.position.isWhiteToMove() && piece.isWhite()))) {
                 view.canvas.style.cursor = 'default';
                 return;
             }
 
-            if (piece !== '') {
+            if (!piece.isEmpty()) {
                 view.drag_clear_i = i;
                 view.drag_clear_j = j;
-                view.drag_piece = piece;
+                view.drag_piece = piece.toString();
                 view.dragok = true;
                 view.takeSnapshot(false);
             } else {
@@ -181,10 +180,10 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Respond to mouse-move or touch-move. No relation to the touch-move rule in chess ;).
-
-    @param e - The event object.
-    **/
+     * Respond to mouse-move or touch-move. No relation to the touch-move rule in chess ;).
+     *
+     * @param e - The event object.
+     */
     controller.myMove = function (e) {
         e.preventDefault();
         var myview = view,
@@ -267,35 +266,33 @@ CHESS.Board = function (config, fn) {
                 ii = 7 - i;
                 jj = 7 - j;
             }
-            piece = model.position_array[ii][jj].substr(0, 2);
-            if (piece !== '' && !(ii === myview.drag_clear_i && jj === myview.drag_clear_j)) {
+            piece = model.position.getPiece(ii, jj);
+            if (!piece.isEmpty() && !(ii === myview.drag_clear_i && jj === myview.drag_clear_j)) {
                 x = parseInt((j * myview.square_size), 10);
                 y = parseInt((i * myview.square_size), 10);
-                myview.ctx.drawImage(myview[piece], x, y, myview.square_size, myview.square_size);
+                myview.ctx.drawImage(myview[piece.toString()], x, y, myview.square_size, myview.square_size);
             }
 
             // Draw drag piece
-            piece = myview.drag_piece.substr(0, 2);
             x = parseInt(((myview.left - (myview.square_size / 2))), 10);
             y = parseInt(((myview.top - (myview.square_size / 2))), 10);
 
             // Trim drawing region so it doesn't go into the piece box
             draw_height = myview.square_size;
-// TODO: UPDATE SETUP
             if (model.mode === 'setup' && myview.top > myview.square_size * 7.5) {
                 draw_height = draw_height - ((myview.top - myview.square_size * 7.5));
             }
             
             // Draw the piece
-            myview.ctx.drawImage(myview[piece], x, y, myview.square_size, draw_height);
+            myview.ctx.drawImage(myview[myview.drag_piece.substr(0, 2)], x, y, myview.square_size, draw_height);
         }
     };
 
     /**
-    Respond to mouse-up or touch-end.
-
-    @param e - The event object.
-    **/
+     * Respond to mouse-up or touch-end.
+     *
+     * @param e - The event object.
+     */
     controller.myUp = function (e) {
         var sq1,
             sq2,
@@ -365,18 +362,18 @@ CHESS.Board = function (config, fn) {
 
             xy1 = CHESS.util.getArrayPosition(sq1);
             xy2 = CHESS.util.getArrayPosition(sq2);
-// TODO: UPDATE SETUP
+
             if (model.mode === 'setup') {
                 if (sq1 !== sq2 && sq1 !== 'piecebox' && sq2 !== 'piecebox') {
-                    model.position_array[xy2.substr(1, 1)][xy2.substr(0, 1)] = drag_piece_temp;
-                    model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)] = '';
+                    model.position.setPiece(xy2.substr(1, 1), xy2.substr(0, 1), drag_piece_temp);
+                    model.position.setPiece(xy1.substr(1, 1), xy1.substr(0, 1), '');
                 } else {
                     if (sq1 === 'piecebox' && sq2 === 'piecebox') {
                         // Do nothing
                     } else if (sq1 === 'piecebox') {
-                        model.position_array[xy2.substr(1, 1)][xy2.substr(0, 1)] = drag_piece_temp;
+                        model.position.setPiece(xy2.substr(1, 1), xy2.substr(0, 1), drag_piece_temp);
                     } else if (sq2 === 'piecebox') {
-                        model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)] = '';
+                        model.position.setPiece(xy1.substr(1, 1), xy1.substr(0, 1), '');
                     }
                 }
             } else {
@@ -389,22 +386,22 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Notify all subscribers of an event.
-
-    @param {string} publication - The data or message to send to the subscribers.
-    @param {string} type - Type of event.
-    **/
+     * Notify all subscribers of an event.
+     *
+     * @param {string} publication - The data or message to send to the subscribers.
+     * @param {string} type - Type of event.
+     */
     controller.publish = function (publication, type) {
         this.visitSubscribers('publish', publication, type);
     };
 
     /**
-    Notify all subscribers of an event, or remove a subscriber from the list.
-
-    @param {string} action - If not "publish", then "unsubscribe" is assumed.
-    @param {object} arg - Arguments to be passed to a callback function, or the callback function itself if unsubscribing.
-    @param {number} type - Type of event.
-    **/
+     * Notify all subscribers of an event, or remove a subscriber from the list.
+     *
+     * @param {string} action - If not "publish", then "unsubscribe" is assumed.
+     * @param {object} arg - Arguments to be passed to a callback function, or the callback function itself if unsubscribing.
+     * @param {number} type - Type of event.
+     */
     controller.visitSubscribers = function (action, arg, type) {
         var pubtype = type || 'any',
             subscribers = this.subscribers[pubtype],
@@ -425,11 +422,11 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Resize the board.
-
-    @param {number} [height=0] - The new height of the board.
-    @param {number} [width=0] - The new width of the board.
-    **/
+     * Resize the board.
+     *
+     * @param {number} [height=0] - The new height of the board.
+     * @param {number} [width=0] - The new width of the board.
+     */
     controller.resize = function (height, width) {
         var old_width,
             old_height,
@@ -471,7 +468,7 @@ CHESS.Board = function (config, fn) {
         view.dpi_ratio = devicePixelRatio / backingStoreRatio;
 
         if (devicePixelRatio !== backingStoreRatio) {
-            old_width = view.canvas.width,
+            old_width = view.canvas.width;
             old_height = view.canvas.height;
 
             view.canvas.width = old_width * view.dpi_ratio;
@@ -480,30 +477,21 @@ CHESS.Board = function (config, fn) {
             view.canvas.style.height = old_height + 'px';
 
             view.square_size = view.canvas.width / 8;
-        };
+        }
 
     };
 
     /**
-    Update the internal board with a new move.
-
-    @param {string} sq1 - Current square (eg. e2).
-    @param {string} sq2 - New square (eg. e4).
-    **/
+     * Update the internal board with a new move.
+     *
+     * @param {string} sq1 - Current square (eg. e2).
+     * @param {string} sq2 - New square (eg. e4).
+     */
     model.move = function (sq1, sq2) {
-        var pos = {
-                position_array: CHESS.util.clonePositionArray(this.position_array),
-                white_to_move: this.white_to_move,
-                en_passant: this.en_passant,
-                active: this.active,
-                gs_castle_kside_w: this.gs_castle_kside_w,
-                gs_castle_qside_w: this.gs_castle_qside_w,
-                gs_castle_kside_b: this.gs_castle_kside_b,
-                gs_castle_qside_b: this.gs_castle_qside_b
-            },
+        var pos = new CHESS.Position(this.position.getFen()),
             pos_before = {
                 fen: CHESS.util.getFEN(this),
-                player_to_move: (this.white_to_move ? 'w' : 'b'),
+                player_to_move: (this.position.isWhiteToMove() ? 'w' : 'b'),
                 sq1: sq1,
                 sq2: sq2,
                 promote: false,
@@ -514,17 +502,17 @@ CHESS.Board = function (config, fn) {
             xy2,
             piece;
 
-        if (this.last_move) {
+        if (this.position.last_move) {
             pos.last_move = {
-                'sq1': this.last_move.sq1,
-                'sq2': this.last_move.sq2
+                'sq1': this.position.last_move.sq1,
+                'sq2': this.position.last_move.sq2
             };
         }
 
         xy1 = CHESS.util.getArrayPosition(sq1);
         xy2 = CHESS.util.getArrayPosition(sq2);
-        piece = model.position_array[xy1.substr(1, 1)][xy1.substr(0, 1)].substr(1, 1);
-        if (piece === 'p' && ((model.white_to_move && sq2.substr(1, 1) === '8') || (!model.white_to_move && sq2.substr(1, 1) === '1'))) {
+        piece = this.position.getPiece(xy1.substr(1, 1), xy1.substr(0, 1));
+        if (piece.isPawn() && ((this.position.white_to_move && sq2.substr(1, 1) === '8') || (!this.position.white_to_move && sq2.substr(1, 1) === '1'))) {
             pos_before.promote = true;
         }
 
@@ -547,21 +535,9 @@ CHESS.Board = function (config, fn) {
         controller.publish(pos_before, 'move_before');
 
         // Apply position
-        this.position_array = CHESS.util.clonePositionArray(pos.position_array);
-        this.white_to_move = pos.white_to_move;
-        this.en_passant = pos.en_passant;
-        this.active = pos.active;
-        this.gs_castle_kside_w = pos.gs_castle_kside_w;
-        this.gs_castle_qside_w = pos.gs_castle_qside_w;
-        this.gs_castle_kside_b = pos.gs_castle_kside_b;
-        this.gs_castle_qside_b = pos.gs_castle_qside_b;
+        this.position = pos;
         this.moves += 1;
-        if (pos.last_move) {
-            this.last_move = {
-                'sq1': pos.last_move.sq1,
-                'sq2': pos.last_move.sq2
-            };
-        }
+
         view.takeSnapshot();
 
         if (!this.active) {
@@ -571,22 +547,13 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Set the current position.
-
-    @param {string} fen - FEN representation of the position.
-    **/
-    model.setPosition = function (fen) {
-        CHESS.util.setPosition(this, fen);
-    };
-
-    /**
-    Add an arrow to the arrow list.
-
-    @param {string} sq1 - Current square (eg. e2).
-    @param {string} sq2 - New square (eg. e4).
-    @param {string} color - Hex code for the color of the arrow.
-    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
-    **/
+     * Add an arrow to the arrow list.
+     *
+     * @param {string} sq1 - Current square (eg. e2).
+     * @param {string} sq2 - New square (eg. e4).
+     * @param {string} color - Hex code for the color of the arrow.
+     * @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+     */
     view.arrowAdd = function (sq1, sq2, color, opacity) {
         var rgba = view.hexToRgba(color);
 
@@ -600,12 +567,12 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Draw an arrow on the board.
-
-    @param {string} sq1 - Current square (eg. e2).
-    @param {string} sq2 - New square (eg. e4).
-    @param {object} rgba - An object with properties 'r', 'g', 'b', and 'a', which define the color/opacity of the arrow.
-    **/
+     * Draw an arrow on the board.
+     *
+     * @param {string} sq1 - Current square (eg. e2).
+     * @param {string} sq2 - New square (eg. e4).
+     * @param {object} rgba - An object with properties 'r', 'g', 'b', and 'a', which define the color/opacity of the arrow.
+     */
     view.arrowDraw = function (sq1, sq2, rgba) {
         var xy1,
             xy2,
@@ -687,22 +654,11 @@ CHESS.Board = function (config, fn) {
         this.snapshot_ctx.lineTo(x2, y2);
         this.snapshot_ctx.lineTo(botx, boty);
         this.snapshot_ctx.fill();
-
-        /*        
-        // top of head
-        this.snapshot_ctx.lineTo(280,280);
-        // curve of back
-        this.snapshot_ctx.arcTo(280,280, 285,32,8);
-        // bottom of head
-        this.snapshot_ctx.lineTo(290,30);
-        this.snapshot_ctx.stroke();
-        this.snapshot_ctx.fill();
-        */
     };
 
     /**
-    Draw all arrows.
-    **/
+     * Draw all arrows.
+     */
     view.arrowDrawAll = function () {
         var i,
             sq1,
@@ -718,8 +674,8 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Create the canvas element and an image buffer.
-    **/
+     * Create the canvas element and an image buffer.
+     */
     view.buildHtml = function (container) {
         this.canvas = document.createElement('canvas');
         this.canvas.className = 'chessboard';
@@ -733,11 +689,11 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Convert a hex color string to RGBA object.
-
-    @param {string} hex - Color string in hex format.
-    @returns {object} RGBA color object.
-    **/
+     * Convert a hex color string to RGBA object.
+     *
+     * @param {string} hex - Color string in hex format.
+     * @returns {object} RGBA color object.
+     */
     view.hexToRgba = function (hex) {
         // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
         var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -755,13 +711,13 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Activate/Inactivate the board.
+     * Activate/Inactivate the board.
+     *
+     * @param {boolean} a - active
+     */
+    view.setActive = function (a) {
 
-    @param {boolean} active - True or False.
-    **/
-    view.setActive = function (active) {
-
-        model.active = (active === true);
+        model.active = (a === true);
 
         if (model.active) {
 
@@ -787,12 +743,12 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Add a colored square to the square list.
-
-    @param {string} sq - Square (eg. e2).
-    @param {string} color - Hex code for the color of the square.
-    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
-    **/
+     * Add a colored square to the square list.
+     *
+     * @param {string} sq - Square (eg. e2).
+     * @param {string} color - Hex code for the color of the square.
+     * @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+     */
     view.squareAdd = function (sq, color, opacity) {
         var rgba = view.hexToRgba(color);
 
@@ -805,11 +761,11 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Draw a colored square on the board.
-
-    @param {string} sq - Current square (eg. e2).
-    @param {object} rgba - An object with properties 'r', 'g', 'b', and 'a', which define the color/opacity of the square.
-    **/
+     * Draw a colored square on the board.
+     *
+     * @param {string} sq - Current square (eg. e2).
+     * @param {object} rgba - An object with properties 'r', 'g', 'b', and 'a', which define the color/opacity of the square.
+     */
     view.squareDraw = function (sq, rgba) {
         var xy,
             x,
@@ -833,8 +789,8 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Draw all squares.
-    **/
+     * Draw all squares.
+     */
     view.squareDrawAll = function () {
         var i,
             sq,
@@ -848,12 +804,12 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Draw a piece to the image buffer.
-
-    @param {string} piece - The piece to draw.
-    @param {number} x - The horizontal position in pixels.
-    @param {number} y - The vertical position in pixels.
-    **/
+     * Draw a piece to the image buffer.
+     *
+     * @param {string} piece - The piece to draw.
+     * @param {number} x - The horizontal position in pixels.
+     * @param {number} y - The vertical position in pixels.
+     */
     view.drawPiece = function (piece, x, y) {
 
         if (!/[bw][kqrbnp]/.test(piece)) {
@@ -864,12 +820,12 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Draw a square image to the image buffer.
-
-    @param {string} color - hover, light, dark.
-    @param {number} x - The horizontal position in pixels.
-    @param {number} y - The vertical position in pixels.
-    **/
+     * Draw a square image to the image buffer.
+     *
+     * @param {string} color - hover, light, dark.
+     * @param {number} x - The horizontal position in pixels.
+     * @param {number} y - The vertical position in pixels.
+     */
     view.drawSquare = function (color, x, y, context) {
         var ctx = context || this.snapshot_ctx,
             image,
@@ -878,7 +834,7 @@ CHESS.Board = function (config, fn) {
             rowcol,
             font_size,
             font_margin_top = parseInt(this.square_size / 55 * 13, 10),
-            font_margin_left = parseInt(this.square_size / 55 * 9, 10);;
+            font_margin_left = parseInt(this.square_size / 55 * 9, 10);
 
         if (color === 'hover') {
             this.ctx.beginPath();
@@ -904,7 +860,7 @@ CHESS.Board = function (config, fn) {
         // Row/Col labels
         if (this.show_labels && (row === 7 || col === 0)) {
             // Font
-            font_size = parseInt(this.square_size / 55 * 12, 10),
+            font_size = parseInt(this.square_size / 55 * 12, 10);
             this.snapshot_ctx.font = font_size + 'px arial';
             this.snapshot_ctx.fillStyle = (((7 - row) + col) % 2 === 0 ? this.square_color_light : this.square_color_dark);
 
@@ -930,8 +886,8 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Draw the board to an image buffer.
-    **/
+     * Draw the board to an image buffer.
+     */
     view.takeSnapshot = function (refresh) {
         var i,
             j,
@@ -975,20 +931,20 @@ CHESS.Board = function (config, fn) {
 
         // Highlight last move, sq1
         if (this.highlight_move) {
-            if (typeof model.last_move === 'object' && model.last_move.sq1 !== undefined) {
+            if (typeof model.position.last_move === 'object' && model.position.last_move.sq1 !== undefined) {
                 this.snapshot_ctx.beginPath();
                 this.snapshot_ctx.fillStyle = 'rgba(' + rgba.r + ',' + rgba.g + ',' + rgba.b + ', ' + this.highlight_move_opacity + ')';
 
-                x = model.last_move.sq1.substr(0, 1);
-                y = model.last_move.sq1.substr(1, 1);
+                x = model.position.last_move.sq1.substr(0, 1);
+                y = model.position.last_move.sq1.substr(1, 1);
                 if (!this.white_down) {
                     x = 7 - x;
                     y = 7 - y;
                 }
                 this.snapshot_ctx.rect(x * this.square_size, y * this.square_size, this.square_size, this.square_size);
 
-                x = model.last_move.sq2.substr(0, 1);
-                y = model.last_move.sq2.substr(1, 1);
+                x = model.position.last_move.sq2.substr(0, 1);
+                y = model.position.last_move.sq2.substr(1, 1);
                 if (!this.white_down) {
                     x = 7 - x;
                     y = 7 - y;
@@ -1006,7 +962,7 @@ CHESS.Board = function (config, fn) {
         for (i = 0; i < 8; i += 1) {
             for (j = 0; j < 8; j += 1) {
                 if (!this.dragok || !(i === this.drag_clear_i && j === this.drag_clear_j)) {
-                    piece = model.position_array[i][j].substr(0, 2);
+                    piece = model.position.getPiece(i, j);
                     // Flip board for black
                     ii = i;
                     jj = j;
@@ -1016,22 +972,21 @@ CHESS.Board = function (config, fn) {
                     }
                     x = jj * this.square_size;
                     y = ii * this.square_size;
-                    if (piece !== '') {
-                        this.drawPiece(piece, x, y);
+                    if (!piece.isEmpty()) {
+                        this.drawPiece(piece.toString(), x, y);
                     }
                 }
             }
         }
-// TODO: UPDATE SETUP
         if (model.mode === 'setup') {
             // Draw piece box pieces
             for (i = 0; i < 2; i += 1) {
                 for (j = 0; j < 8; j += 1) {
-                    piece = model.piecebox_array[i][j].substr(0, 2);
+                    piece = new CHESS.Piece(model.piecebox[i][j].substr(0, 2));
                     x = j * this.square_size;
                     y = (i + 8) * this.square_size;
-                    if (piece !== '') {
-                        this.drawPiece(piece, x, y);
+                    if (!piece.isEmpty()) {
+                        this.drawPiece(piece.toString(), x, y);
                     }
                 }
             }
@@ -1081,13 +1036,13 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Add an arrow to the board.
-
-    @param {string} sq1 - Starting square in algebraic notation.
-    @param {string} sq2 - Ending square in algebraic notation.
-    @param {string} color - Hex code for the color of the arrow.
-    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
-    **/
+     * Add an arrow to the board.
+     *
+     * @param {string} sq1 - Starting square in algebraic notation.
+     * @param {string} sq2 - Ending square in algebraic notation.
+     * @param {string} color - Hex code for the color of the arrow.
+     * @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+     */
     this.addArrow = function (sq1, sq2, color, opacity) {
         opacity = parseFloat(opacity);
 
@@ -1102,12 +1057,12 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Add a colored square to the board.
-
-    @param {string} sq - Square in algebraic notation.
-    @param {string} color - Hex code for the color of the square.
-    @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
-    **/
+     * Add a colored square to the board.
+     *
+     * @param {string} sq - Square in algebraic notation.
+     * @param {string} color - Hex code for the color of the square.
+     * @param {float} opacity - A number between 0 and 1 (0 = fully transparent, 1 = fully opaque).
+     */
     this.addSquare = function (sq, color, opacity) {
         opacity = parseFloat(opacity);
 
@@ -1122,17 +1077,17 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Draw the board in its current state.
-    **/
+     * Draw the board in its current state.
+     */
     this.display = function () {
         view.takeSnapshot();
     };
 
     /**
-    Flip the board.
-
-    @param {string} color - If provided, it will orient the board for white (w) or black (b).
-    **/
+     * Flip the board.
+     *
+     * @param {string} color - If provided, it will orient the board for white (w) or black (b).
+     */
     this.flip = function (color) {
 
         if (color === 'w') {
@@ -1148,75 +1103,75 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Get the color of the player to move.
-
-    @returns {string} Color to move (w, b).
-    **/
+     * Get the color of the player to move.
+     *
+     * @returns {string} Color to move (w, b).
+     */
     this.getActiveColor = function () {
-        return (model.white_to_move ? 'w' : 'b');
+        return (model.position.isWhiteToMove() ? 'w' : 'b');
     };
 
     /**
-    Get the FEN of the current position.
-
-    @returns {string} FEN string.
-    **/
+     * Get the FEN of the current position.
+     *
+     * @returns {string} FEN string.
+     */
     this.getFEN = function () {
         return CHESS.util.getFEN(model);
     };
 
     /**
-    Get a reference to the canvas element.
-
-    @returns {object} A reference to the canvas element.
-    **/
+     * Get a reference to the canvas element.
+     *
+     * @returns {object} A reference to the canvas element.
+     */
     this.getCanvas = function () {
         return view.canvas;
     };
     
     /**
-    Get a PNG format image of the current board.
-
-    @returns {object} Image.
-    **/
+     * Get a PNG format image of the current board.
+     *
+     * @returns {object} Image.
+     */
     this.getImage = function () {
-	var image = new Image();
-	image.src = view.canvas.toDataURL('image/png');
-	return image;
+        var image = new Image();
+        image.src = view.canvas.toDataURL('image/png');
+        return image;
     };
 
     /**
-    Is the current position a draw by insufficient material?
-
-    @returns {boolean} True or false.
-    **/
+     * Is the current position a draw by insufficient material?
+     *
+     * @returns {boolean} True or false.
+     */
     this.isInsufficientMaterial = function () {
         return CHESS.util.isInsufficientMaterial(model);
     };
 
     /**
-    Is the current position checkmate?
-
-    @returns {boolean} True or false.
-    **/
+     * Is the current position checkmate?
+     *
+     * @returns {boolean} True or false.
+     */
     this.isMate = function () {
         return CHESS.util.isMate(model);
     };
 
     /**
-    Is the current position stalemate?
-
-    @returns {boolean} True or false.
-    **/
+     * Is the current position stalemate?
+     *
+     * @returns {boolean} True or false.
+     */
     this.isStalemate = function () {
         return CHESS.util.isStalemate(model);
     };
 
     /**
-    Play a move.
-
-    @param {string} san - Move in standard algebraic notation.
-    **/
+     * Play a move.
+     *
+     * @param {string} san - Move in standard algebraic notation.
+     */
     this.move = function (san) {
         var long_move,
             sq1,
@@ -1231,126 +1186,93 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Clear the board.
-    **/
+     * Clear the board.
+     */
     this.positionClear = function () {
-        model.position_array = [
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '']
-        ];
-        model.last_move = {};
-        model.en_passant = '';
-        model.white_to_move = true;
-        model.gs_castle_kside_w = true;
-        model.gs_castle_qside_w = true;
-        model.gs_castle_kside_b = true;
-        model.gs_castle_qside_b = true;
-        model.moves = 0;
+        model = new CHESS.Position();
         view.takeSnapshot();
     };
 
     /**
-    Set the board to the starting position.
-    **/
+     * Set the board to the starting position.
+     */
     this.positionStart = function () {
-        model.position_array = [
-            ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
-            ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', ''],
-            ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
-            ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']
-        ];
-        model.last_move = {};
-        model.en_passant = '';
-        model.white_to_move = true;
-        model.gs_castle_kside_w = true;
-        model.gs_castle_qside_w = true;
-        model.gs_castle_kside_b = true;
-        model.gs_castle_qside_b = true;
-        model.moves = 0;
+        model.position.setPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        model.position.last_move = {};
+        model.position.moves = 0;
 
-        //view.setActive(true);
         view.takeSnapshot();
     };
 
     /**
-    Remove an arrow from the board.
-    **/
+     * Remove an arrow from the board.
+     */
     this.removeArrow = function () {
         view.arrow_list.pop();
         view.takeSnapshot();
     };
 
     /**
-    Remove all arrows from the board.
-    **/
+     * Remove all arrows from the board.
+     */
     this.removeAllArrows = function () {
         view.arrow_list = [];
         view.takeSnapshot();
     };
 
     /**
-    Remove a colored square from the board.
-    **/
+     * Remove a colored square from the board.
+     */
     this.removeSquare = function () {
         view.square_list.pop();
         view.takeSnapshot();
     };
 
     /**
-    Remove all colored squares from the board.
-    **/
+     * Remove all colored squares from the board.
+     */
     this.removeAllSquares = function () {
         view.square_list = [];
         view.takeSnapshot();
     };
 
     /**
-    Resize the board.
-
-    @param {number} [height=0] - The new height of the board.
-    @param {number} [width=0] - The new width of the board.
-    **/
+     * Resize the board.
+     *
+     * @param {number} [height=0] - The new height of the board.
+     * @param {number} [width=0] - The new width of the board.
+     */
     this.resize = function (height, width) {
         controller.resize(height, width);
         view.takeSnapshot();
     };
 
     /**
-    Activate/Inactivate the board.
-
-    @param {boolean} active - True or False.
-    **/
+     * Activate/Inactivate the board.
+     *
+     * @param {boolean} active - True or False.
+     */
     this.setActive = function (active) {
         view.setActive(active);
     };
 
     /**
-    Set the last move (for display purposes).
-
-    @param {string} sq1 - Letter and number of the start square.
-    @param {string} sq2 - Letter and number of the end square.
-    **/
+     * Set the last move (for display purposes).
+     *
+     * @param {string} sq1 - Letter and number of the start square.
+     * @param {string} sq2 - Letter and number of the end square.
+     */
     this.setLastMove = function (sq1, sq2) {
         sq1 = CHESS.util.getArrayPosition(sq1);
         sq2 = CHESS.util.getArrayPosition(sq2);
-        model.last_move = {'sq1': sq1, 'sq2': sq2};
+        model.position.last_move = {'sq1': sq1, 'sq2': sq2};
     };
 
     /**
-    Change the board mode.
-
-    @param {string} mode - Mode determines the default settings.
-    **/
+     * Change the board mode.
+     *
+     * @param {string} mode - Mode determines the default settings.
+     */
     this.setMode = function (mode) {
         model.mode = mode;
         if (mode === 'setup') {
@@ -1361,22 +1283,21 @@ CHESS.Board = function (config, fn) {
     };
 
     /**
-    Set the board to a new position.
-
-    @param {string} fen - FEN representation of the new position.
-    **/
+     * Set the board to a new position.
+     *
+     * @param {string} fen - FEN representation of the new position.
+     */
     this.setPosition = function (fen) {
-        model.setPosition(fen);
-        //view.setActive(true);
+        model.position = new CHESS.Position(fen);
         view.takeSnapshot();
     };
 
     /**
-    Allow other modules to subscribe to board change events.
-
-    @param {string} type - Type of event.
-    @param {function} fn - A callback function.
-    **/
+     * Allow other modules to subscribe to board change events.
+     *
+     * @param {string} type - Type of event.
+     * @param {function} fn - A callback function.
+     */
     this.subscribe = function (type, fn) {
         type = type || 'any';
         if (controller.subscribers[type] === undefined) {
@@ -1386,11 +1307,11 @@ CHESS.Board = function (config, fn) {
     };
     
     /**
-    Allow other modules to unsubscribe from board change events.
-
-    @param {string} type - Type of event.
-    @param {function} fn - A callback function.
-    **/
+     * Allow other modules to unsubscribe from board change events.
+     *
+     * @param {string} type - Type of event.
+     * @param {function} fn - A callback function.
+     */
     this.unsubscribe = function (fn, type) {
         controller.visitSubscribers('unsubscribe', fn, type);
     };
@@ -1423,9 +1344,9 @@ CHESS.Board = function (config, fn) {
         model.mode = config.mode;
 
         if (config.fen) {
-            model.setPosition(config.fen);
+            model.position = new CHESS.Position(config.fen);
         } else {
-            model.setPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+            model.position = new CHESS.Position('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         }
 
         controller.resize(config.height, config.width);
