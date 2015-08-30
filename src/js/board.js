@@ -1,7 +1,9 @@
 /**
  * Board module
  */
-CHESS.Board = function (config, fn) {
+CHESS.Board = function ($) {
+
+return function (config, fn) {
 
     var
         init,
@@ -20,7 +22,7 @@ CHESS.Board = function (config, fn) {
          */
         model = {
             active: false, // Might not be used/needed
-            position: new CHESS.Position(),
+            position: new $.Position(),
             piecebox: [
                 ['-', 'wk', 'wq', 'wr', 'wb', 'wn', 'wp', '-'],
                 ['-', 'bk', 'bq', 'br', 'bb', 'bn', 'bp', '-']
@@ -151,7 +153,7 @@ CHESS.Board = function (config, fn) {
             } else {
                 // Dragging a piece in the piece box
                 if (model.mode === 'setup') {
-                    piece = new CHESS.Piece(model.piecebox[i - 8][j]);
+                    piece = new $.Piece(model.piecebox[i - 8][j]);
                 }
             }
 
@@ -360,8 +362,8 @@ CHESS.Board = function (config, fn) {
                 sq2 = alpha_conversion[j] + (8 - i);
             }
 
-            xy1 = CHESS.util.getArrayPosition(sq1);
-            xy2 = CHESS.util.getArrayPosition(sq2);
+            xy1 = $.util.getArrayPosition(sq1);
+            xy2 = $.util.getArrayPosition(sq2);
 
             if (model.mode === 'setup') {
                 if (sq1 !== sq2 && sq1 !== 'piecebox' && sq2 !== 'piecebox') {
@@ -488,9 +490,9 @@ CHESS.Board = function (config, fn) {
      * @param {string} sq2 - New square (eg. e4).
      */
     model.move = function (sq1, sq2) {
-        var pos = new CHESS.Position(this.position.getFen()),
+        var pos = new $.Position(this.position.getFen()),
             pos_before = {
-                fen: CHESS.util.getFEN(this),
+                fen: $.util.getFEN(this),
                 player_to_move: (this.position.isWhiteToMove() ? 'w' : 'b'),
                 sq1: sq1,
                 sq2: sq2,
@@ -509,15 +511,15 @@ CHESS.Board = function (config, fn) {
             };
         }
 
-        xy1 = CHESS.util.getArrayPosition(sq1);
-        xy2 = CHESS.util.getArrayPosition(sq2);
+        xy1 = $.util.getArrayPosition(sq1);
+        xy2 = $.util.getArrayPosition(sq2);
         piece = this.position.getPiece(xy1.substr(1, 1), xy1.substr(0, 1));
         if (piece.isPawn() && ((this.position.white_to_move && sq2.substr(1, 1) === '8') || (!this.position.white_to_move && sq2.substr(1, 1) === '1'))) {
             pos_before.promote = true;
         }
 
         // Illegal move
-        if (!CHESS.util.move(pos, sq1, sq2)) {
+        if (!$.util.move(pos, sq1, sq2)) {
             view.takeSnapshot();
             return;
         }
@@ -525,9 +527,9 @@ CHESS.Board = function (config, fn) {
         // Remove graphic commentary
         view.arrow_list = [];
 
-        if (CHESS.util.isMate(pos)) {
+        if ($.util.isMate(pos)) {
             pos_before.mate = true;
-        } else if (CHESS.util.isStalemate(pos)) {
+        } else if ($.util.isStalemate(pos)) {
             pos_before.stalemate = true;
         }
 
@@ -597,8 +599,8 @@ CHESS.Board = function (config, fn) {
             boty; // The length of a side of the arrow head
 
         // Position/color values
-        xy1 = CHESS.util.getArrayPosition(sq1);
-        xy2 = CHESS.util.getArrayPosition(sq2);
+        xy1 = $.util.getArrayPosition(sq1);
+        xy2 = $.util.getArrayPosition(sq2);
         x1 = xy1.substr(0, 1);
         y1 = xy1.substr(1, 1);
         x2 = xy2.substr(0, 1);
@@ -772,7 +774,7 @@ CHESS.Board = function (config, fn) {
             y; // The length of a side of the arrow head
 
         // Position/color values
-        xy = CHESS.util.getArrayPosition(sq);
+        xy = $.util.getArrayPosition(sq);
         x = xy.substr(0, 1);
         y = xy.substr(1, 1);
 
@@ -982,7 +984,7 @@ CHESS.Board = function (config, fn) {
             // Draw piece box pieces
             for (i = 0; i < 2; i += 1) {
                 for (j = 0; j < 8; j += 1) {
-                    piece = new CHESS.Piece(model.piecebox[i][j].substr(0, 2));
+                    piece = new $.Piece(model.piecebox[i][j].substr(0, 2));
                     x = j * this.square_size;
                     y = (i + 8) * this.square_size;
                     if (!piece.isEmpty()) {
@@ -1117,7 +1119,7 @@ CHESS.Board = function (config, fn) {
      * @returns {string} FEN string.
      */
     this.getFEN = function () {
-        return CHESS.util.getFEN(model);
+        return $.util.getFEN(model);
     };
 
     /**
@@ -1146,7 +1148,7 @@ CHESS.Board = function (config, fn) {
      * @returns {boolean} True or false.
      */
     this.isInsufficientMaterial = function () {
-        return CHESS.util.isInsufficientMaterial(model);
+        return $.util.isInsufficientMaterial(model);
     };
 
     /**
@@ -1155,7 +1157,7 @@ CHESS.Board = function (config, fn) {
      * @returns {boolean} True or false.
      */
     this.isMate = function () {
-        return CHESS.util.isMate(model);
+        return $.util.isMate(model);
     };
 
     /**
@@ -1164,7 +1166,7 @@ CHESS.Board = function (config, fn) {
      * @returns {boolean} True or false.
      */
     this.isStalemate = function () {
-        return CHESS.util.isStalemate(model);
+        return $.util.isStalemate(model);
     };
 
     /**
@@ -1177,7 +1179,7 @@ CHESS.Board = function (config, fn) {
             sq1,
             sq2;
 
-        long_move = CHESS.util.getLongNotation(model, san);
+        long_move = $.util.getLongNotation(model, san);
         long_move = long_move.split('-');
         sq1 = long_move[0];
         sq2 = long_move[1];
@@ -1189,7 +1191,7 @@ CHESS.Board = function (config, fn) {
      * Clear the board.
      */
     this.positionClear = function () {
-        model = new CHESS.Position();
+        model = new $.Position();
         view.takeSnapshot();
     };
 
@@ -1263,8 +1265,8 @@ CHESS.Board = function (config, fn) {
      * @param {string} sq2 - Letter and number of the end square.
      */
     this.setLastMove = function (sq1, sq2) {
-        sq1 = CHESS.util.getArrayPosition(sq1);
-        sq2 = CHESS.util.getArrayPosition(sq2);
+        sq1 = $.util.getArrayPosition(sq1);
+        sq2 = $.util.getArrayPosition(sq2);
         model.position.last_move = {'sq1': sq1, 'sq2': sq2};
     };
 
@@ -1288,7 +1290,7 @@ CHESS.Board = function (config, fn) {
      * @param {string} fen - FEN representation of the new position.
      */
     this.setPosition = function (fen) {
-        model.position = new CHESS.Position(fen);
+        model.position = new $.Position(fen);
         view.takeSnapshot();
     };
 
@@ -1344,9 +1346,9 @@ CHESS.Board = function (config, fn) {
         model.mode = config.mode;
 
         if (config.fen) {
-            model.position = new CHESS.Position(config.fen);
+            model.position = new $.Position(config.fen);
         } else {
-            model.position = new CHESS.Position('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+            model.position = new $.Position('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         }
 
         controller.resize(config.height, config.width);
@@ -1480,3 +1482,5 @@ CHESS.Board = function (config, fn) {
     init();
 
 };
+
+}(CHESS);

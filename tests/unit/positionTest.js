@@ -1,6 +1,6 @@
 QUnit.module('Position');
 
-QUnit.test('Construct an empty position', function(assert) {
+QUnit.test('Construct an empty position', function (assert) {
     var position = new CHESS.Position();
 
     assert.notOk(position.isWhiteToMove(), 'White is not to move');
@@ -12,7 +12,7 @@ QUnit.test('Construct an empty position', function(assert) {
     assert.strictEqual(position.getEnPassantSquare(), '-', 'No en passant square');
 });
 
-QUnit.test('Construct an invalid position', function(assert) {
+QUnit.test('Construct an invalid position', function (assert) {
     var position = new CHESS.Position('invalid position');
 
     assert.notOk(position.isWhiteToMove(), 'White is not to move');
@@ -22,10 +22,9 @@ QUnit.test('Construct an invalid position', function(assert) {
     assert.notOk(position.canBlackCastleQueenside(), 'Black cannot castle queenside');
     assert.strictEqual(position.getColorToMove(), '', 'No color to move');
     assert.strictEqual(position.getEnPassantSquare(), '-', 'No en passant square');
-
 });
 
-QUnit.test('Construct a valid position', function(assert) {
+QUnit.test('Construct a valid position', function (assert) {
     var fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
         position = new CHESS.Position(fen);
 
@@ -59,6 +58,14 @@ QUnit.test('Set a piece on a given square', function (assert) {
 
 QUnit.test('Get FEN', function (assert) {
     var fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        position = new CHESS.Position(fen);
+
+    assert.strictEqual(position.getFen(), fen, 'FEN is correct');
+});
+
+QUnit.test('Get FEN with partially filled rows', function (assert) {
+    var fen = '1nbqkbn1/p1pppp1p/8/8/8/8/3P4/R2KB2R w KQkq - 0 1',
+        position = new CHESS.Position(fen);
         position = new CHESS.Position(fen);
 
     assert.strictEqual(position.getFen(), fen, 'FEN is correct');
@@ -103,3 +110,17 @@ QUnit.test('Set color to move', function (assert) {
     position.setBlackToMove();
     assert.notOk(position.isWhiteToMove(), 'White is not to move');
 });
+
+QUnit.test('FEN with no castling', function (assert) {
+    var fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        newFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w - - 0 1',
+        position = new CHESS.Position(fen);
+
+    position.setWhiteCastleKingside(false);
+    position.setWhiteCastleQueenside(false);
+    position.setBlackCastleKingside(false);
+    position.setBlackCastleQueenside(false);
+
+    assert.strictEqual(position.getFen(), newFen, 'FEN is correct');
+});
+

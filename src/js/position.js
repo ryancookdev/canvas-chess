@@ -1,12 +1,14 @@
 var CHESS = CHESS || {};
 
+CHESS.Position = function ($) {
+
 /**
  * Stores parsed FEN information and provides methods for working with it.
  *
  * @constructor
  * @param {String} fen
  */
-CHESS.Position = function (fen) {
+return function (fen) {
     var castleWK = false,
         castleWQ = false,
         castleBK = false,
@@ -87,52 +89,17 @@ CHESS.Position = function (fen) {
      * @returns {string}
      */
     this.getFen = function () {
-        var fenArr = [],
-            position,
-            castling = '',
-            rowArray = [],
-            color = '',
-            piece = '',
-            i = 0,
-            j = 0,
-            emptyRows = 0;
+        return [
+            dataToFenPosition(),
+            colorToMove,
+            dataToFenCastling(),
+            enPassant,
+            '0 1'
+        ].join(' ');
+    };
 
-        // Piece placement
-        for (i = 0; i < positionArray.length; i += 1) {
-            rowArray[i] = '';
-            for (j = 0; j < positionArray[i].length; j += 1) {
-                piece = positionArray[i][j];
-                if (piece === '') {
-                    emptyRows += 1;
-                } else {
-                    // Append number of empty rows
-                    if (emptyRows > 0) {
-                        rowArray[i] += (emptyRows + '');
-                        emptyRows = 0;
-                    }
-                    // Append piece
-                    color = piece.substr(0, 1);
-                    piece = piece.substr(1, 1);
-                    if (color === 'w') {
-                        piece = piece.toUpperCase();
-                    }
-                    rowArray[i] += piece;
-                }
-            }
-            // Append number of empty rows
-            if (emptyRows > 0) {
-                rowArray[i] += (emptyRows + '');
-                emptyRows = 0;
-            }
-        }
-        position = rowArray.join('/');
-        fenArr.push(position);
-
-        // Active color
-        fenArr.push(colorToMove);
-
-        // Castling
-        castling = '';
+    var dataToFenCastling = function () {
+        var castling = '';
         if (castleWK) {
             castling += 'K';
         }
@@ -145,15 +112,63 @@ CHESS.Position = function (fen) {
         if (castleBQ) {
             castling += 'q';
         }
-        if (castling === '') {
-            castling = '-';
+        return (castling === '' ? '-' : castling);
+    };
+
+    var dataToFenPosition = function () {
+        var rowNumber,
+            rows = [];
+
+        for (rowNumber = 0; rowNumber < positionArray.length; rowNumber += 1) {
+            rows.push(dataToFenPositionRow(rowNumber));
         }
 
-        fenArr.push(castling);
-        fenArr.push(enPassant);
-        fenArr.push('0 1');
+        return rows.join('/');
+    };
 
-        return fenArr.join(' ');
+    var dataToFenPositionRow = function (rowNumber) {
+        var columnNumber,
+            piece,
+            row = '';
+
+        for (columnNumber = 0; columnNumber < positionArray[rowNumber].length; columnNumber += 1) {
+            piece = dataToFenPiece(positionArray[rowNumber][columnNumber]);
+            row = updateOrAppendToFenPositionRow(row, piece);
+        }
+
+        return row;
+    };
+
+    var updateOrAppendToFenPositionRow = function (row, piece) {
+        var emptySquares = 0;
+
+        if (piece === '') {
+            if (row.length > 0) {
+                emptySquares = row.slice(-1);
+                if (/[1-7]/.test(emptySquares)) {
+                    emptySquares = parseInt(emptySquares, 10);
+                } else {
+                    emptySquares = 0;
+                }
+                if (emptySquares > 0) {
+                    row = row.slice(0, row.length - 1);
+                }
+            }
+            row += (++emptySquares + '');
+        } else {
+            row += piece;
+        }
+
+        return row;
+    };
+
+    var dataToFenPiece = function (dataPiece) {
+        var color = dataPiece.substr(0, 1),
+            fenPiece = dataPiece.substr(1, 1);
+        if (color === 'w') {
+            fenPiece = fenPiece.toUpperCase();
+        }
+        return fenPiece;
     };
 
     var getFenSegmentCastling = function (fen) {
@@ -186,9 +201,9 @@ CHESS.Position = function (fen) {
         }
 
         if (y === false || y < 0 || x < 0 || y >= positionArray.length || x >= positionArray[y].length) {
-            return new CHESS.Piece();
+            return new $.Piece();
         }
-        return new CHESS.Piece(positionArray[y][x]);
+        return new $.Piece(positionArray[y][x]);
     };
 
     /**
@@ -264,31 +279,25 @@ CHESS.Position = function (fen) {
 
     var setPieces = function (fen) {
         var alphaConversion = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
-            color = '',
-            file = '',
-            piece = '',
-            rowArray = [],
-            rowItem = '',
-            startingIndex = 0,
             i = 0,
             j = 0,
-            k = 0;
-
-        if (typeof fen !== 'string' && !(fen instanceof String)) {
-            return;
-        }
+            k = 0,
+            fewRows = [],
+            file,
+            rowItem = '',
+            startingIndex = 0;
 
         positionArray = getEmptyPositionArray();
 
-        if (fen === undefined) {
+        if (fen === undefined || typeof fen !== 'string' && !(fen instanceof String)) {
             return;
         }
 
-        rowArray = getFenSegmentPosition(fen).split('/');
+        fenRows = getFenSegmentPosition(fen).split('/');
 
-        for (i = 0; i < rowArray.length; i += 1) {
-            for (j = 0; j < rowArray[i].length; j += 1) {
-                rowItem = rowArray[i].charAt(j);
+        for (i = 0; i < fenRows.length; i += 1) {
+            for (j = 0; j < fenRows[i].length; j += 1) {
+                rowItem = fenRows[i].charAt(j);
                 // Get starting index
                 for (k = 0; k < positionArray[i].length; k += 1) {
                     if (positionArray[i][k] === '-') {
@@ -302,20 +311,27 @@ CHESS.Position = function (fen) {
                         positionArray[i][k + startingIndex] = '';
                     }
                 } else {
-                    // Uppercase = white, lowercase = black
-                    color = 'w';
-                    if (/[a-z]/.test(rowItem)) {
-                        color = 'b';
-                    }
-                    piece = rowItem.toLowerCase();
-                    file = '';
-                    if (piece === 'p') {
-                        file = alphaConversion[startingIndex];
-                    }
-                    positionArray[i][startingIndex] = color + piece + file;
+                    file = alphaConversion[startingIndex];
+                    positionArray[i][startingIndex] = fenToDataPiece(rowItem, file);
                 }
             }
         }
+    };
+
+    var fenToDataPiece = function (piece, file) {
+        var color = 'w'
+            file = '';
+
+        if (/[kqrbnp]/.test(piece)) {
+            color = 'b';
+        }
+        piece = piece.toLowerCase();
+        if (piece === 'p') {
+            // TODO Remove file
+            piece += file;
+        }
+
+        return color + piece;
     };
 
     var setPosition = function (fen) {
@@ -350,3 +366,5 @@ CHESS.Position = function (fen) {
 
     setPosition(fen);
 };
+
+}(CHESS);

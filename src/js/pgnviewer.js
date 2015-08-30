@@ -1,4 +1,8 @@
-CHESS.PgnViewer = function (config) {
+var CHESS = CHESS || {};
+
+CHESS.PgnViewer = function ($) {
+
+return function (config) {
     var
         init,
         controller = {},
@@ -462,7 +466,7 @@ CHESS.PgnViewer = function (config) {
                 nag_coded = (nag_coded && nag_coded[1]? nag_coded[1] : null);
 
                 if (nag_coded !== null) {
-                    nag_info = CHESS.nag_code[nag_coded];
+                    nag_info = $.nag_code[nag_coded];
                     if (nag_info) {
                         if (/\.svg/.test(nag_info.symbol)) {
                             // Use SVG
@@ -515,7 +519,7 @@ CHESS.PgnViewer = function (config) {
                     nag_coded = (nag_coded && nag_coded[1]? nag_coded[1] : null);
 
                     if (nag_coded !== null) {
-                        nag_info = CHESS.nag_code[nag_coded];
+                        nag_info = $.nag_code[nag_coded];
                         if (nag_info) {
                             if (nag_info && /\.svg/.test(nag_info.symbol)) {
                                 // Use SVG
@@ -921,8 +925,8 @@ CHESS.PgnViewer = function (config) {
         }
 
         // Prepare to get the new FEN
-        pos = new CHESS.Position(fen);
-        long_notation = CHESS.util.getLongNotation(pos, move);
+        pos = new $.Position(fen);
+        long_notation = $.util.getLongNotation(pos, move);
         move_array = long_notation.split('-');
 
         if (/=[QRBN]/.test(move)) {
@@ -930,14 +934,14 @@ CHESS.PgnViewer = function (config) {
         }
 
         // Calculate the new FEN based on the current + move
-        CHESS.util.move(pos, move_array[0], move_array[1], promotion);
+        $.util.move(pos, move_array[0], move_array[1], promotion);
         fen = pos.getFen();
 
         // Determine if check
-        if (CHESS.util.isCheck(pos, (pos.isWhiteToMove() ? 'w' : 'b'))) {
+        if ($.util.isCheck(pos, (pos.isWhiteToMove() ? 'w' : 'b'))) {
             check_symbol = '+';
             // Determine if mate
-            if (CHESS.util.isMate(pos)) {
+            if ($.util.isMate(pos)) {
                 check_symbol = '#';
             }
         }
@@ -1149,7 +1153,7 @@ CHESS.PgnViewer = function (config) {
         config.width = parseInt(config.width, 10) || 600;
 
         // Initialize the board
-        view.board = new CHESS.Board({
+        view.board = new $.Board({
             height: config.board_width,
             width: config.board_width,
             square_color_light: config.square_color_light,
@@ -1201,3 +1205,5 @@ CHESS.PgnViewer = function (config) {
 
     init(this);
 };
+
+}(CHESS);

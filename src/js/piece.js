@@ -1,12 +1,14 @@
 var CHESS = CHESS || {};
 
+CHESS.Piece = function ($) {
+
 /**
  * Piece type and color.
  *
  * @constructor
  * @param {String} pieceAbbrev - [w|b][prnbqk]
  */
-CHESS.Piece = function (pieceAbbrev) {
+return function (pieceAbbrev) {
     var type = '',
         color = '';
 
@@ -112,3 +114,5 @@ CHESS.Piece = function (pieceAbbrev) {
     type = getTypeFromAbbrev(pieceAbbrev);
     color = getColorFromAbbrev(pieceAbbrev);
 };
+
+}(CHESS);

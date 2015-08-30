@@ -4,18 +4,20 @@ var CHESS = CHESS || {};
  * Utility library
  */
 
-CHESS.util = {};
+CHESS.util = function ($) {
 
-CHESS.util.isLegal = function (position, sq1, sq2) {
+$.util = {};
+
+$.util.isLegal = function (position, sq1, sq2) {
     var i,
+        square1 = new $.Square(sq1),
+        square2 = new $.Square(sq2),
         xy1 = this.getArrayPosition(sq1),
         xy2 = this.getArrayPosition(sq2),
-        x1,
         y1,
         x2,
-        y2,
         piece,
-        newSquare,
+        newPiece,
         is_en_passant = false,
         tempPosition;
 
@@ -23,12 +25,10 @@ CHESS.util.isLegal = function (position, sq1, sq2) {
         return false;
     }
 
-    x1 = parseInt(xy1.substr(0, 1), 10),
     y1 = parseInt(xy1.substr(1, 1), 10),
     x2 = parseInt(xy2.substr(0, 1), 10),
-    y2 = parseInt(xy2.substr(1, 1), 10),
     piece = position.getPiece(sq1),
-    newSquare = position.getPiece(sq2);
+    newPiece = position.getPiece(sq2);
  
     // Turn logic
     if (!piece.isColor(position.getColorToMove())) {
@@ -36,7 +36,7 @@ CHESS.util.isLegal = function (position, sq1, sq2) {
     }
 
     // two friendly pieces cannot occupy the same square
-    if (!newSquare.isEmpty() && newSquare.isColor(piece.getColor())) {
+    if (!newPiece.isEmpty() && newPiece.isColor(piece.getColor())) {
         return false;
     }
 
@@ -48,19 +48,19 @@ CHESS.util.isLegal = function (position, sq1, sq2) {
         return false;
     }
 
-    if (piece.isKnight() && !CHESS.Math.isKnightMove(sq1, sq2)) {
+    if (piece.isKnight() && !square1.isKnightMove(square2)) {
         return false;
     }
 
-    if (piece.isRook() && !CHESS.Math.isRookMove(sq1, sq2)) {
+    if (piece.isRook() && !square1.isRookMove(square2)) {
         return false;
     }
 
-    if (piece.isBishop() && !CHESS.Math.isBishopMove(sq1, sq2)) {
+    if (piece.isBishop() && !square1.isBishopMove(square2)) {
         return false;
     }
 
-    if (piece.isQueen() && !CHESS.Math.isQueenMove(sq1, sq2)) {
+    if (piece.isQueen() && !square1.isQueenMove(square2)) {
         return false;
     }
 
@@ -72,11 +72,12 @@ CHESS.util.isLegal = function (position, sq1, sq2) {
     }
 
     // KING IN CHECK
-    tempPosition = new CHESS.Position(position.getFen());
+    tempPosition = new $.Position(position.getFen());
     tempPosition.setPiece(sq2, '', tempPosition.getPiece(sq1).toString());
     tempPosition.setPiece(sq1, '', '');
     if (is_en_passant) {
-        var captureSquare = 
+        // TODO remove y1, x2
+        //var captureSquare = 
         tempPosition.setPiece(y1, x2, '');
     }
     if (this.isCheck(tempPosition, piece.getColor())) {
@@ -85,7 +86,7 @@ CHESS.util.isLegal = function (position, sq1, sq2) {
     return true;
 };
 
-CHESS.util.isClearPath = function (position, sq1, sq2) {
+$.util.isClearPath = function (position, sq1, sq2) {
     var i,
         xy1 = this.getArrayPosition(sq1),
         xy2 = this.getArrayPosition(sq2),
@@ -94,7 +95,7 @@ CHESS.util.isClearPath = function (position, sq1, sq2) {
         x2,
         y2,
         piece,
-        newSquare,
+        newPiece,
         is_en_passant = false,
         is_capturing_enemy,
         xDif,
@@ -112,7 +113,7 @@ CHESS.util.isClearPath = function (position, sq1, sq2) {
     x2 = parseInt(xy2.substr(0, 1), 10),
     y2 = parseInt(xy2.substr(1, 1), 10),
     piece = position.getPiece(sq1),
-    newSquare = position.getPiece(sq2);
+    newPiece = position.getPiece(sq2);
 
     i = 0;
     xDif = x1 - x2;
@@ -144,12 +145,14 @@ CHESS.util.isClearPath = function (position, sq1, sq2) {
     return true;
 };
 
-CHESS.util.isLegalKingMove = function (position, sq1, sq2) {
+$.util.isLegalKingMove = function (position, sq1, sq2) {
     var piece = position.getPiece(sq1),
-        newSquare = position.getPiece(sq2);
+        newPiece = position.getPiece(sq2),
+        square1 = new $.Square(sq1),
+        square2 = new $.Square(sq2);
 
     // castling
-    if (Math.abs(CHESS.Math.compareFile(sq1, sq2)) === 2) {
+    if (square1.compareFile(square2) === 2) {
         if (piece.isWhite()) {
             if (sq2 === 'g1' && position.canWhiteCastleKingside() && position.getPiece('f1').isEmpty() && position.getPiece('g1').isEmpty()) {
                 // castle kingside
@@ -207,31 +210,40 @@ CHESS.util.isLegalKingMove = function (position, sq1, sq2) {
                 return false;
             }
         }
-    } else if (!CHESS.Math.isKingMove()) {
+    } else if (!square1.isKingMove(square2)) {
         return false;
     }
 
     return true;
 };
 
-CHESS.util.isLegalPawnMove = function (position, sq1, sq2) {
+$.util.isLegalPawnMove = function (position, sq1, sq2) {
     var piece = position.getPiece(sq1),
-        newSquare = position.getPiece(sq2);
+        newPiece = position.getPiece(sq2),
+        square1 = new $.Square(sq1),
+        square2 = new $.Square(sq2);
 
     // pawns must move forward
-    if (piece.isWhite() && CHESS.Math.compareRank(sq1, sq2) < 1) {
+    // TODO square1.isGreaterThan(square2)
+    if (piece.isWhite() && square1.compareRank(square2) < 1) {
         return false;
     }
-    if (piece.isBlack() && CHESS.Math.compareRank(sq1, sq2) > -1) {
+    // TODO !square1.isGreaterThan(square2)
+    if (piece.isBlack() && square1.compareRank(square2) < 1) {
         return false;
     }
 
     // pawns move 1 square (or 2 on first move)
-    var rankDiff = CHESS.Math.compareRank(sq1, sq2);
+    var rankDiff = square1.compareRank(square2);
     var moveOneSquare = Math.abs(rankDiff) === 1;
     var moveTwoSquares = Math.abs(rankDiff) === 2;
-    var whiteUnblocked = position.getPiece(CHESS.Math.setRank(sq1, 3)).isEmpty();
-    var blackUnblocked = position.getPiece(CHESS.Math.setRank(sq1, 6)).isEmpty();
+    var blockSquare;
+    blockSquare = new $.Square(square1.name);
+    blockSquare.setRank(3);
+    var whiteUnblocked = position.getPiece(blockSquare.name).isEmpty();
+    blockSquare = new $.Square(square1.name);
+    blockSquare.setRank(6);
+    var blackUnblocked = position.getPiece(blockSquare.name).isEmpty();
     var whiteFirstMove = piece.isWhite() && /2/.test(sq1);
     var blackFirstMove = piece.isBlack() && /7/.test(sq1);
     if (!(moveOneSquare || (moveTwoSquares && (whiteFirstMove && whiteUnblocked || blackFirstMove && blackUnblocked)))) {
@@ -239,17 +251,17 @@ CHESS.util.isLegalPawnMove = function (position, sq1, sq2) {
     }
 
     // pawns cannot capture directly forward
-    if (CHESS.Math.isSameFile(sq1, sq2) && !newSquare.isEmpty()) {
+    if (square1.isSameFile(square2) && !newPiece.isEmpty()) {
         return false;
     }
 
     // pawns cannot move horizontally unless capturing 1 square on a forward-diagonal
-    if (!CHESS.Math.isSameFile(sq1, sq2)) {
+    if (!square1.isSameFile(square2)) {
         // if side to side movement, only the following situations are valid
-        is_capturing_enemy = (!newSquare.isEmpty() && !newSquare.isColor(piece.getColor()));
+        is_capturing_enemy = (!newPiece.isEmpty() && !newPiece.isColor(piece.getColor()));
         is_en_passant = position.getEnPassantSquare() === sq2;
-        var oneFile = Math.abs(CHESS.Math.compareRank(sq1, sq2)) === 1;
-        var oneRank = Math.abs(CHESS.Math.compareFile(sq1, sq2)) === 1;
+        var oneRank = square1.compareRank(square2) === 1;
+        var oneFile = square1.compareFile(square2) === 1;
         if (!(oneFile && oneRank && (is_capturing_enemy || is_en_passant))) {
             return false;
         }
@@ -258,7 +270,7 @@ CHESS.util.isLegalPawnMove = function (position, sq1, sq2) {
     return true;
 };
 
-CHESS.util.isCheck = function (position, pieceColor) {
+$.util.isCheck = function (position, pieceColor) {
     var i,
         j,
         kingX = 0,
@@ -279,7 +291,7 @@ CHESS.util.isCheck = function (position, pieceColor) {
     return this.isSquareAttacked(position, kingX, kingY, pieceColor);
 };
 
-CHESS.util.isMate = function (pos) {
+$.util.isMate = function (pos) {
     var i,
         j,
         kingX = 0,
@@ -290,7 +302,7 @@ CHESS.util.isMate = function (pos) {
         friendly_attacker_sq,
         oppositeColor,
         piece,
-        tempPosition = new CHESS.Position(pos.getFen());
+        tempPosition = new $.Position(pos.getFen());
 
     // Find king
     for (i = 0; i < 8; i++) {
@@ -463,7 +475,7 @@ CHESS.util.isMate = function (pos) {
     return true;
 };
 
-CHESS.util.isSquareAttacked = function (position, kingX, kingY, pieceColor) {
+$.util.isSquareAttacked = function (position, kingX, kingY, pieceColor) {
     var i,
         attacker,
         piece;
@@ -651,7 +663,7 @@ CHESS.util.isSquareAttacked = function (position, kingX, kingY, pieceColor) {
     return false;
 };
 
-CHESS.util.isSquareBlockable = function (position, squareX, squareY, pieceColor) {
+$.util.isSquareBlockable = function (position, squareX, squareY, pieceColor) {
     var i,
         attacker;
 
@@ -838,7 +850,7 @@ CHESS.util.isSquareBlockable = function (position, squareX, squareY, pieceColor)
     return false;
 };
 
-CHESS.util.getAttacker = function (tempPosition, squareX, squareY, pieceColor) {
+$.util.getAttacker = function (tempPosition, squareX, squareY, pieceColor) {
     var i,
         attacker;
 
@@ -1025,12 +1037,12 @@ CHESS.util.getAttacker = function (tempPosition, squareX, squareY, pieceColor) {
     return '';
 };
 
-CHESS.util.isStalemate = function (pos) {
+$.util.isStalemate = function (pos) {
     var is_stalemate = !this.getLegalMoves(pos, true);
     return is_stalemate;
 };
 
-CHESS.util.isInsufficientMaterial = function (pos) {
+$.util.isInsufficientMaterial = function (pos) {
     // For now, this does not include:
     // * Perpetual check
     // * Perpetual pursuit
@@ -1100,7 +1112,7 @@ CHESS.util.isInsufficientMaterial = function (pos) {
     return is_im;
 };
 
-CHESS.util.getLegalMoves = function (pos, return_bool) {
+$.util.getLegalMoves = function (pos, return_bool) {
     var i,
         j,
         sq1,
@@ -1424,7 +1436,7 @@ CHESS.util.getLegalMoves = function (pos, return_bool) {
     return move_list;
 };
 
-CHESS.util.getLongNotation = function (pos, short_notation) {
+$.util.getLongNotation = function (pos, short_notation) {
     var i,
         j,
         long_move = '',
@@ -1483,7 +1495,7 @@ CHESS.util.getLongNotation = function (pos, short_notation) {
     return long_move;
 };
 
-CHESS.util.getArrayPosition = function (sq) {
+$.util.getArrayPosition = function (sq) {
     var x,
         y,
         xy = false;
@@ -1498,7 +1510,7 @@ CHESS.util.getArrayPosition = function (sq) {
     return xy;
 };
 
-CHESS.util.reverseArrayPosition = function (xy) {
+$.util.reverseArrayPosition = function (xy) {
     var x = parseInt(xy.substr(1, 1), 10),
         y = parseInt(xy.substr(0, 1), 10);
     x = String.fromCharCode(x + 97);
@@ -1506,11 +1518,11 @@ CHESS.util.reverseArrayPosition = function (xy) {
     return x + '' + y;
 };
 
-CHESS.util.moveTemp = function (pos, sq1, sq2) {
-    CHESS.util.move(pos, sq1, sq2);
+$.util.moveTemp = function (pos, sq1, sq2) {
+    $.util.move(pos, sq1, sq2);
 };
 
-CHESS.util.move = function (pos, sq1, sq2, promotion) {
+$.util.move = function (pos, sq1, sq2, promotion) {
     var w_sq1,
         w_sq2,
         w_xy1,
@@ -1674,6 +1686,10 @@ CHESS.util.move = function (pos, sq1, sq2, promotion) {
     return true;
 };
 
-CHESS.util.gameIsOver = function (pos) {
+$.util.gameIsOver = function (pos) {
     return this.isMate(pos) || this.isStalemate(pos);
 };
+
+return $.util;
+
+}(CHESS);

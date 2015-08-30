@@ -37,7 +37,7 @@ module.exports = function (grunt) {
                 src: [
                     'dist/temp/canvaschess.js',
                     'dist/temp/nags.js',
-                    'dist/temp/math.js',
+                    'dist/temp/square.js',
                     'dist/temp/piece.js',
                     'dist/temp/position.js',
                     'dist/temp/util.js',
