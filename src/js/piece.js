@@ -3,109 +3,113 @@ var CHESS = CHESS || {};
 CHESS.Piece = function ($) {
 
 /**
- * Piece type and color.
- *
- * @constructor
- * @param {String} pieceAbbrev - [w|b][prnbqk]
+ * @class
+ * @param {string} pieceAbbrev - A two-character abbreviated piece.
  */
 return function (pieceAbbrev) {
     var type = '',
         color = '';
 
     /**
-     * @returns {String} 
+     * @returns {string} 
      */
     this.getColor = function () {
         return color;
     };
 
     /**
-     * @returns {String} 
+     * @returns {string} 
      */
     this.getType = function () {
         return type;
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isBishop = function () {
-        return type === 'b';
-    };
-
-    this.isBlack = function () {
-        return color === 'b';
-    };
-
-    this.isColor = function (c) {
-        return color === c;
+        return (type === 'b');
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
+     */
+    this.isBlack = function () {
+        return (color === 'b');
+    };
+
+    /**
+     * @returns {boolean} 
+     */
+    this.isColor = function (c) {
+        return (color === c);
+    };
+
+    /**
+     * @returns {boolean} 
      */
     this.isEmpty = function () {
-        return type === false;
+        return (type === false);
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isKing = function () {
-        return type === 'k';
+        return (type === 'k');
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isKnight = function () {
-        return type === 'n';
+        return (type === 'n');
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isPawn = function () {
-        return type === 'p';
+        return (type === 'p');
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isQueen = function () {
-        return type === 'q';
+        return (type === 'q');
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isRook = function () {
-        return type === 'r';
+        return (type === 'r');
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isWhite = function () {
-        return color === 'w';
+        return (color === 'w');
     };
 
     /**
-     * @returns {String} 
+     * @returns {string} 
      */
     this.toString = function () {
         return (color && type ? color + type : '');
     };
 
     var getTypeFromAbbrev = function (pieceAbbrev) {
-        if (!/[wb][kqrbnp]/.test(pieceAbbrev)) {
+        if (!/^[wb][kqrbnp]$/.test(pieceAbbrev)) {
             return false;
         }
         return pieceAbbrev.substr(1, 1);
     };
 
     var getColorFromAbbrev = function (pieceAbbrev) {
-        if (!/[wb][kqrbnp]/.test(pieceAbbrev)) {
+        if (!/^[wb][kqrbnp]$/.test(pieceAbbrev)) {
             return false;
         }
         return pieceAbbrev.substr(0, 1);

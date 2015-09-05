@@ -36,11 +36,14 @@ module.exports = function (grunt) {
             canvasChess: {
                 src: [
                     'dist/temp/canvaschess.js',
+                    'dist/temp/assert.js',
                     'dist/temp/nags.js',
                     'dist/temp/square.js',
+                    'dist/temp/move.js',
                     'dist/temp/piece.js',
                     'dist/temp/position.js',
                     'dist/temp/util.js',
+                    'dist/temp/engine.js',
                     'dist/temp/board.js',
                     'dist/temp/amd.js'
                 ],

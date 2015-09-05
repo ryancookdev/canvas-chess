@@ -492,7 +492,7 @@ return function (config, fn) {
     model.move = function (sq1, sq2) {
         var pos = new $.Position(this.position.getFen()),
             pos_before = {
-                fen: $.util.getFEN(this),
+                fen: $.Engine.getFEN(this),
                 player_to_move: (this.position.isWhiteToMove() ? 'w' : 'b'),
                 sq1: sq1,
                 sq2: sq2,
@@ -527,7 +527,7 @@ return function (config, fn) {
         // Remove graphic commentary
         view.arrow_list = [];
 
-        if ($.util.isMate(pos)) {
+        if ($.Engine.isMate(pos)) {
             pos_before.mate = true;
         } else if ($.util.isStalemate(pos)) {
             pos_before.stalemate = true;
@@ -814,7 +814,7 @@ return function (config, fn) {
      */
     view.drawPiece = function (piece, x, y) {
 
-        if (!/[bw][kqrbnp]/.test(piece)) {
+        if (!/^[bw][kqrbnp]$/.test(piece)) {
             return;
         }
 
@@ -1119,7 +1119,7 @@ return function (config, fn) {
      * @returns {string} FEN string.
      */
     this.getFEN = function () {
-        return $.util.getFEN(model);
+        return $.Engine.getFEN(model.position);
     };
 
     /**
@@ -1148,7 +1148,7 @@ return function (config, fn) {
      * @returns {boolean} True or false.
      */
     this.isInsufficientMaterial = function () {
-        return $.util.isInsufficientMaterial(model);
+        return $.Engine.isInsufficientMaterial(model.position);
     };
 
     /**
@@ -1157,7 +1157,7 @@ return function (config, fn) {
      * @returns {boolean} True or false.
      */
     this.isMate = function () {
-        return $.util.isMate(model);
+        return $.Engine.isMate(model.position);
     };
 
     /**

@@ -9,7 +9,7 @@ QUnit.test('Construct an empty position', function (assert) {
     assert.notOk(position.canBlackCastleKingside(), 'Black cannot castle kingside');
     assert.notOk(position.canBlackCastleQueenside(), 'Black cannot castle queenside');
     assert.strictEqual(position.getColorToMove(), '', 'No color to move');
-    assert.strictEqual(position.getEnPassantSquare(), '-', 'No en passant square');
+    assert.ok(position.getEnPassantSquare().isNull(), 'No en passant square');
 });
 
 QUnit.test('Construct an invalid position', function (assert) {
@@ -21,7 +21,7 @@ QUnit.test('Construct an invalid position', function (assert) {
     assert.notOk(position.canBlackCastleKingside(), 'Black cannot castle kingside');
     assert.notOk(position.canBlackCastleQueenside(), 'Black cannot castle queenside');
     assert.strictEqual(position.getColorToMove(), '', 'No color to move');
-    assert.strictEqual(position.getEnPassantSquare(), '-', 'No en passant square');
+    assert.ok(position.getEnPassantSquare().isNull(), 'No en passant square');
 });
 
 QUnit.test('Construct a valid position', function (assert) {
@@ -34,13 +34,13 @@ QUnit.test('Construct a valid position', function (assert) {
     assert.ok(position.canBlackCastleKingside(), 'Black can castle kingside');
     assert.ok(position.canBlackCastleQueenside(), 'Black can castle queenside');
     assert.strictEqual(position.getColorToMove(), 'w', 'White to move');
-    assert.strictEqual(position.getEnPassantSquare(), '-', 'No en passant square');
+    assert.ok(position.getEnPassantSquare().isNull(), 'No en passant square');
 });
 
 QUnit.test('Determine the piece that is on a given square', function (assert) {
     var fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
         position = new CHESS.Position(fen),
-        piece = position.getPiece('e1');
+        piece = position.getPiece(new CHESS.Square('e1'));
 
     assert.ok(piece.isWhite() && piece.isKing(), 'Found a white king on e1');
 });
@@ -50,8 +50,8 @@ QUnit.test('Set a piece on a given square', function (assert) {
         position = new CHESS.Position(fen),
         piece;
 
-    position.setPiece('e4', '', 'wk');
-    piece = position.getPiece('e4');
+    position.setPiece(new CHESS.Square('e4'), '', 'wk');
+    piece = position.getPiece(new CHESS.Square('e4'));
 
     assert.ok(piece.isWhite() && piece.isKing(), 'Found a white king on e4');
 });
@@ -86,19 +86,16 @@ QUnit.test('Set castling', function (assert) {
 });
 
 QUnit.test('Set en passant square', function (assert) {
-    var position = new CHESS.Position(),
-        square = '';
+    var position = new CHESS.Position();
 
-    position.setEnPassantSquare(square);
-    assert.strictEqual(position.getEnPassantSquare(), '-', 'En passant square is -');
+    position.setEnPassantSquare(new CHESS.Square());
+    assert.ok(position.getEnPassantSquare().isNull(), 'Empty en passant square is not set');
 
-    square = 'e2';
-    position.setEnPassantSquare(square);
-    assert.strictEqual(position.getEnPassantSquare(), '-', 'En passant square is -');
+    position.setEnPassantSquare(new CHESS.Square('e2'));
+    assert.ok(position.getEnPassantSquare().isNull(), 'Invalid en passant square is not set');
 
-    square = 'e3';
-    position.setEnPassantSquare(square);
-    assert.strictEqual(position.getEnPassantSquare(), square, 'En passant square is ' + square);
+    position.setEnPassantSquare(new CHESS.Square('e3'));
+    assert.strictEqual(position.getEnPassantSquare().getName(), 'e3', 'Valid en passant square is e3');
 });
 
 QUnit.test('Set color to move', function (assert) {
@@ -124,3 +121,51 @@ QUnit.test('FEN with no castling', function (assert) {
     assert.strictEqual(position.getFen(), newFen, 'FEN is correct');
 });
 
+QUnit.test('Clone position', function (assert) {
+    var fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        position = new CHESS.Position(fen),
+        clone;
+
+    clone = position.clone();
+    assert.strictEqual(clone.getFen(), position.getFen(), 'Clone is identical to position');
+    
+    position.setBlackToMove();
+    assert.notStrictEqual(clone.getFen(), position.getFen(), 'Clone is not identical to position');
+});
+
+QUnit.test('Find piece', function (assert) {
+    var fen,
+        position,
+        squares;
+
+    position = new CHESS.Position(),
+    squares = position.findPiece();
+    assert.strictEqual(squares.length, 0, '0 squares found');
+
+    position = new CHESS.Position(),
+    squares = position.findPiece('wk');
+    assert.strictEqual(squares.length, 0, '0 squares found');
+
+    fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+    position = new CHESS.Position(fen),
+    squares = position.findPiece();
+    assert.strictEqual(squares.length, 0, '0 squares found');
+
+    squares = position.findPiece('foobar');
+    assert.strictEqual(squares.length, 0, '0 squares found');
+
+    squares = position.findPiece('wk');
+    assert.strictEqual(squares.length, 1, '1 square found');
+    assert.strictEqual(squares[0].getName(), 'e1', 'White king is on e1');
+
+    squares = position.findPiece('bp');
+    assert.strictEqual(squares.length, 8, '8 squares found');
+    assert.strictEqual(squares[0].getName(), 'a7', 'Black pawn on a7');
+    assert.strictEqual(squares[1].getName(), 'b7', 'Black pawn on b7');
+    assert.strictEqual(squares[2].getName(), 'c7', 'Black pawn on c7');
+    assert.strictEqual(squares[3].getName(), 'd7', 'Black pawn on d7');
+    assert.strictEqual(squares[4].getName(), 'e7', 'Black pawn on e7');
+    assert.strictEqual(squares[5].getName(), 'f7', 'Black pawn on f7');
+    assert.strictEqual(squares[6].getName(), 'g7', 'Black pawn on g7');
+    assert.strictEqual(squares[7].getName(), 'h7', 'Black pawn on h7');
+});

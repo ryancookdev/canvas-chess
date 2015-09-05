@@ -3,10 +3,8 @@ var CHESS = CHESS || {};
 CHESS.Position = function ($) {
 
 /**
- * Stores parsed FEN information and provides methods for working with it.
- *
- * @constructor
- * @param {String} fen
+ * @class
+ * @param {string} fen
  */
 return function (fen) {
     var castleWK = false,
@@ -18,51 +16,68 @@ return function (fen) {
         positionArray = [];
 
     /**
-     * @returns {Boolean}
+     * @returns {boolean}
      */
     this.canBlackCastleKingside = function () {
         return castleBK;
     };
 
     /**
-     * @returns {Boolean}
+     * @returns {boolean}
      */
     this.canBlackCastleQueenside = function () {
         return castleBQ;
     };
 
     /**
-     * @returns {Boolean}
+     * @returns {boolean}
      */
     this.canWhiteCastleKingside = function () {
         return castleWK;
     };
 
     /**
-     * @returns {Boolean}
+     * @returns {boolean}
      */
     this.canWhiteCastleQueenside = function () {
         return castleWQ;
     };
 
-    this.clearEnPassantSquare = function () {
-        enPassant = '-';
-    };
-
     /**
-     * @param {String} type
-     * @param {String} color
-     * @returns {String} square
+     * @returns {Position}
      */
-    this.findPiece = function (type, color) {
-
+    this.clone = function () {
+        return new $.Position(this.getFen());
     };
 
     /**
-     * @returns {String} 
+     * @param {string} pieceAbbrev
+     * @returns {Square[]}
+     */
+    this.findPiece = function (pieceAbbrev) {
+        var squares = [];
+        for (i = 0; i < positionArray.length; i++) {
+            for (j = 0; j < positionArray[i].length; j++) {
+                if (positionArray[i][j] === pieceAbbrev) {
+                    squares.push(new $.Square(getSquareName(i, j)));
+                }
+            }
+        }
+        return squares;
+    };
+
+    /**
+     * @returns {string} 
      */
     this.getColorToMove = function () {
         return colorToMove;
+    };
+
+    /**
+     * @returns {string} 
+     */
+    this.getColorNotToMove = function () {
+        return (colorToMove === 'w' ? 'b' : 'w');
     };
 
     var getEmptyPositionArray = function () {
@@ -79,10 +94,10 @@ return function (fen) {
     };
 
     /**
-     * @returns {String} Letter and number of the square.
+     * @returns {Square}
      */
     this.getEnPassantSquare = function () {
-        return enPassant;
+        return new $.Square(enPassant);
     };
 
     /**
@@ -96,6 +111,12 @@ return function (fen) {
             enPassant,
             '0 1'
         ].join(' ');
+    };
+
+    var getSquareName = function (y, x) {
+        var file = String.fromCharCode(x + 97),
+            rank = 8 - y;
+        return (file + rank);
     };
 
     var dataToFenCastling = function () {
@@ -145,7 +166,7 @@ return function (fen) {
         if (piece === '') {
             if (row.length > 0) {
                 emptySquares = row.slice(-1);
-                if (/[1-7]/.test(emptySquares)) {
+                if (/^[1-7]$/.test(emptySquares)) {
                     emptySquares = parseInt(emptySquares, 10);
                 } else {
                     emptySquares = 0;
@@ -188,18 +209,18 @@ return function (fen) {
     };
 
     /**
-     * @returns {String} Piece abbreviation.
+     * @param {Square} square
+     * @returns {Piece}
      */
     this.getPiece = function (y, x) {
         // TODO: Replace y, x params with square
-        if (/[a-h][1-8]/.test(y)) {
+        if (y.hasOwnProperty('getName') && /^[a-h][1-8]$/.test(y.getName())) {
             var sq = y;
-            x = sq.substr(0, 1).toLowerCase();
-            y = sq.substr(1, 1);
+            x = sq.getName().substr(0, 1).toLowerCase();
+            y = sq.getName().substr(1, 1);
             x = x.charCodeAt(0) - 97;
             y = 8 - y;
         }
-
         if (y === false || y < 0 || x < 0 || y >= positionArray.length || x >= positionArray[y].length) {
             return new $.Piece();
         }
@@ -207,25 +228,21 @@ return function (fen) {
     };
 
     /**
-     * @returns {Boolean} 
+     * @returns {boolean} 
      */
     this.isWhiteToMove = function () {
-        return colorToMove === 'w';
-    };
-
-    this.rangeContainsPiece = function (piece, color) {
-
+        return (colorToMove === 'w');
     };
 
     /**
-     * @param {Boolean} canCastle
+     * @param {boolean} canCastle
      */
     this.setBlackCastleKingside = function (canCastle) {
         castleBK = (canCastle === true);
     };
 
     /**
-     * @param {Boolean} canCastle
+     * @param {boolean} canCastle
      */
     this.setBlackCastleQueenside = function (canCastle) {
         castleBQ = (canCastle === true);
@@ -249,27 +266,26 @@ return function (fen) {
     };
 
     /**
-     * @param {String} square - Letter and number of the square.
+     * @param {Square} square
      */
     this.setEnPassantSquare = function (square) {
-        if (/[a-h][36]/.test(square)) {
-            enPassant = square;
+        if (square !== undefined && square.hasOwnProperty('getName') && /^[a-h][36]$/.test(square.getName())) {
+            enPassant = square.getName();
         } else {
             enPassant = '-';
         }
     };
 
     /**
-     * @param {Integer} y
-     * @param {Integer} x
-     * @param {String} pieceAbbrev - Color [w|b] and type [p|r|n|b|k|q] (with file letter for pawns).
+     * @param {Square} square
+     * @param {string} pieceAbbrev - Color [w|b] and type [p|r|n|b|k|q] (with file letter for pawns).
      */
     this.setPiece = function (y, x, pieceAbbrev) {
         // TODO: Replace y, x params with square
-        if (/[a-h][1-8]/.test(y)) {
+        if (y.hasOwnProperty('getName') && /^[a-h][1-8]$/.test(y.getName())) {
             var sq = y;
-            x = sq.substr(0, 1).toLowerCase();
-            y = sq.substr(1, 1);
+            x = sq.getName().substr(0, 1).toLowerCase();
+            y = sq.getName().substr(1, 1);
             x = x.charCodeAt(0) - 97;
             y = 8 - y;
         }
@@ -289,7 +305,7 @@ return function (fen) {
 
         positionArray = getEmptyPositionArray();
 
-        if (fen === undefined || typeof fen !== 'string' && !(fen instanceof String)) {
+        if (fen === undefined || typeof fen !== 'string' && !(fen instanceof string)) {
             return;
         }
 
@@ -305,7 +321,7 @@ return function (fen) {
                         k = positionArray[i].length; // break
                     }
                 }
-                if (/[0-9]/.test(rowItem)) {
+                if (/^[0-9]$/.test(rowItem)) {
                     // Empty square(s)
                     for (k = 0; k < parseInt(rowItem, 10); k += 1) {
                         positionArray[i][k + startingIndex] = '';
@@ -322,7 +338,7 @@ return function (fen) {
         var color = 'w'
             file = '';
 
-        if (/[kqrbnp]/.test(piece)) {
+        if (/^[kqrbnp]$/.test(piece)) {
             color = 'b';
         }
         piece = piece.toLowerCase();
@@ -343,14 +359,14 @@ return function (fen) {
     };
 
     /**
-     * @param {Boolean} canCastle
+     * @param {boolean} canCastle
      */
     this.setWhiteCastleKingside = function (canCastle) {
         castleWK = (canCastle === true);
     };
 
     /**
-     * @param {Boolean} canCastle
+     * @param {boolean} canCastle
      */
     this.setWhiteCastleQueenside = function (canCastle) {
         castleWQ = (canCastle === true);

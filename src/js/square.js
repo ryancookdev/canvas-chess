@@ -3,150 +3,296 @@ var CHESS = CHESS || {};
 CHESS.Square = function ($) {
 
 /**
- * @constructor
- * @param {String} anSquare
+ * @class
+ * @param {string} anSquare - A square in algebraic notation.
  */
-return function (anSquare) {
-    var that = this;
+return function Square (anSquare) {
+    var that = this,
+        name = '';
 
-    this.name = '';
+    /**
+     * @param {number} fileCount - Number of files to add (or subtract if negative)
+     * @return {boolean}
+     */
+    this.addFile = function (fileCount) {
+        var newFile,
+            success;
 
-    this.addFile = function (i) {
-        var newSquare = fileToChar(getFileNumber() + i) + this.getRank();
-        return setSquare(newSquare);
+        if (typeof fileCount !== 'number' || isNaN(fileCount)) {
+            return false;
+        }
+
+        if (Math.abs(fileCount > 7)) {
+            return false;
+        }
+
+        if (this.isNull()) {
+            return false;
+        }
+
+        newFile = addNumberToCharacter(fileCount, this.getFile());
+        success = setSquare(newFile + this.getRank());
+
+        return success;
     };
 
+    var addNumberToCharacter = function (number, character) {
+        var currentFileNumber,
+            newFileNumber,
+            fileCharacter;
+
+        $.assertNumberRange(number, -7, 7);
+        $.assertStringLength(character, 1);
+
+        currentFileNumber = convertCharacterToNumber(character);
+        newFileNumber = currentFileNumber + number;
+        fileCharacter = convertNumberToCharacter(newFileNumber)
+
+        return fileCharacter;
+    };
+
+    var isValidFileNumber = function (fileNumber) {
+        $.assertNumber(fileNumber);
+        return (fileNumber >= 1 && fileNumber <=8);
+    };
+
+    var setSquare = function (anSquare) {
+        $.assertString(anSquare);
+        if (invalidAlgebraicNotation(anSquare)) {
+            return false;
+        }
+        name = anSquare;
+        return true;
+    };
+
+    var invalidAlgebraicNotation = function (anSquare) {
+        $.assertString(anSquare);
+        return !(/^[a-h][1-8]$/.test(anSquare));
+    };
+
+    var convertNumberToCharacter = function (number) {
+        $.assertNumber(number);
+        return String.fromCharCode(number + 96);
+    };
+
+    var convertCharacterToNumber = function (character) {
+        $.assertString(character);
+        $.assertPattern(character, /^[a-h]$/);
+        return (character.charCodeAt(0) - 96);
+    };
+
+    /**
+     * @param {number} i - Number of ranks to add (or subtract if negative)
+     * @return {boolean}
+     */
     this.addRank = function (i) {
-        var newSquare = this.getFile() + (getRankNumber() + i);
+        var newSquare = this.getFile() + (parseInt(this.getRank(), 10) + i);
         return setSquare(newSquare);
     };
 
-    this.compareRank = function (square) {
-        if (square === undefined) {
-            return 0;
-        }
-        square = square.toString();
-        return Math.abs(getRankNumber() - getRankNumber(square));
-    }
+    /**
+     * @returns {Square}
+     */
+    this.clone = function () {
+        return new $.Square(this.getName());
+    };
 
+    /**
+     * Count the number of files between two squares (absolute value).
+     * @param {Square} square
+     * @return {number}
+     */
     this.compareFile = function (square) {
+        return Math.abs(this.diffFile(square));
+    }
+
+    /**
+     * Count the number of ranks between two squares (absolute value).
+     * @param {Square} square
+     * @return {number}
+     */
+    this.compareRank = function (square) {
+        return Math.abs(this.diffRank(square));
+    }
+
+    /**
+     * Count the number of files between two squares (positive or negative).
+     * @param {Square} square
+     * @return {number}
+     */
+    this.diffFile = function (square) {
         if (square === undefined) {
             return 0;
         }
-        square = square.toString();
-        return Math.abs(getFileNumber() - getFileNumber(square));
+        return (convertCharacterToNumber(square.getFile()) - convertCharacterToNumber(this.getFile()));
     }
 
-    var fileToChar = function (file) {
-        return String.fromCharCode(file + 96);
-    };
-
-    this.getFile = function (anSquare) {
-        if (anSquare === undefined) {
-            anSquare = this.name;
+    /**
+     * Count the number of ranks between two squares (positive or negative).
+     * @param {Square} square
+     * @return {number}
+     */
+    this.diffRank = function (square) {
+        if (square === undefined) {
+            return 0;
         }
-        return anSquare.substr(0, 1).toLowerCase();
-    };
+        return (parseInt(square.getRank(), 10) - parseInt(this.getRank(), 10));
+    }
 
-    var getFileNumber = function (anSquare) {
-        if (anSquare === undefined) {
-            anSquare = that.name;
+    /**
+     * @param {Square} square
+     * @returns {boolean}
+     */
+    this.equals = function (square) {
+        if (!isASquare(square)) {
+            return false;
         }
-        return that.getFile(anSquare).charCodeAt(0) - 96;
+        return (name === square.getName());
     };
 
-    this.getRank = function (anSquare) {
-        if (anSquare === undefined) {
-            anSquare = this.name;
+    /**
+     * Extract the file letter from a square.
+     * @return {string}
+     */
+    this.getFile = function () {
+        return name.substr(0, 1).toLowerCase();
+    };
+
+    /**
+     * return {string}
+     */
+    this.getName = function () {
+        return name;
+    };
+
+    /**
+     * Extract the rank from the square.
+     * @return {string}
+     */
+    this.getRank = function () {
+        return name.substr(1, 1);
+    };
+
+    var isASquare = function (square) {
+        if (typeof square !== 'object') {
+            return false;
         }
-        return anSquare.substr(1, 1);
+        return (square.constructor === that.constructor);
     };
 
-    var getRankNumber = function (anSquare) {
-        if (anSquare === undefined) {
-            anSquare = that.name;
-        }
-        return parseInt(that.getRank(anSquare), 10);
-    };
-
+    /**
+     * Determine if another square is on the same diagonal.
+     * @param {Square} square
+     * @return {boolean}
+     */
     this.isBishopMove = function (square) {
-        square = stringifyAndValidateNewSquare(square);
-        if (!square) {
+        if (!isASquare(square)) {
             return false;
         }
-        return this.compareRank(square) === this.compareFile(square);
+        if (this.equals(square)) {
+            return false;
+        }
+        return (this.compareRank(square) === this.compareFile(square));
     };
 
+    /**
+     * Determine if another square is on a neighboring square.
+     * @param {Square} square
+     * @return {boolean}
+     */
     this.isKingMove = function (square) {
-        square = stringifyAndValidateNewSquare(square);
-        if (!square) {
+        if (!isASquare(square)) {
             return false;
         }
-        return this.compareRank(square) < 2 && this.compareFile(square) < 2;
+        if (this.equals(square)) {
+            return false;
+        }
+        return (this.compareRank(square) < 2 && this.compareFile(square) < 2);
     };
 
+    /**
+     * Determine if another square is a knight move away.
+     * @param {Square} square
+     * @return {boolean}
+     */
     this.isKnightMove = function (square) {
-        square = stringifyAndValidateNewSquare(square);
-        if (!square) {
+        if (!isASquare(square)) {
+            return false;
+        }
+        if (this.equals(square)) {
             return false;
         }
         return (this.compareRank(square) === 1 && this.compareFile(square) === 2) ||
             (this.compareRank(square) === 2 && this.compareFile(square) === 1);
     };
 
-    this.isQueenMove = function (square) {
-        square = stringifyAndValidateNewSquare(square);
-        if (!square) {
-            return false;
-        }
-        return this.isRookMove(square) || this.isBishopMove(square);
-    };
-
-    this.isRookMove = function (square) {
-        square = stringifyAndValidateNewSquare(square);
-        if (!square) {
-            return false;
-        }
-        return this.isSameRank(square) || this.isSameFile(square);
-    };
-
-    var stringifyAndValidateNewSquare = function (square) {
-        if (square === undefined) {
-            return false;
-        }
-        square = square.toString();
-        if (square === that.name) {
-            return false;
-        }
-        return square;
+    /**
+     * returns {boolean}
+     */
+    this.isNull = function () {
+        return (name === '');
     };
 
     /**
-     * @param {String|CHESS.Square} square
+     * Determine if another square is the same diagonal, rank, or file.
+     * @param {Square} square
+     * @return boolean
+     */
+    this.isQueenMove = function (square) {
+        if (!isASquare(square)) {
+            return false;
+        }
+        if (this.equals(square)) {
+            return false;
+        }
+        return (this.isRookMove(square) || this.isBishopMove(square));
+    };
+
+    /**
+     * Determine if another square is the same rank or file.
+     * @param {Square} square
+     * @return boolean
+     */
+    this.isRookMove = function (square) {
+        if (!isASquare(square)) {
+            return false;
+        }
+        if (this.equals(square)) {
+            return false;
+        }
+        return (this.isSameRank(square) || this.isSameFile(square));
+    };
+
+    /**
+     * Determine if another square is the file.
+     * @param {Square} square
+     * @return {boolean}
      */
     this.isSameFile = function (square) {
         if (square === undefined) {
             return false;
         }
-        square = square.toString();
-        return this.getFile() === this.getFile(square);
+        return (this.getFile() === square.getFile());
     };
 
     /**
-     * @param {String|CHESS.Square} square
+     * Determine if another square is the same rank.
+     * @param {Square} square
+     * @return {boolean}
      */
     this.isSameRank = function (square) {
         if (square === undefined) {
             return false;
         }
-        square = square.toString();
-        return this.getRank() === this.getRank(square);
+        return (this.getRank() === square.getRank());
     };
 
-    var isValid = function (anSquare) {
-        return /[a-h][1-8]/.test(anSquare);
-    };
-
+    /**
+     * Change the current file.
+     * @param {string} file - A single character representing
+     * the letter of the new file.
+     * @return {boolean}
+     */
     this.setFile = function (file) {
         var newSquare;
         if (file === undefined) {
@@ -156,6 +302,12 @@ return function (anSquare) {
         return setSquare(newSquare);
     };
 
+    /**
+     * Change the current rank.
+     * @param {string} rank - A single character representing
+     * the number of the new rank.
+     * @return {boolean}
+     */
     this.setRank = function (rank) {
         var newSquare;
         if (rank === undefined) {
@@ -165,19 +317,40 @@ return function (anSquare) {
         return setSquare(newSquare);
     };
 
-    var setSquare = function (anSquare) {
-        if (isValid(anSquare)) {
-            that.name = anSquare;
-            return true;
+    /**
+     * Advance one step toward a new square.
+     * @param {Square} square
+     * @return {boolean}
+     */
+    this.stepTo = function (square) {
+        var fileDiff,
+            rankDiff;
+
+        if (!this.isQueenMove(square)) {
+            return false;
         }
-        return false;
+
+        fileDiff = this.diffFile(square);
+        fileDiff = Math.abs(fileDiff) / fileDiff;
+        this.addFile(fileDiff);
+
+        rankDiff = this.diffRank(square);
+        rankDiff = Math.abs(rankDiff) / rankDiff;
+        this.addRank(rankDiff);
+
+        return true;
     };
 
+    /**
+     * @returns {string}
+     */
     this.toString = function () {
-        return this.name;
+        return name;
     };
 
-    setSquare(anSquare);
+    if (typeof anSquare === 'string') {
+        setSquare(anSquare);
+    }
 };
 
 }(CHESS);

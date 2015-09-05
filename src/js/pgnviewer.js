@@ -938,10 +938,10 @@ return function (config) {
         fen = pos.getFen();
 
         // Determine if check
-        if ($.util.isCheck(pos, (pos.isWhiteToMove() ? 'w' : 'b'))) {
+        if ($.Engine.isCheck(pos, (pos.isWhiteToMove() ? 'w' : 'b'))) {
             check_symbol = '+';
             // Determine if mate
-            if ($.util.isMate(pos)) {
+            if ($.Engine.isMate(pos)) {
                 check_symbol = '#';
             }
         }
