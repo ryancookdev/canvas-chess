@@ -7,19 +7,18 @@ CHESS.util = function ($) {
 
 $.util = {};
 
-$.util.isStalemate = function (pos) {
-    var is_stalemate = !this.getLegalMoves(pos, true);
+$.util.isStalemate = function (position) {
+    var is_stalemate = !this.getLegalMoves(position, true);
     return is_stalemate;
 };
 
-$.util.getLegalMoves = function (pos, return_bool) {
+$.util.getLegalMoves = function (position, return_bool) {
     var i,
         j,
         sq1,
         sq2,
         move = '',
         move_list = [],
-        color = (pos.isWhiteToMove() ? 'w' : 'b'),
         dir,
         sq = 0,
         en_passant_x,
@@ -27,12 +26,12 @@ $.util.getLegalMoves = function (pos, return_bool) {
 
     for (i = 0; i < 8; i++) {
         for (j = 0; j < 8; j++) {
-            sq1 = this.reverseArrayPosition (i + '' + j);
-            piece = pos.getPiece(i, j);
-            if (!piece.isColor(color)) {
+            piece = position.getPiece(i, j);
+            if (!piece.isColor(position.getColorToMove())) {
                 continue;
             }
 
+            sq1 = this.reverseArrayPosition (i + '' + j);
             if (piece.isKing()) {
                 // N
                 if (i > 0) {
@@ -88,13 +87,13 @@ $.util.getLegalMoves = function (pos, return_bool) {
             }
 
             if (piece.isPawn()) {
-                dir = (color === 'w' ? -1 : 1);
+                dir = (position.isWhiteToMove() ? -1 : 1);
                 // One square
                 sq2 = this.reverseArrayPosition((i + dir) + '' + j);
                 move = sq1 + '-' + sq2;
                 move_list.push(move);
                 // Two squares
-                if ((color === 'w' && i === 6) || (color === 'b' && i === 1)) {
+                if ((position.isWhiteToMove() && i === 6) || (position.isBlackToMove() && i === 1)) {
                     sq2 = this.reverseArrayPosition((i + (dir * 2)) + '' + j);
                     move = sq1 + '-' + sq2;
                     move_list.push(move);
@@ -102,10 +101,10 @@ $.util.getLegalMoves = function (pos, return_bool) {
                 // Capture
                 // ...
                 // En Passant
-                if (/^[a-h][1-8]$/.test(pos.getEnPassantSquare().getName())) {
-                    en_passant_x = parseInt(this.getArrayPosition(pos.getEnPassantSquare().getName()).substr(0, 1), 10);
+                if (/^[a-h][1-8]$/.test(position.getEnPassantSquare().getName())) {
+                    en_passant_x = parseInt(this.getArrayPosition(position.getEnPassantSquare().getName()).substr(0, 1), 10);
                 }
-                if (color === 'w' && i === 3) {
+                if (position.isWhiteToMove() && i === 3) {
                     if (en_passant_x === (j - 1)) {
                         sq2 = this.reverseArrayPosition((i - 1) + '' + (j - 1));
                         move = sq1 + '-' + sq2;
@@ -117,7 +116,7 @@ $.util.getLegalMoves = function (pos, return_bool) {
                         move_list.push(move);
                     }
                 }
-                if (color === 'b' && i === 4) {
+                if (position.isBlackToMove() && i === 4) {
                     if (en_passant_x === (j - 1)) {
                         sq2 = this.reverseArrayPosition((i + 1) + '' + (j - 1));
                         move = sq1 + '-' + sq2;
@@ -234,38 +233,9 @@ $.util.getLegalMoves = function (pos, return_bool) {
             }
 
             if (piece.isBishop()) {
-                // NE
-                sq = 1;
-                while (i - sq >= 0 && j + sq <= 7) {
-                    sq2 = this.reverseArrayPosition((i - sq) + '' + (j + sq));
-                    move = sq1 + '-' + sq2;
-                    move_list.push(move);
-                    sq++;
-                }
-                // SE
-                sq = 1;
-                while (j + sq <= 7 && i + sq <= 7) {
-                    sq2 = this.reverseArrayPosition((i + sq) + '' + (j + sq));
-                    move = sq1 + '-' + sq2;
-                    move_list.push(move);
-                    sq++;
-                }
-                // SW
-                sq = 1;
-                while (i + sq <= 7 && j - sq >= 0) {
-                    sq2 = this.reverseArrayPosition((i + sq) + '' + (j - sq));
-                    move = sq1 + '-' + sq2;
-                    move_list.push(move);
-                    sq++;
-                }
-                // NW
-                sq = 1;
-                while (j - sq >= 0 && i - sq >= 0) {
-                    sq2 = this.reverseArrayPosition((i - sq) + '' + (j - sq));
-                    move = sq1 + '-' + sq2;
-                    move_list.push(move);
-                    sq++;
-                }
+                var fromSquare = new $.Square(sq1);
+                var bishopMoves = $.Engine.getBishopPotentialMoves(position, fromSquare);
+                move_list.push.apply(move_list, bishopMoves);
             }
 
             if (piece.isKnight()) {
@@ -326,38 +296,43 @@ $.util.getLegalMoves = function (pos, return_bool) {
         var startSquare = new $.Square(sq1);
         var endSquare = new $.Square(sq2);
         var move = new $.Move(startSquare, endSquare);
-        if (!$.Engine.isLegal(pos, move)) {
+        if (!$.Engine.isLegal(position, move)) {
             move_list.splice(i, 1);
             i--;
         } else if (return_bool) {
+            // Stop as soon as one legal move is found
+            // and report that legal moves do exist
             return true;
         }
     }
     if (return_bool) {
+        // There are no legal moves
         return false;
     }
+
+    // Here are the legal moves
     return move_list;
 };
 
-$.util.getLongNotation = function (pos, short_notation) {
+$.util.getLongNotation = function (position, short_notation) {
     var i,
         j,
         long_move = '',
         sq1,
         sq2 = short_notation.replace(/[#+=xKQRBN]/g, ''),
-        color = (pos.isWhiteToMove() ? 'w' : 'b'),
+        colorToMove = (position.isWhiteToMove() ? 'w' : 'b'),
         piece = short_notation.substring(0, 1),
         sq1_info = '',
         sq1_info_type = '';
     // Check for castling first
     if (short_notation === 'O-O') {
-        if (color === 'w') {
+        if (position.isWhiteToMove()) {
             return 'e1-g1';
         } else {
             return 'e8-g8';
         }
     } else if (short_notation === 'O-O-O') {
-        if (color === 'w') {
+        if (position.isWhiteToMove()) {
             return 'e1-c1';
         } else {
             return 'e8-c8';
@@ -387,12 +362,12 @@ $.util.getLongNotation = function (pos, short_notation) {
                 continue;
             }
             // Locate a potential piece
-            if (pos.getPiece(i, j).toString() === color + piece) {
+            if (position.getPiece(i, j).toString() === colorToMove + piece) {
                 sq1 = this.reverseArrayPosition(i + '' + j);
                 var startSquare = new $.Square(sq1);
                 var endSquare = new $.Square(sq2);
                 var move = new $.Move(startSquare, endSquare);
-                if ($.Engine.isLegal(pos, move)) {
+                if ($.Engine.isLegal(position, move)) {
                     long_move = sq1 + '-' + sq2;
                 }
             }
@@ -424,11 +399,11 @@ $.util.reverseArrayPosition = function (xy) {
     return x + '' + y;
 };
 
-$.util.moveTemp = function (pos, sq1, sq2) {
-    this.move(pos, sq1, sq2);
+$.util.moveTemp = function (position, sq1, sq2) {
+    this.move(position, sq1, sq2);
 };
 
-$.util.move = function (pos, sq1, sq2, promotion) {
+$.util.move = function (position, sq1, sq2, promotion) {
     var w_sq1,
         w_sq2,
         w_xy1,
@@ -452,7 +427,7 @@ $.util.move = function (pos, sq1, sq2, promotion) {
     var startSquare = new $.Square(sq1);
     var endSquare = new $.Square(sq2);
     var move = new $.Move(startSquare, endSquare);
-    if (!$.Engine.isLegal(pos, move)) {
+    if (!$.Engine.isLegal(position, move)) {
         return false;
     }
 
@@ -461,9 +436,9 @@ $.util.move = function (pos, sq1, sq2, promotion) {
     }
 
     // Update game values
-    pos.last_move = {'sq1':this.getArrayPosition(sq1), 'sq2':this.getArrayPosition(sq2)};
+    position.last_move = {'sq1':this.getArrayPosition(sq1), 'sq2':this.getArrayPosition(sq2)};
 
-    if (pos.isWhiteToMove()) {
+    if (position.isWhiteToMove()) {
         w_sq1 = sq1;
         w_sq2 = sq2;
         w_xy1 = this.getArrayPosition(w_sq1);
@@ -472,58 +447,58 @@ $.util.move = function (pos, sq1, sq2, promotion) {
         w_y1 = parseInt(w_xy1.substr(1, 1), 10);
         w_x2 = parseInt(w_xy2.substr(0, 1), 10);
         w_y2 = parseInt(w_xy2.substr(1, 1), 10);
-        captured_piece = pos.getPiece(w_y2, w_x2);
-        piece = pos.getPiece(w_y1, w_x1);
-        pos.setPiece(w_y2, w_x2, piece.toString());
-        pos.setPiece(w_y1, w_x1, '');
+        captured_piece = position.getPiece(w_y2, w_x2);
+        piece = position.getPiece(w_y1, w_x1);
+        position.setPiece(w_y2, w_x2, piece.toString());
+        position.setPiece(w_y1, w_x1, '');
         // Pawn is eligible to be captured en passant
         w_xy1 = this.getArrayPosition(w_sq1);
         if (piece.isWhite() && piece.isPawn() && w_y2 - w_y1 === -2) {
-            pos.setEnPassantSquare(new $.Square(this.reverseArrayPosition((w_y2 + 1) + '' + w_x2)));
+            position.setEnPassantSquare(new $.Square(this.reverseArrayPosition((w_y2 + 1) + '' + w_x2)));
         } else {
-            pos.setEnPassantSquare();
+            position.setEnPassantSquare();
         }
         // En passant
-        if (piece.isWhite() && piece.isPawn() && w_x2 !== w_x1 && captured_piece.isEmpty()) {
-            pos.setPiece(w_y1, w_x2, '');
+        if (piece.isWhite() && piece.isPawn() && w_x2 !== w_x1 && captured_piece.isNull()) {
+            position.setPiece(w_y1, w_x2, '');
             pawn_sq = w_sq2.substr(0, 1) + w_sq1.substr(1, 1);
         }
         // Pawn promotion
         if (piece.isWhite() && piece.isPawn() && w_y2 === 0) {
             if (promotion === 'r') {
-                pos.setPiece(w_y2, w_x2, 'wq');
+                position.setPiece(w_y2, w_x2, 'wq');
             } else if (promotion === 'b') {
-                pos.setPiece(w_y2, w_x2, 'wb');
+                position.setPiece(w_y2, w_x2, 'wb');
             } else if (promotion === 'n') {
-                pos.setPiece(w_y2, w_x2, 'wn');
+                position.setPiece(w_y2, w_x2, 'wn');
             } else {
-                pos.setPiece(w_y2, w_x2, 'wq');
+                position.setPiece(w_y2, w_x2, 'wq');
             }
         }
         // Castling
         if (piece.isWhite() && piece.isKing() && w_sq1 === 'e1') {
             if (w_sq2 === 'g1') {
-                pos.setPiece(7, 5, 'wrk');
-                pos.setPiece(7, 7, '');
+                position.setPiece(7, 5, 'wrk');
+                position.setPiece(7, 7, '');
             } else if (w_sq2 === 'c1') {
-                pos.setPiece(7, 3, 'wrq');
-                pos.setPiece(7, 0, '');
+                position.setPiece(7, 3, 'wrq');
+                position.setPiece(7, 0, '');
             }
         }
         // Lose castling ability
         if (piece.isWhite() && piece.isKing()) {
-            pos.setWhiteCastleKingside(false);
-            pos.setWhiteCastleQueenside(false);
+            position.setWhiteCastleKingside(false);
+            position.setWhiteCastleQueenside(false);
         } else if (piece.isWhite() && piece.isRook() && w_sq1 === 'h1') {
-            pos.setWhiteCastleKingside(false);
+            position.setWhiteCastleKingside(false);
         } else if (piece.isWhite() && piece.isRook() && w_sq1 === 'a1') {
-            pos.setWhiteCastleQueenside(false);
+            position.setWhiteCastleQueenside(false);
         } else if (captured_piece.isBlack() && captured_piece.isRook() && w_sq2 === 'a8') {
-            pos.setBlackCastleQueenside(false);
+            position.setBlackCastleQueenside(false);
         } else if (captured_piece.isBlack() && captured_piece.isRook() && w_sq2 === 'h8') {
-            pos.setBlackCastleKingside(false);
+            position.setBlackCastleKingside(false);
         }
-        pos.setBlackToMove();
+        position.setBlackToMove();
     } else {
         // Black's turn
         b_sq1 = sq1;
@@ -534,69 +509,69 @@ $.util.move = function (pos, sq1, sq2, promotion) {
         b_y1 = parseInt(b_xy1.substr(1, 1), 10);
         b_x2 = parseInt(b_xy2.substr(0, 1), 10);
         b_y2 = parseInt(b_xy2.substr(1, 1), 10);
-        captured_piece = pos.getPiece(b_y2, b_x2);
-        piece = pos.getPiece(b_y1, b_x1);
-        pos.setPiece(b_y2, b_x2, pos.getPiece(b_y1, b_x1).toString());
-        pos.setPiece(b_y1, b_x1, '');
+        captured_piece = position.getPiece(b_y2, b_x2);
+        piece = position.getPiece(b_y1, b_x1);
+        position.setPiece(b_y2, b_x2, position.getPiece(b_y1, b_x1).toString());
+        position.setPiece(b_y1, b_x1, '');
         // Pawn is eligible to be captured en passant
         b_xy1 = this.getArrayPosition(b_sq1);
         if (piece.isBlack() && piece.isPawn() && b_y2 - b_y1 === 2) {
-            pos.setEnPassantSquare(new $.Square(this.reverseArrayPosition((b_y2 - 1) + '' + b_x2)));
+            position.setEnPassantSquare(new $.Square(this.reverseArrayPosition((b_y2 - 1) + '' + b_x2)));
         } else {
-            pos.setEnPassantSquare();
+            position.setEnPassantSquare();
         }
         // En passant
-        if (piece.isBlack() && piece.isPawn() && b_x2 !== b_x1 && captured_piece.isEmpty()) {
-            pos.setPiece(b_y1, b_x2, '');
+        if (piece.isBlack() && piece.isPawn() && b_x2 !== b_x1 && captured_piece.isNull()) {
+            position.setPiece(b_y1, b_x2, '');
             pawn_sq = b_sq2.substr(0, 1) + b_sq1.substr(1, 1);
         }
         // Pawn promotion
         if (piece.isBlack() && piece.isPawn() && b_y2 === 7) {
             if (promotion === 'r') {
-                pos.setPiece(b_y2, b_x2, 'bq');
+                position.setPiece(b_y2, b_x2, 'bq');
             } else if (promotion === 'b') {
-                pos.setPiece(b_y2, b_x2, 'bb');
+                position.setPiece(b_y2, b_x2, 'bb');
             } else if (promotion === 'n') {
-                pos.setPiece(b_y2, b_x2, 'bn');
+                position.setPiece(b_y2, b_x2, 'bn');
             } else {
-                pos.setPiece(b_y2, b_x2, 'bq');
+                position.setPiece(b_y2, b_x2, 'bq');
             }
         }
         // Castling
         if (piece.isBlack() && piece.isKing() && b_sq1 === 'e8') {
             if (b_sq2 === 'g8') {
-                pos.setPiece(0, 5, 'brk');
-                pos.setPiece(0, 7, '');
+                position.setPiece(0, 5, 'brk');
+                position.setPiece(0, 7, '');
             } else if (b_sq2 === 'c8') {
-                pos.setPiece(0, 3, 'brq');
-                pos.setPiece(0, 0, '');
+                position.setPiece(0, 3, 'brq');
+                position.setPiece(0, 0, '');
             }
         }
         // Lose castling ability
         if (piece.isBlack() && piece.isKing()) {
-            pos.setBlackCastleKingside(false);
-            pos.setBlackCastleQueenside(false);
+            position.setBlackCastleKingside(false);
+            position.setBlackCastleQueenside(false);
         } else if (piece.isBlack() && piece.isRook() && b_sq1 === 'h8') {
-            pos.setBlackCastleKingside(false);
+            position.setBlackCastleKingside(false);
         } else if (piece.isBlack() && piece.isRook() && b_sq1 === 'a8') {
-            pos.setBlackCastleQueenside(false);
+            position.setBlackCastleQueenside(false);
         } else if (captured_piece.isWhite() && captured_piece.isRook() && b_sq2 === 'a1') {
-            pos.setWhiteCastleQueenside(false);
+            position.setWhiteCastleQueenside(false);
         } else if (captured_piece.isWhite() && captured_piece.isRook() && b_sq2 === 'h1') {
-            pos.setWhiteCastleKingside(false);
+            position.setWhiteCastleKingside(false);
         }
-        pos.setWhiteToMove();
+        position.setWhiteToMove();
     }
 
-    if (this.gameIsOver(pos)) {
-        pos.active = false;
+    if (this.gameIsOver(position)) {
+        position.active = false;
     }
 
     return true;
 };
 
-$.util.gameIsOver = function (pos) {
-    return $.Engine.isMate(pos) || this.isStalemate(pos);
+$.util.gameIsOver = function (position) {
+    return $.Engine.isMate(position) || this.isStalemate(position);
 };
 
 return $.util;

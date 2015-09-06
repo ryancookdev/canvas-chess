@@ -48,13 +48,6 @@ return function (pieceAbbrev) {
     /**
      * @returns {boolean} 
      */
-    this.isEmpty = function () {
-        return (type === false);
-    };
-
-    /**
-     * @returns {boolean} 
-     */
     this.isKing = function () {
         return (type === 'k');
     };
@@ -64,6 +57,13 @@ return function (pieceAbbrev) {
      */
     this.isKnight = function () {
         return (type === 'n');
+    };
+
+    /**
+     * @returns {boolean} 
+     */
+    this.isNull = function () {
+        return (type === false);
     };
 
     /**

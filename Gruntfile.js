@@ -42,6 +42,7 @@ module.exports = function (grunt) {
                     'dist/temp/move.js',
                     'dist/temp/piece.js',
                     'dist/temp/position.js',
+                    'dist/temp/boardTraveler.js',
                     'dist/temp/util.js',
                     'dist/temp/engine.js',
                     'dist/temp/board.js',

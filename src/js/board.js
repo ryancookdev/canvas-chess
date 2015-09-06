@@ -169,7 +169,7 @@ return function (config, fn) {
                 return;
             }
 
-            if (!piece.isEmpty()) {
+            if (!piece.isNull()) {
                 view.drag_clear_i = i;
                 view.drag_clear_j = j;
                 view.drag_piece = piece.toString();
@@ -269,7 +269,7 @@ return function (config, fn) {
                 jj = 7 - j;
             }
             piece = model.position.getPiece(ii, jj);
-            if (!piece.isEmpty() && !(ii === myview.drag_clear_i && jj === myview.drag_clear_j)) {
+            if (!piece.isNull() && !(ii === myview.drag_clear_i && jj === myview.drag_clear_j)) {
                 x = parseInt((j * myview.square_size), 10);
                 y = parseInt((i * myview.square_size), 10);
                 myview.ctx.drawImage(myview[piece.toString()], x, y, myview.square_size, myview.square_size);
@@ -974,7 +974,7 @@ return function (config, fn) {
                     }
                     x = jj * this.square_size;
                     y = ii * this.square_size;
-                    if (!piece.isEmpty()) {
+                    if (!piece.isNull()) {
                         this.drawPiece(piece.toString(), x, y);
                     }
                 }
@@ -987,7 +987,7 @@ return function (config, fn) {
                     piece = new $.Piece(model.piecebox[i][j].substr(0, 2));
                     x = j * this.square_size;
                     y = (i + 8) * this.square_size;
-                    if (!piece.isEmpty()) {
+                    if (!piece.isNull()) {
                         this.drawPiece(piece.toString(), x, y);
                     }
                 }

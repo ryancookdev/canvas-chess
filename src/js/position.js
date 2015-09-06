@@ -230,6 +230,13 @@ return function (fen) {
     /**
      * @returns {boolean} 
      */
+    this.isBlackToMove = function () {
+        return (colorToMove === 'b');
+    };
+
+    /**
+     * @returns {boolean} 
+     */
     this.isWhiteToMove = function () {
         return (colorToMove === 'w');
     };

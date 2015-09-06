@@ -22,37 +22,34 @@ $.Engine.getAttackers = function (position, square, pieceColor) {
     return attackers;
 };
 
-$.Engine.getBishopAttackers = function (position, square, pieceColor) {
-    var adjustMap = [
-            {'rank': 1, 'file': 1},
-            {'rank': 1, 'file': -1},
-            {'rank': -1, 'file': 1},
-            {'rank': -1, 'file': -1}
-        ],
-        adjust,
-        attackers = [],
-        i,
-        j,
-        newSquare,
-        piece;
+$.Engine.getBishopAttackers = function (position, fromSquare, pieceColor) {
+    var attackers = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
 
-    for (i = 0; i < adjustMap.length; i++) {
-        adjust = adjustMap[i];
-        for (j = 1; j < 8; j++) {
-            newSquare = square.clone();
-            if (newSquare.addRank(adjust.rank * j) && newSquare.addFile(adjust.file * j)) {
-                piece = position.getPiece(newSquare);
-                if (!piece.isEmpty()) {
-                    if (piece.isBishop() && piece.isColor(pieceColor)) {
-                        attackers.push(newSquare);
-                    }
-                    break;
-                }
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.BISHOP, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isNull()) {
+            if (piece.isBishop() && piece.isColor(pieceColor)) {
+                attackers.push(newSquare);
             }
         }
-    }
+    });
 
     return attackers;
+};
+
+$.Engine.getBishopPotentialMoves = function (position, fromSquare) {
+    var moveList = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
+
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.BISHOP, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isColor(position.getColorToMove())) {
+            moveList.push(fromSquare + '-' + newSquare);
+        }
+    });
+
+    return moveList;
 };
 
 $.Engine.getKingAttackers = function (position, square, pieceColor) {
@@ -147,72 +144,34 @@ $.Engine.getPawnAttackers = function (position, square, pieceColor) {
     return attackers;
 };
 
-$.Engine.getQueenAttackers = function (position, square, pieceColor) {
-    var adjustMap = [
-            {'rank': 1, 'file': 1},
-            {'rank': 1, 'file': -1},
-            {'rank': -1, 'file': 1},
-            {'rank': -1, 'file': -1},
-            {'rank': 1, 'file': 0},
-            {'rank': -1, 'file': 0},
-            {'rank': 0, 'file': 1},
-            {'rank': 0, 'file': -1}
-        ],
-        adjust,
-        attackers = [],
-        i,
-        j,
-        newSquare,
-        piece;
+$.Engine.getQueenAttackers = function (position, fromSquare, pieceColor) {
+    var attackers = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
 
-    for (i = 0; i < adjustMap.length; i++) {
-        adjust = adjustMap[i];
-        for (j = 1; j < 8; j++) {
-            newSquare = square.clone();
-            if (newSquare.addRank(adjust.rank * j) && newSquare.addFile(adjust.file * j)) {
-                piece = position.getPiece(newSquare);
-                if (!piece.isEmpty()) {
-                    if (piece.isQueen() && piece.isColor(pieceColor)) {
-                        attackers.push(newSquare);
-                    }
-                    break;
-                }
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.QUEEN, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isNull()) {
+            if (piece.isQueen() && piece.isColor(pieceColor)) {
+                attackers.push(newSquare);
             }
         }
-    }
+    });
 
     return attackers;
 };
 
-$.Engine.getRookAttackers = function (position, square, pieceColor) {
-    var adjustMap = [
-            {'rank': 1, 'file': 0},
-            {'rank': -1, 'file': 0},
-            {'rank': 0, 'file': 1},
-            {'rank': 0, 'file': -1}
-        ],
-        adjust,
-        attackers = [],
-        i,
-        j,
-        newSquare,
-        piece;
+$.Engine.getRookAttackers = function (position, fromSquare, pieceColor) {
+    var attackers = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
 
-    for (i = 0; i < adjustMap.length; i++) {
-        adjust = adjustMap[i];
-        for (j = 1; j < 8; j++) {
-            newSquare = square.clone();
-            if (newSquare.addRank(adjust.rank * j) && newSquare.addFile(adjust.file * j)) {
-                piece = position.getPiece(newSquare);
-                if (!piece.isEmpty()) {
-                    if (piece.isRook() && piece.isColor(pieceColor)) {
-                        attackers.push(newSquare);
-                    }
-                    break;
-                }
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.ROOK, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isNull()) {
+            if (piece.isRook() && piece.isColor(pieceColor)) {
+                attackers.push(newSquare);
             }
         }
-    }
+    });
 
     return attackers;
 };
@@ -235,7 +194,7 @@ $.Engine.isLegal = function (position, move) {
         return false;
     }
 
-    if (!newPiece.isEmpty() && newPiece.isColor(piece.getColor())) {
+    if (!newPiece.isNull() && newPiece.isColor(piece.getColor())) {
         return false;
     }
 
@@ -285,9 +244,56 @@ $.Engine.isClearPath = function (position, move) {
         if (startSquare.equals(endSquare)) {
             break;
         }
-        if (!position.getPiece(startSquare).isEmpty()) {
+        if (!position.getPiece(startSquare).isNull()) {
             return false;
         }
+    }
+
+    return true;
+};
+
+$.Engine.isInsufficientMaterial = function (position) {
+    // For now, this does not include:
+    // * Perpetual check
+    // * Perpetual pursuit
+    // * Blockade
+    // * Fortress
+    // * Drawing balance of forces
+
+    var i,
+        fen = this.getFEN(position).split(' ')[0];
+
+    if (/Q/.test(fen)) {
+        return false;
+    }
+    if (/R/.test(fen)) {
+        return false;
+    }
+    if (/B/.test(fen) && /N/.test(fen)) {
+        return false;
+    }
+    if (/P/.test(fen)) {
+        return false;
+    }
+    i = fen.indexOf('B');
+    if (i !== -1 && fen.indexOf('B', i + 1) !== -1) {
+        return false;
+    }
+    if (/q/.test(fen)) {
+        return false;
+    }
+    if (/r/.test(fen)) {
+        return false;
+    }
+    if (/b/.test(fen) && /n/.test(fen)) {
+        return false;
+    }
+    if (/p/.test(fen)) {
+        return false;
+    }
+    i = fen.indexOf('b');
+    if (i !== -1 && fen.indexOf('b', i + 1) !== -1) {
+        return false;
     }
 
     return true;
@@ -302,7 +308,7 @@ $.Engine.isLegalKingMove = function (position, move) {
     // castling
     if (startSquare.compareFile(endSquare) === 2) {
         if (piece.isWhite()) {
-            if (endSquare.getName() === 'g1' && position.canWhiteCastleKingside() && position.getPiece(new $.Square('f1')).isEmpty() && position.getPiece(new $.Square('g1')).isEmpty()) {
+            if (endSquare.getName() === 'g1' && position.canWhiteCastleKingside() && position.getPiece(new $.Square('f1')).isNull() && position.getPiece(new $.Square('g1')).isNull()) {
                 // castle kingside
                 // check for checks
                 if (this.isSquareAttacked(position, new $.Square('e1'), 'b')) {
@@ -314,7 +320,7 @@ $.Engine.isLegalKingMove = function (position, move) {
                 if (this.isSquareAttacked(position, new $.Square('g1'), 'b')) {
                     return false;
                 }
-            } else if (endSquare.getName() === 'c1' && position.canWhiteCastleQueenside() && position.getPiece(new $.Square('d1')).isEmpty() && position.getPiece(new $.Square('c1')).isEmpty() && position.getPiece(new $.Square('b1')).isEmpty()) {
+            } else if (endSquare.getName() === 'c1' && position.canWhiteCastleQueenside() && position.getPiece(new $.Square('d1')).isNull() && position.getPiece(new $.Square('c1')).isNull() && position.getPiece(new $.Square('b1')).isNull()) {
                 // castle queenside
                 // check for checks
                 if (this.isSquareAttacked(position, new $.Square('c1'), 'b')) {
@@ -330,7 +336,7 @@ $.Engine.isLegalKingMove = function (position, move) {
                 return false;
             }
         } else if (piece.isBlack()) {
-            if (endSquare.getName() === 'g8' && position.canBlackCastleKingside() && position.getPiece(new $.Square('f8')).isEmpty() && position.getPiece(new $.Square('g8')).isEmpty()) {
+            if (endSquare.getName() === 'g8' && position.canBlackCastleKingside() && position.getPiece(new $.Square('f8')).isNull() && position.getPiece(new $.Square('g8')).isNull()) {
                 // castle kingside
                 // check for checks
                 if (this.isSquareAttacked(position, new $.Square('e8'), 'w')) {
@@ -342,7 +348,7 @@ $.Engine.isLegalKingMove = function (position, move) {
                 if (this.isSquareAttacked(position, new $.Square('g8'), 'w')) {
                     return false;
                 }
-            } else if (endSquare.getName() === 'c8' && position.canBlackCastleQueenside() && position.getPiece(new $.Square('d8')).isEmpty() && position.getPiece(new $.Square('c8')).isEmpty() && position.getPiece(new $.Square('b8')).isEmpty()) {
+            } else if (endSquare.getName() === 'c8' && position.canBlackCastleQueenside() && position.getPiece(new $.Square('d8')).isNull() && position.getPiece(new $.Square('c8')).isNull() && position.getPiece(new $.Square('b8')).isNull()) {
                 // castle queenside
                 // check for checks
                 if (this.isSquareAttacked(position, new $.Square('b8'), 'w')) {
@@ -386,10 +392,10 @@ $.Engine.isLegalPawnMove = function (position, move) {
     var blockSquare;
     blockSquare = startSquare.clone();
     blockSquare.setRank(3);
-    var whiteUnblocked = position.getPiece(blockSquare).isEmpty();
+    var whiteUnblocked = position.getPiece(blockSquare).isNull();
     blockSquare = startSquare.clone();
     blockSquare.setRank(6);
-    var blackUnblocked = position.getPiece(blockSquare).isEmpty();
+    var blackUnblocked = position.getPiece(blockSquare).isNull();
     var whiteFirstMove = (piece.isWhite() && startSquare.getRank() === '2');
     var blackFirstMove = (piece.isBlack() && startSquare.getRank() === '7');
     if (!(moveOneSquare || (moveTwoSquares && (whiteFirstMove && whiteUnblocked || blackFirstMove && blackUnblocked)))) {
@@ -397,14 +403,14 @@ $.Engine.isLegalPawnMove = function (position, move) {
     }
 
     // pawns cannot capture directly forward
-    if (startSquare.isSameFile(endSquare) && !newPiece.isEmpty()) {
+    if (startSquare.isSameFile(endSquare) && !newPiece.isNull()) {
         return false;
     }
 
     // pawns cannot move horizontally unless capturing 1 square on a forward-diagonal
     if (!startSquare.isSameFile(endSquare)) {
         // if side to side movement, only the following situations are valid
-        is_capturing_enemy = (!newPiece.isEmpty() && !newPiece.isColor(piece.getColor()));
+        is_capturing_enemy = (!newPiece.isNull() && !newPiece.isColor(piece.getColor()));
         is_en_passant = endSquare.equals(position.getEnPassantSquare());
         var oneRank = (startSquare.compareRank(endSquare) === 1);
         var oneFile = (startSquare.compareFile(endSquare) === 1);
@@ -610,53 +616,6 @@ $.Engine.isMate = function (position) {
 
 $.Engine.isSquareAttacked = function (position, square, pieceColor) {
     return (this.getAttackers(position, square, pieceColor).length > 0);
-};
-
-$.Engine.isInsufficientMaterial = function (position) {
-    // For now, this does not include:
-    // * Perpetual check
-    // * Perpetual pursuit
-    // * Blockade
-    // * Fortress
-    // * Drawing balance of forces
-
-    var i,
-        fen = this.getFEN(position).split(' ')[0];
-
-    if (/Q/.test(fen)) {
-        return false;
-    }
-    if (/R/.test(fen)) {
-        return false;
-    }
-    if (/B/.test(fen) && /N/.test(fen)) {
-        return false;
-    }
-    if (/P/.test(fen)) {
-        return false;
-    }
-    i = fen.indexOf('B');
-    if (i !== -1 && fen.indexOf('B', i + 1) !== -1) {
-        return false;
-    }
-    if (/q/.test(fen)) {
-        return false;
-    }
-    if (/r/.test(fen)) {
-        return false;
-    }
-    if (/b/.test(fen) && /n/.test(fen)) {
-        return false;
-    }
-    if (/p/.test(fen)) {
-        return false;
-    }
-    i = fen.indexOf('b');
-    if (i !== -1 && fen.indexOf('b', i + 1) !== -1) {
-        return false;
-    }
-
-    return true;
 };
 
 $.Engine.testMove = function (position, move) {
