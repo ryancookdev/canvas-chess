@@ -7,6 +7,49 @@ CHESS.Engine = function ($) {
 
 $.Engine = {};
 
+$.Engine.gameIsOver = function (position) {
+    return this.isMate(position) || this.isStalemate(position);
+};
+
+$.Engine.isStalemate = function (position) {
+    return (this.getLegalMoves(position).length === 0);
+};
+
+$.Engine.getLegalMoves = function (position) {
+    var i,
+        moveList = [],
+        piece,
+        square,
+        squareMoveList,
+        allSquares;
+
+    allSquares = $.Square.getAllSquares();
+
+    // Get potential moves
+    for (i = 0; i < allSquares.length; i++) {
+        square = allSquares[i];
+        piece = position.getPiece(square);
+        if (!piece.isColor(position.getColorToMove())) {
+            continue;
+        }
+        squareMoveList = this.getPotentialMovesFromSquare(position, square);
+        moveList.push.apply(moveList, squareMoveList);
+    }
+
+    // Remove illegal candidates
+    for (i = 0; i < moveList.length; i++) {
+        var startSquare = new $.Square(moveList[i].split('-')[0]);
+        var endSquare = new $.Square(moveList[i].split('-')[1]);
+        var move = new $.Move(startSquare, endSquare);
+        if (!this.isLegal(position, move)) {
+            moveList.splice(i, 1);
+            i--;
+        }
+    }
+
+    return moveList;
+};
+
 $.Engine.getAttackers = function (position, square, pieceColor) {
     var attackers = [];
 
@@ -20,6 +63,41 @@ $.Engine.getAttackers = function (position, square, pieceColor) {
     );
 
     return attackers;
+};
+
+$.Engine.getPotentialMovesFromSquare = function (position, square) {
+    var moveList = [],
+        piece,
+        pieceMoves;
+
+    piece = position.getPiece(square);
+
+    if (piece.isPawn()) {
+        pieceMoves = $.Engine.getPawnPotentialMoves(position, square);
+        moveList.push.apply(moveList, pieceMoves);
+    }
+    if (piece.isKing()) {
+        pieceMoves = $.Engine.getKingPotentialMoves(position, square);
+        moveList.push.apply(moveList, pieceMoves);
+    }
+    if (piece.isQueen()) {
+        pieceMoves = $.Engine.getQueenPotentialMoves(position, square);
+        moveList.push.apply(moveList, pieceMoves);
+    }
+    if (piece.isRook()) {
+        pieceMoves = $.Engine.getRookPotentialMoves(position, square);
+        moveList.push.apply(moveList, pieceMoves);
+    }
+    if (piece.isBishop()) {
+        pieceMoves = $.Engine.getBishopPotentialMoves(position, square);
+        moveList.push.apply(moveList, pieceMoves);
+    }
+    if (piece.isKnight()) {
+        pieceMoves = $.Engine.getKnightPotentialMoves(position, square);
+        moveList.push.apply(moveList, pieceMoves);
+    }
+
+    return moveList;
 };
 
 $.Engine.getBishopAttackers = function (position, fromSquare, pieceColor) {
@@ -52,96 +130,102 @@ $.Engine.getBishopPotentialMoves = function (position, fromSquare) {
     return moveList;
 };
 
-$.Engine.getKingAttackers = function (position, square, pieceColor) {
-    var adjustMap = [
-            {'rank': 1, 'file': 1},
-            {'rank': 1, 'file': 0},
-            {'rank': 1, 'file': -1},
-            {'rank': 0, 'file': 1},
-            {'rank': 0, 'file': 0},
-            {'rank': 0, 'file': -1},
-            {'rank': -1, 'file': 1},
-            {'rank': -1, 'file': 0},
-            {'rank': -1, 'file': -1}
-        ],
-        adjust,
-        attackers = [],
-        i,
-        newSquare,
-        piece;
+$.Engine.getKingAttackers = function (position, fromSquare, pieceColor) {
+    var attackers = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
 
-    for (i = 0; i < adjustMap.length; i++) {
-        adjust = adjustMap[i];
-        newSquare = square.clone();
-        if (newSquare.addRank(adjust.rank) && newSquare.addFile(adjust.file)) {
-            piece = position.getPiece(newSquare);
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.KING, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isNull()) {
             if (piece.isKing() && piece.isColor(pieceColor)) {
                 attackers.push(newSquare);
             }
         }
-    }
+    });
 
     return attackers;
 };
 
-$.Engine.getKnightAttackers = function (position, square, pieceColor) {
-    var adjustMap = [
-            {'rank': 1, 'file': 2},
-            {'rank': 1, 'file': -2},
-            {'rank': 2, 'file': 1},
-            {'rank': 2, 'file': -1},
-            {'rank': -1, 'file': 2},
-            {'rank': -1, 'file': -2},
-            {'rank': -2, 'file': 1},
-            {'rank': -2, 'file': -1}
-        ],
-        adjust,
-        attackers = [],
-        i,
-        newSquare,
-        piece;
+$.Engine.getKingPotentialMoves = function (position, fromSquare) {
+    var moveList = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
 
-    for (i = 0; i < adjustMap.length; i++) {
-        adjust = adjustMap[i];
-        newSquare = square.clone();
-        if (newSquare.addRank(adjust.rank) && newSquare.addFile(adjust.file)) {
-            piece = position.getPiece(newSquare);
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.KING, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isColor(position.getColorToMove())) {
+            moveList.push(fromSquare + '-' + newSquare);
+        }
+    });
+
+    return moveList;
+};
+
+$.Engine.getKnightAttackers = function (position, fromSquare, pieceColor) {
+    var attackers = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
+
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.KNIGHT, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isNull()) {
             if (piece.isKnight() && piece.isColor(pieceColor)) {
                 attackers.push(newSquare);
             }
         }
-    }
+    });
 
     return attackers;
 };
 
-$.Engine.getPawnAttackers = function (position, square, pieceColor) {
-    var adjustMap = [
-            {'rank': 1, 'file': 1},
-            {'rank': 1, 'file': -1}
-        ],
-        adjust,
-        attackers = [],
-        i,
-        newSquare,
-        piece;
+$.Engine.getKnightPotentialMoves = function (position, fromSquare) {
+    var moveList = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
 
-        for (i = 0; i < adjustMap.length; i++) {
-            adjust = adjustMap[i];
-            if (pieceColor === 'w') {
-                adjust.rank *= -1;
-            }
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.KNIGHT, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isColor(position.getColorToMove())) {
+            moveList.push(fromSquare + '-' + newSquare);
+        }
+    });
 
-            newSquare = square.clone();
-            if (newSquare.addRank(adjust.rank) && newSquare.addFile(adjust.file)) {
-                piece = position.getPiece(newSquare);
-                if (piece.isPawn() && piece.isColor(pieceColor)) {
-                    attackers.push(newSquare);
-                }
+    return moveList;
+};
+
+$.Engine.getPawnAttackers = function (position, fromSquare, pieceColor) {
+    var attackers = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare),
+        pieceDefinition = (pieceColor === 'w'
+            ? CHESS.BoardTraveler.BLACK_PAWN_CAPTURE
+            : CHESS.BoardTraveler.WHITE_PAWN_CAPTURE
+        );
+
+    boardTraveler.travelBoardAs(pieceDefinition, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isNull()) {
+            if (piece.isPawn() && piece.isColor(pieceColor)) {
+                attackers.push(newSquare);
             }
         }
+    });
 
     return attackers;
+};
+
+$.Engine.getPawnPotentialMoves = function (position, fromSquare) {
+    var moveList = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
+        pieceDefinition = (position.isWhiteToMove()
+            ? CHESS.BoardTraveler.WHITE_PAWN
+            : CHESS.BoardTraveler.BLACK_PAWN
+        );
+
+    boardTraveler.travelBoardAs(pieceDefinition, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isColor(position.getColorToMove())) {
+            moveList.push(fromSquare + '-' + newSquare);
+        }
+    });
+
+    return moveList;
 };
 
 $.Engine.getQueenAttackers = function (position, fromSquare, pieceColor) {
@@ -160,6 +244,20 @@ $.Engine.getQueenAttackers = function (position, fromSquare, pieceColor) {
     return attackers;
 };
 
+$.Engine.getQueenPotentialMoves = function (position, fromSquare) {
+    var moveList = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
+
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.QUEEN, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isColor(position.getColorToMove())) {
+            moveList.push(fromSquare + '-' + newSquare);
+        }
+    });
+
+    return moveList;
+};
+
 $.Engine.getRookAttackers = function (position, fromSquare, pieceColor) {
     var attackers = [],
         boardTraveler = new $.BoardTraveler(position, fromSquare);
@@ -174,6 +272,20 @@ $.Engine.getRookAttackers = function (position, fromSquare, pieceColor) {
     });
 
     return attackers;
+};
+
+$.Engine.getRookPotentialMoves = function (position, fromSquare) {
+    var moveList = [],
+        boardTraveler = new $.BoardTraveler(position, fromSquare);
+
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.ROOK, function (newSquare) {
+        var piece = position.getPiece(newSquare);
+        if (!piece.isColor(position.getColorToMove())) {
+            moveList.push(fromSquare + '-' + newSquare);
+        }
+    });
+
+    return moveList;
 };
 
 $.Engine.isLegal = function (position, move) {

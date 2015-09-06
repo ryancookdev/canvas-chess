@@ -54,4 +54,42 @@ QUnit.test('Travel an empty board', function (assert) {
     visitedSquaresExpected.sort();
     assert.deepEqual(visitedSquaresActual, visitedSquaresExpected, 'Travel the board as a queen');
 
+    visitedSquaresActual = [];
+    visitedSquaresExpected = [
+        'd5', 'e5', 'f5', 'd4',
+        'f4', 'd3', 'e3', 'f3'
+    ];
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.KING, action);
+    visitedSquaresActual.sort();
+    visitedSquaresExpected.sort();
+    assert.deepEqual(visitedSquaresActual, visitedSquaresExpected, 'Travel the board as a king');
+
+    visitedSquaresActual = [];
+    visitedSquaresExpected = [
+        'c3', 'c5', 'd2', 'd6',
+        'f2', 'f6', 'g3', 'g5'
+    ];
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.KNIGHT, action);
+    visitedSquaresActual.sort();
+    visitedSquaresExpected.sort();
+    assert.deepEqual(visitedSquaresActual, visitedSquaresExpected, 'Travel the board as a knight');
+
+    visitedSquaresActual = [];
+    visitedSquaresExpected = [
+        'd5', 'e5', 'e6', 'f5'
+    ];
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.WHITE_PAWN, action);
+    visitedSquaresActual.sort();
+    visitedSquaresExpected.sort();
+    assert.deepEqual(visitedSquaresActual, visitedSquaresExpected, 'Travel the board as a black pawn');
+
+    visitedSquaresActual = [];
+    visitedSquaresExpected = [
+        'd3', 'e3', 'e2', 'f3'
+    ];
+    boardTraveler.travelBoardAs(CHESS.BoardTraveler.BLACK_PAWN, action);
+    visitedSquaresActual.sort();
+    visitedSquaresExpected.sort();
+    assert.deepEqual(visitedSquaresActual, visitedSquaresExpected, 'Travel the board as a white pawn');
+
 });
