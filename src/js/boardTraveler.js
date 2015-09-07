@@ -39,7 +39,7 @@ CHESS.BoardTraveler = function ($) {
 
         this.position = position;
         this.fromSquare = fromSquare;
-    };
+    }
 
     BoardTraveler.BISHOP = {
         distance: 7,

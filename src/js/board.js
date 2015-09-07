@@ -362,8 +362,8 @@ return function (config, fn) {
                 sq2 = alpha_conversion[j] + (8 - i);
             }
 
-            xy1 = $.util.getArrayPosition(sq1);
-            xy2 = $.util.getArrayPosition(sq2);
+            xy1 = view.getArrayPosition(sq1);
+            xy2 = view.getArrayPosition(sq2);
 
             if (model.mode === 'setup') {
                 if (sq1 !== sq2 && sq1 !== 'piecebox' && sq2 !== 'piecebox') {
@@ -511,15 +511,19 @@ return function (config, fn) {
             };
         }
 
-        xy1 = $.util.getArrayPosition(sq1);
-        xy2 = $.util.getArrayPosition(sq2);
+        xy1 = view.getArrayPosition(sq1);
+        xy2 = view.getArrayPosition(sq2);
         piece = this.position.getPiece(xy1.substr(1, 1), xy1.substr(0, 1));
         if (piece.isPawn() && ((this.position.white_to_move && sq2.substr(1, 1) === '8') || (!this.position.white_to_move && sq2.substr(1, 1) === '1'))) {
             pos_before.promote = true;
         }
 
         // Illegal move
-        if (!$.util.move(pos, sq1, sq2)) {
+        var startSquare = new $.Square(sq1);
+        var endSquare = new $.Square(sq2);
+        var move = new $.Move(startSquare, endSquare);
+        var boardMover = new $.BoardMover(pos);
+        if (!boardMover.move(move)) {
             view.takeSnapshot();
             return;
         }
@@ -599,8 +603,8 @@ return function (config, fn) {
             boty; // The length of a side of the arrow head
 
         // Position/color values
-        xy1 = $.util.getArrayPosition(sq1);
-        xy2 = $.util.getArrayPosition(sq2);
+        xy1 = view.getArrayPosition(sq1);
+        xy2 = view.getArrayPosition(sq2);
         x1 = xy1.substr(0, 1);
         y1 = xy1.substr(1, 1);
         x2 = xy2.substr(0, 1);
@@ -690,6 +694,21 @@ return function (config, fn) {
         }
     };
 
+    view.getArrayPosition = function (sq) {
+        var x,
+            y,
+            xy = false;
+
+        if (/^[a-h][1-8]$/.test(sq)) {
+            x = sq.substr(0, 1).toLowerCase();
+            y = sq.substr(1, 1);
+            x = x.charCodeAt(0) - 97;
+            y = 8 - y;
+            xy = x + '' + y;
+        }
+        return xy;
+    };
+
     /**
      * Convert a hex color string to RGBA object.
      *
@@ -774,7 +793,7 @@ return function (config, fn) {
             y; // The length of a side of the arrow head
 
         // Position/color values
-        xy = $.util.getArrayPosition(sq);
+        xy = this.getArrayPosition(sq);
         x = xy.substr(0, 1);
         y = xy.substr(1, 1);
 
@@ -1265,8 +1284,8 @@ return function (config, fn) {
      * @param {string} sq2 - Letter and number of the end square.
      */
     this.setLastMove = function (sq1, sq2) {
-        sq1 = $.util.getArrayPosition(sq1);
-        sq2 = $.util.getArrayPosition(sq2);
+        sq1 = view.getArrayPosition(sq1);
+        sq2 = view.getArrayPosition(sq2);
         model.position.last_move = {'sq1': sq1, 'sq2': sq2};
     };
 

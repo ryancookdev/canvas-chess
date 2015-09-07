@@ -934,7 +934,11 @@ return function (config) {
         }
 
         // Calculate the new FEN based on the current + move
-        $.util.move(pos, move_array[0], move_array[1], promotion);
+        var startSquare = new $.Square(move_array[0]);
+        var endSquare = new $.Square(move_array[1]);
+        var move = new $.Move(startSquare, endSquare);
+        var boardMover = new $.BoardMover(pos);
+        boardMover.move(move, promotion);
         fen = pos.getFen();
 
         // Determine if check
