@@ -926,7 +926,8 @@ return function (config) {
 
         // Prepare to get the new FEN
         pos = new $.Position(fen);
-        long_notation = $.util.getLongNotation(pos, move);
+        var longNotation = new $.LongNotation(pos);
+        long_notation = longNotation.getLongNotation(move);
         move_array = long_notation.split('-');
 
         if (/=[QRBN]/.test(move)) {

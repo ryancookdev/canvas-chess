@@ -7,8 +7,30 @@ CHESS.Piece = function ($) {
  * @param {string} pieceAbbrev - A two-character abbreviated piece.
  */
 return function (pieceAbbrev) {
-    var type = '',
+    var that = this,
+        type = '',
         color = '';
+
+    /**
+     * @param {Piece} piece
+     * @returns {boolean}
+     */
+    this.equals = function (piece) {
+        if (!isAPiece(piece)) {
+            return false;
+        }
+        return (
+            this.getType() === piece.getType()
+            && this.getColor() === piece.getColor()
+        );
+    };
+
+    var isAPiece = function (piece) {
+        if (typeof piece !== 'object') {
+            return false;
+        }
+        return (piece.constructor === that.constructor);
+    };
 
     /**
      * @returns {string} 

@@ -20,8 +20,8 @@ return function (start, end) {
     };
 
     var setMove = function (start, end) {
-        startSquare = start;
-        endSquare = end;
+        startSquare = start.clone();
+        endSquare = end.clone();
     };
 
     setMove(start, end);
