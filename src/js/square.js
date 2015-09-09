@@ -351,7 +351,7 @@ CHESS.Square = function ($) {
         if (typeof anSquare === 'string') {
             setSquare(anSquare);
         }
-    };
+    }
 
     Square.getAllSquares = function () {
         var i,

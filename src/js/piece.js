@@ -2,143 +2,145 @@ var CHESS = CHESS || {};
 
 CHESS.Piece = function ($) {
 
-/**
- * @class
- * @param {string} pieceAbbrev - A two-character abbreviated piece.
- */
-return function (pieceAbbrev) {
-    var that = this,
-        type = '',
-        color = '';
-
     /**
-     * @param {Piece} piece
-     * @returns {boolean}
+     * @class
+     * @param {string} pieceAbbrev - A two-character abbreviated piece.
      */
-    this.equals = function (piece) {
-        if (!isAPiece(piece)) {
-            return false;
-        }
-        return (
-            this.getType() === piece.getType()
-            && this.getColor() === piece.getColor()
-        );
-    };
+    function Piece (pieceAbbrev) {
+        var that = this,
+            type = '',
+            color = '';
 
-    var isAPiece = function (piece) {
-        if (typeof piece !== 'object') {
-            return false;
-        }
-        return (piece.constructor === that.constructor);
-    };
+        /**
+         * @param {Piece} piece
+         * @returns {boolean}
+         */
+        this.equals = function (piece) {
+            if (!isAPiece(piece)) {
+                return false;
+            }
+            return (
+                this.getType() === piece.getType()
+                && this.getColor() === piece.getColor()
+            );
+        };
 
-    /**
-     * @returns {string} 
-     */
-    this.getColor = function () {
-        return color;
-    };
+        var isAPiece = function (piece) {
+            if (typeof piece !== 'object') {
+                return false;
+            }
+            return (piece.constructor === that.constructor);
+        };
 
-    /**
-     * @returns {string} 
-     */
-    this.getType = function () {
-        return type;
-    };
+        /**
+         * @returns {string} 
+         */
+        this.getColor = function () {
+            return color;
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isBishop = function () {
-        return (type === 'b');
-    };
+        /**
+         * @returns {string} 
+         */
+        this.getType = function () {
+            return type;
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isBlack = function () {
-        return (color === 'b');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isBishop = function () {
+            return (type === 'b');
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isColor = function (c) {
-        return (color === c);
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isBlack = function () {
+            return (color === 'b');
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isKing = function () {
-        return (type === 'k');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isColor = function (c) {
+            return (color === c);
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isKnight = function () {
-        return (type === 'n');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isKing = function () {
+            return (type === 'k');
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isNull = function () {
-        return (type === false);
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isKnight = function () {
+            return (type === 'n');
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isPawn = function () {
-        return (type === 'p');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isNull = function () {
+            return (type === false);
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isQueen = function () {
-        return (type === 'q');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isPawn = function () {
+            return (type === 'p');
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isRook = function () {
-        return (type === 'r');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isQueen = function () {
+            return (type === 'q');
+        };
 
-    /**
-     * @returns {boolean} 
-     */
-    this.isWhite = function () {
-        return (color === 'w');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isRook = function () {
+            return (type === 'r');
+        };
 
-    /**
-     * @returns {string} 
-     */
-    this.toString = function () {
-        return (color && type ? color + type : '');
-    };
+        /**
+         * @returns {boolean} 
+         */
+        this.isWhite = function () {
+            return (color === 'w');
+        };
 
-    var getTypeFromAbbrev = function (pieceAbbrev) {
-        if (!/^[wb][kqrbnp]$/.test(pieceAbbrev)) {
-            return false;
-        }
-        return pieceAbbrev.substr(1, 1);
-    };
+        /**
+         * @returns {string} 
+         */
+        this.toString = function () {
+            return (color && type ? color + type : '');
+        };
 
-    var getColorFromAbbrev = function (pieceAbbrev) {
-        if (!/^[wb][kqrbnp]$/.test(pieceAbbrev)) {
-            return false;
-        }
-        return pieceAbbrev.substr(0, 1);
-    };
+        var getTypeFromAbbrev = function (pieceAbbrev) {
+            if (!/^[wb][kqrbnp]$/.test(pieceAbbrev)) {
+                return false;
+            }
+            return pieceAbbrev.substr(1, 1);
+        };
 
-    type = getTypeFromAbbrev(pieceAbbrev);
-    color = getColorFromAbbrev(pieceAbbrev);
-};
+        var getColorFromAbbrev = function (pieceAbbrev) {
+            if (!/^[wb][kqrbnp]$/.test(pieceAbbrev)) {
+                return false;
+            }
+            return pieceAbbrev.substr(0, 1);
+        };
+
+        type = getTypeFromAbbrev(pieceAbbrev);
+        color = getColorFromAbbrev(pieceAbbrev);
+    }
+
+    return Piece;
 
 }(CHESS);

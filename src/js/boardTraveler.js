@@ -8,9 +8,6 @@ CHESS.BoardTraveler = function ($) {
      * @param {Square} fromSquare - A square to travel from.
      */
     function BoardTraveler (position, fromSquare) {
-        var fromSquare,
-            position;
-
         this.travelBoardAs = function (pieceDefinition, action) {
             var adjust,
                 i,
@@ -36,9 +33,6 @@ CHESS.BoardTraveler = function ($) {
                 }
             }
         };
-
-        this.position = position;
-        this.fromSquare = fromSquare;
     }
 
     BoardTraveler.BISHOP = {

@@ -7,8 +7,6 @@ CHESS.LongNotation = function ($) {
      * @param {Position} position
      */
     function LongNotation (position) {
-        var position = position;
-
         this.getLongNotation = function (shortNotation) {
             var i,
                 colorToMove,
