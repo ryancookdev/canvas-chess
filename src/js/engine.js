@@ -349,7 +349,7 @@ $.Engine.isLegal = function (position, move) {
 };
 
 $.Engine.isClearPath = function (position, move) {
-    var startSquare = move.getStartSquare(),
+    var startSquare = move.getStartSquare().clone(),
         endSquare = move.getEndSquare();
 
     while (startSquare.stepTo(endSquare)) {
