@@ -492,7 +492,7 @@ return function (config, fn) {
     model.move = function (sq1, sq2) {
         var pos = new $.Position(this.position.getFen()),
             pos_before = {
-                fen: $.Engine.getFEN(this),
+                fen: this.position.getFen(), //$.Engine.getFEN(this),
                 player_to_move: (this.position.isWhiteToMove() ? 'w' : 'b'),
                 sq1: sq1,
                 sq2: sq2,
@@ -514,7 +514,7 @@ return function (config, fn) {
         xy1 = view.getArrayPosition(sq1);
         xy2 = view.getArrayPosition(sq2);
         piece = this.position.getPiece(xy1.substr(1, 1), xy1.substr(0, 1));
-        if (piece.isPawn() && ((this.position.white_to_move && sq2.substr(1, 1) === '8') || (!this.position.white_to_move && sq2.substr(1, 1) === '1'))) {
+        if (piece.isPawn() && ((this.position.isWhiteToMove() && sq2.substr(1, 1) === '8') || (!this.position.isWhiteToMove() && sq2.substr(1, 1) === '1'))) {
             pos_before.promote = true;
         }
 
@@ -533,7 +533,7 @@ return function (config, fn) {
 
         if ($.Engine.isMate(pos)) {
             pos_before.mate = true;
-        } else if ($.util.isStalemate(pos)) {
+        } else if ($.Engine.isStalemate(pos)) {
             pos_before.stalemate = true;
         }
 
@@ -1185,7 +1185,7 @@ return function (config, fn) {
      * @returns {boolean} True or false.
      */
     this.isStalemate = function () {
-        return $.util.isStalemate(model);
+        return $.Engine.isStalemate(model);
     };
 
     /**
@@ -1198,7 +1198,8 @@ return function (config, fn) {
             sq1,
             sq2;
 
-        long_move = $.util.getLongNotation(model, san);
+        var longNotation = new $.LongNotation(model.position);
+        long_move = longNotation.getLongNotation(san);
         long_move = long_move.split('-');
         sq1 = long_move[0];
         sq2 = long_move[1];
