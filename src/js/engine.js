@@ -732,17 +732,18 @@ $.Engine.isSquareAttacked = function (position, square, pieceColor) {
 
 $.Engine.testMove = function (position, move) {
     var captureSquare,
-        isEnPassant = false,
         startSquare = move.getStartSquare(),
-        endSquare = move.getEndSquare();
+        endSquare = move.getEndSquare(),
+        piece = position.getPiece(startSquare),
+        isEnPassant = piece.isPawn() && endSquare.equals(position.getEnPassantSquare()),
 
     testPosition = position.clone();
-    testPosition.setPiece(endSquare, '', testPosition.getPiece(startSquare).toString());
+    testPosition.setPiece(endSquare, '', piece.toString());
     testPosition.setPiece(startSquare, '', '');
 
     if (isEnPassant) {
-        //captureSquare = new $.Square(endSquare.getFile() + startSquare.getRank());
-        //testPosition.setPiece(captureSquare, '', '');
+        captureSquare = new $.Square(endSquare.getFile() + startSquare.getRank());
+        testPosition.setPiece(captureSquare, '', '');
     }
 
     return testPosition;
