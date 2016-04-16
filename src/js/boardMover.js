@@ -26,7 +26,7 @@ CHESS.BoardMover = function ($) {
                 if (startSquare.compareRank(endSquare) === 2) {
                     setNewEnPassantSquare(startSquare);
                 } else if (endSquare.getRank() === '1' || endSquare.getRank() === '8') {
-                    promotePawn(endSquare, promotion);
+                    promotePawn(endSquare, promotion || 'Q');
                 } else if (!startSquare.isSameFile(endSquare) && capturedPiece.isNull()) {
                     removeEnPassantPiece(endSquare);
                 }
