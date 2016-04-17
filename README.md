@@ -1,4 +1,4 @@
-canvas-chess
+Canvas Chess
 ============
 
 A chess UI based on the HTML5 Canvas.
