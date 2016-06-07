@@ -489,7 +489,7 @@ return function (config, fn) {
      * @param {string} sq1 - Current square (eg. e2).
      * @param {string} sq2 - New square (eg. e4).
      */
-    model.move = function (sq1, sq2, promotion) {
+    model.move = function (sq1, sq2) {
         var pos = new $.Position(this.position.getFen()),
             pos_before = {
                 fen: this.position.getFen(), //$.Engine.getFEN(this),
@@ -523,7 +523,7 @@ return function (config, fn) {
         var endSquare = new $.Square(sq2);
         var move = new $.Move(startSquare, endSquare);
         var boardMover = new $.BoardMover(pos);
-        if (!boardMover.move(move, promotion)) {
+        if (!boardMover.move(move)) {
             view.takeSnapshot();
             return;
         }
@@ -1123,81 +1123,80 @@ return function (config, fn) {
 
     };
 
-        /**
-         * Get the color of the player to move.
-         *
-         * @returns {string} Color to move (w, b).
-         */
+    /**
+     * Get the color of the player to move.
+     *
+     * @returns {string} Color to move (w, b).
+     */
     this.getActiveColor = function () {
         return (model.position.isWhiteToMove() ? 'w' : 'b');
     };
 
-        /**
-         * Get the FEN of the current position.
-         *
-         * @returns {string} FEN string.
-         */
+    /**
+     * Get the FEN of the current position.
+     *
+     * @returns {string} FEN string.
+     */
     this.getFEN = function () {
         return $.Engine.getFEN(model.position);
     };
 
-        /**
-         * Get a reference to the canvas element.
-         *
-         * @returns {object} A reference to the canvas element.
-         */
+    /**
+     * Get a reference to the canvas element.
+     *
+     * @returns {object} A reference to the canvas element.
+     */
     this.getCanvas = function () {
         return view.canvas;
     };
-
-        /**
-         * Get a PNG format image of the current board.
-         *
-         * @returns {object} Image.
-         */
+    
+    /**
+     * Get a PNG format image of the current board.
+     *
+     * @returns {object} Image.
+     */
     this.getImage = function () {
         var image = new Image();
         image.src = view.canvas.toDataURL('image/png');
         return image;
     };
 
-        /**
-         * Is the current position a draw by insufficient material?
-         *
-         * @returns {boolean} True or false.
-         */
+    /**
+     * Is the current position a draw by insufficient material?
+     *
+     * @returns {boolean} True or false.
+     */
     this.isInsufficientMaterial = function () {
         return $.Engine.isInsufficientMaterial(model.position);
     };
 
-        /**
-         * Is the current position checkmate?
-         *
-         * @returns {boolean} True or false.
-         */
+    /**
+     * Is the current position checkmate?
+     *
+     * @returns {boolean} True or false.
+     */
     this.isMate = function () {
         return $.Engine.isMate(model.position);
     };
 
-        /**
-         * Is the current position stalemate?
-         *
-         * @returns {boolean} True or false.
-         */
+    /**
+     * Is the current position stalemate?
+     *
+     * @returns {boolean} True or false.
+     */
     this.isStalemate = function () {
         return $.Engine.isStalemate(model);
     };
 
-        /**
-         * Play a move.
-         *
-         * @param {string} san - Move in standard algebraic notation.
-         */
+    /**
+     * Play a move.
+     *
+     * @param {string} san - Move in standard algebraic notation.
+     */
     this.move = function (san) {
         var long_move,
             sq1,
-            sq2,
-            promotion;
+            sq2;
 
         var longNotation = new $.LongNotation(model.position);
         long_move = longNotation.getLongNotation(san);
@@ -1205,24 +1204,20 @@ return function (config, fn) {
         sq1 = long_move[0];
         sq2 = long_move[1];
 
-        if (/=[QRBN]/.test(san)) {
-            promotion = san.match(/=([QRBN])/)[1];
-        }
-
-        model.move(sq1, sq2, promotion);
+        model.move(sq1, sq2);
     };
 
-        /**
-         * Clear the board.
-         */
+    /**
+     * Clear the board.
+     */
     this.positionClear = function () {
         model = new $.Position();
         view.takeSnapshot();
     };
 
-        /**
-         * Set the board to the starting position.
-         */
+    /**
+     * Set the board to the starting position.
+     */
     this.positionStart = function () {
         model.position.setPosition('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         model.position.last_move = {};
@@ -1231,100 +1226,100 @@ return function (config, fn) {
         view.takeSnapshot();
     };
 
-        /**
-         * Remove an arrow from the board.
-         */
+    /**
+     * Remove an arrow from the board.
+     */
     this.removeArrow = function () {
         view.arrow_list.pop();
         view.takeSnapshot();
     };
 
-        /**
-         * Remove all arrows from the board.
-         */
+    /**
+     * Remove all arrows from the board.
+     */
     this.removeAllArrows = function () {
         view.arrow_list = [];
         view.takeSnapshot();
     };
 
-        /**
-         * Remove a colored square from the board.
-         */
+    /**
+     * Remove a colored square from the board.
+     */
     this.removeSquare = function () {
         view.square_list.pop();
         view.takeSnapshot();
     };
 
-        /**
-         * Remove all colored squares from the board.
-         */
+    /**
+     * Remove all colored squares from the board.
+     */
     this.removeAllSquares = function () {
         view.square_list = [];
         view.takeSnapshot();
     };
 
-        /**
-         * Resize the board.
-         *
-         * @param {number} [height=0] - The new height of the board.
-         * @param {number} [width=0] - The new width of the board.
-         */
+    /**
+     * Resize the board.
+     *
+     * @param {number} [height=0] - The new height of the board.
+     * @param {number} [width=0] - The new width of the board.
+     */
     this.resize = function (height, width) {
         controller.resize(height, width);
         view.takeSnapshot();
     };
 
-        /**
-         * Activate/Inactivate the board.
-         *
-         * @param {boolean} active - True or False.
-         */
+    /**
+     * Activate/Inactivate the board.
+     *
+     * @param {boolean} active - True or False.
+     */
     this.setActive = function (active) {
         view.setActive(active);
     };
 
-        /**
-         * Set the last move (for display purposes).
-         *
-         * @param {string} sq1 - Letter and number of the start square.
-         * @param {string} sq2 - Letter and number of the end square.
-         */
+    /**
+     * Set the last move (for display purposes).
+     *
+     * @param {string} sq1 - Letter and number of the start square.
+     * @param {string} sq2 - Letter and number of the end square.
+     */
     this.setLastMove = function (sq1, sq2) {
         sq1 = view.getArrayPosition(sq1);
         sq2 = view.getArrayPosition(sq2);
         model.position.last_move = {'sq1': sq1, 'sq2': sq2};
     };
 
-        /**
-         * Change the board mode.
-         *
-         * @param {string} mode - Mode determines the default settings.
-         */
+    /**
+     * Change the board mode.
+     *
+     * @param {string} mode - Mode determines the default settings.
+     */
     this.setMode = function (mode) {
         model.mode = mode;
         if (mode === 'setup') {
-        //view.setActive(true);
+            //view.setActive(true);
         }
         controller.resize(view.canvas.height, view.canvas.width);
         view.takeSnapshot();
     };
 
-        /**
-         * Set the board to a new position.
-         *
-         * @param {string} fen - FEN representation of the new position.
-         */
+    /**
+     * Set the board to a new position.
+     *
+     * @param {string} fen - FEN representation of the new position.
+     */
     this.setPosition = function (fen) {
         model.position = new $.Position(fen);
         view.takeSnapshot();
     };
 
-        /**
-         * Allow other modules to subscribe to board change events.
-         *
-         * @param {string} type - Type of event.
-         * @param {function} fn - A callback function.
-         */
+    /**
+     * Allow other modules to subscribe to board change events.
+     *
+     * @param {string} type - Type of event.
+     * @param {function} fn - A callback function.
+     */
     this.subscribe = function (type, fn) {
         type = type || 'any';
         if (controller.subscribers[type] === undefined) {
@@ -1332,62 +1327,62 @@ return function (config, fn) {
         }
         controller.subscribers[type].push(fn);
     };
-
-        /**
-         * Allow other modules to unsubscribe from board change events.
-         *
-         * @param {string} type - Type of event.
-         * @param {function} fn - A callback function.
-         */
+    
+    /**
+     * Allow other modules to unsubscribe from board change events.
+     *
+     * @param {string} type - Type of event.
+     * @param {function} fn - A callback function.
+     */
     this.unsubscribe = function (fn, type) {
         controller.visitSubscribers('unsubscribe', fn, type);
     };
 
-        // See declaration comment
-        init = function () {
-            var path;
+    // See declaration comment
+    init = function () {
+        var path;
 
-            function callback () {
-                if (typeof fn === 'function' && view.loaded_pieces === 12) {
-                    fn();
-        }
+        function callback () {
+            if (typeof fn === 'function' && view.loaded_pieces === 12) {
+                fn();
+            }
         }
 
         view.buildHtml(config.container);
 
-            //view.setActive(true);
+        //view.setActive(true);
 
-            view.highlight_move = (config.highlight_move === true ? true : false);
-            view.highlight_hover = (config.highlight_hover === true ? true : false);
-            view.show_labels = (config.show_labels === false ? false : true);
-            view.square_color_light = (config.square_color_light ? config.square_color_light : view.square_color_light);
-            view.square_color_dark = (config.square_color_dark ? config.square_color_dark : view.square_color_dark);
-            view.gc_opacity = (config.gc_opacity ? config.gc_opacity : view.gc_opacity);
-            view.highlight_move_color = (config.highlight_move_color ? config.highlight_move_color : view.highlight_move_color);
-            view.highlight_move_opacity = (config.highlight_move_opacity ? config.highlight_move_opacity : view.highlight_move_opacity);
-            view.square_hover_light = (config.square_hover_light ? config.square_hover_light : view.square_hover_light);
-            view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
-            view.piece_set = (config.piece_set ? config.piece_set : view.piece_set);
-            model.mode = config.mode;
+        view.highlight_move = (config.highlight_move === true ? true : false);
+        view.highlight_hover = (config.highlight_hover === true ? true : false);
+        view.show_labels = (config.show_labels === false ? false : true);
+        view.square_color_light = (config.square_color_light ? config.square_color_light : view.square_color_light);
+        view.square_color_dark = (config.square_color_dark ? config.square_color_dark : view.square_color_dark);
+        view.gc_opacity = (config.gc_opacity ? config.gc_opacity : view.gc_opacity);
+        view.highlight_move_color = (config.highlight_move_color ? config.highlight_move_color : view.highlight_move_color);
+        view.highlight_move_opacity = (config.highlight_move_opacity ? config.highlight_move_opacity : view.highlight_move_opacity);
+        view.square_hover_light = (config.square_hover_light ? config.square_hover_light : view.square_hover_light);
+        view.square_hover_dark = (config.square_hover_dark ? config.square_hover_dark : view.square_hover_dark);
+        view.piece_set = (config.piece_set ? config.piece_set : view.piece_set);
+        model.mode = config.mode;
 
-            if (config.fen) {
-                model.position = new $.Position(config.fen);
-            } else {
-                model.position = new $.Position('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        if (config.fen) {
+            model.position = new $.Position(config.fen);
+        } else {
+            model.position = new $.Position('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         }
 
         controller.resize(config.height, config.width);
 
-            // Remove trailing slash if present
-            path = view.piece_set.replace(/\/$/, '');
+        // Remove trailing slash if present
+        path = view.piece_set.replace(/\/$/, '');
 
-            // Preload graphics
-            view.wp.src = path + '/wp.svg';
-            view.wp.onload = function () {
-                view.loaded_pieces += 1;
-                if (view.loaded_pieces === 12) {
-                    view.takeSnapshot();
-        }
+        // Preload graphics
+        view.wp.src = path + '/wp.svg';
+        view.wp.onload = function () {
+            view.loaded_pieces += 1;
+            if (view.loaded_pieces === 12) {
+                view.takeSnapshot();
+            }
         };
 
         view.wr.src = path + '/wr.svg';
@@ -1396,7 +1391,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.wn.src = path + '/wn.svg';
@@ -1405,7 +1400,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.wb.src = path + '/wb.svg';
@@ -1414,7 +1409,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.wq.src = path + '/wq.svg';
@@ -1423,7 +1418,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.wk.src = path + '/wk.svg';
@@ -1432,7 +1427,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.bp.src = path + '/bp.svg';
@@ -1441,7 +1436,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.br.src = path + '/br.svg';
@@ -1450,7 +1445,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.bn.src = path + '/bn.svg';
@@ -1459,7 +1454,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.bb.src = path + '/bb.svg';
@@ -1468,7 +1463,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.bq.src = path + '/bq.svg';
@@ -1477,7 +1472,7 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         view.bk.src = path + '/bk.svg';
@@ -1486,24 +1481,24 @@ return function (config, fn) {
             if (view.loaded_pieces === 12) {
                 view.takeSnapshot();
                 callback();
-        }
+            }
         };
 
         if (typeof config.square_uri_dark === 'string') {
             view.square_uri_dark.src = config.square_uri_dark;
             view.square_uri_dark.onload = function () {
                 view.takeSnapshot();
-        };
+            };
         }
         if (typeof config.square_uri_light === 'string') {
             view.square_uri_light.src = config.square_uri_light;
             view.square_uri_light.onload = function () {
                 view.takeSnapshot();
-        };
-    }
+            };
+        }
     };
 
-        // Immediately initialize the board when an instance is created.
+    // Immediately initialize the board when an instance is created.
     init();
 
 };
