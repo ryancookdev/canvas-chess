@@ -489,7 +489,7 @@ return function (config, fn) {
      * @param {string} sq1 - Current square (eg. e2).
      * @param {string} sq2 - New square (eg. e4).
      */
-    model.move = function (sq1, sq2) {
+    model.move = function (sq1, sq2, promotion) {
         var pos = new $.Position(this.position.getFen()),
             pos_before = {
                 fen: this.position.getFen(), //$.Engine.getFEN(this),
@@ -523,7 +523,7 @@ return function (config, fn) {
         var endSquare = new $.Square(sq2);
         var move = new $.Move(startSquare, endSquare);
         var boardMover = new $.BoardMover(pos);
-        if (!boardMover.move(move)) {
+        if (!boardMover.move(move, promotion)) {
             view.takeSnapshot();
             return;
         }
@@ -1196,7 +1196,8 @@ return function (config, fn) {
     this.move = function (san) {
         var long_move,
             sq1,
-            sq2;
+            sq2,
+            promotion;
 
         var longNotation = new $.LongNotation(model.position);
         long_move = longNotation.getLongNotation(san);
@@ -1204,7 +1205,10 @@ return function (config, fn) {
         sq1 = long_move[0];
         sq2 = long_move[1];
 
-        model.move(sq1, sq2);
+        if (/=[QRBN]/.test(san)) {
+            promotion = san.match(/=([QRBN])/)[1];
+}
+        model.move(sq1, sq2, promotion);
     };
 
     /**
