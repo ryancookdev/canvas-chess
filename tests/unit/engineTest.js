@@ -88,6 +88,16 @@ QUnit.test('Block the check', function (assert) {
     position = new CHESS.Position(fen);
     isMate = CHESS.Engine.isMate(position);
     assert.notOk(isMate, 'Check can be blocked');
+
+    fen = '6bk/5p2/7K/4B3/8/8/8/8 b - - 0 1';
+    position = new CHESS.Position(fen);
+    isMate = CHESS.Engine.isMate(position);
+    assert.notOk(isMate, 'Check can be blocked by pawn move');
+
+    fen = 'R5nk/8/6K1/4B3/8/8/8/8 b - - 0 1';
+    position = new CHESS.Position(fen);
+    isMate = CHESS.Engine.isMate(position);
+    assert.ok(isMate, 'Check cannot be blocked by pinned piece');
 });
 
 QUnit.test('Escape mate by en passant', function (assert) {
