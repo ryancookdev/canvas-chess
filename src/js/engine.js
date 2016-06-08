@@ -8,11 +8,11 @@ CHESS.Engine = function ($) {
 $.Engine = {};
 
 $.Engine.gameIsOver = function (position) {
-    return this.isMate(position) || this.isStalemate(position);
+    return this.getLegalMoves(position).length === 0;
 };
 
 $.Engine.isStalemate = function (position) {
-    return (this.getLegalMoves(position).length === 0);
+    return !this.isCheck(position) && this.getLegalMoves(position).length === 0;
 };
 
 $.Engine.getLegalMoves = function (position) {
@@ -536,194 +536,11 @@ $.Engine.isLegalPawnMove = function (position, move) {
 
 $.Engine.isCheck = function (position) {
     var kingSquare = position.findPiece(position.getColorToMove() + 'k')[0];
-    return this.isSquareAttacked(position, kingSquare, position.getColorNotToMove());
+    return kingSquare !== undefined && this.isSquareAttacked(position, kingSquare, position.getColorNotToMove());
 };
 
 $.Engine.isMate = function (position) {
-    var attackerSquare,
-        attackerList,
-        enPassantSquare,
-        friend,
-        move,
-        newSquare,
-        piece,
-        square,
-        squareList,
-        tempPosition = position.clone();
-
-    // Find king
-    squareList = position.findPiece(position.getColorToMove() + 'k');
-    if (squareList.length < 1) {
-        return false;
-    }
-    square = squareList[0];
-    if (square.isNull()) {
-        return false;
-    }
-
-    attackerList = this.getAttackers(tempPosition, square, position.getColorNotToMove());
-    // TODO Handle double check scenario
-    if (attackerList.length < 1) {
-        return false;
-    }
-    attackerSquare = attackerList[0];
-
-    // Remove king from its current position
-    tempPosition.setPiece(square, '', '');
-
-    // Move up
-    newSquare = square.clone();
-    if (newSquare.addRank(1)) {
-        // Does it contain a friendly piece?
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Move down
-    newSquare = square.clone();
-    if (newSquare.addRank(-1)) {
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Move left
-    newSquare = square.clone();
-    if (newSquare.addFile(-1)) {
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Move right
-    newSquare = square.clone();
-    if (newSquare.addFile(1)) {
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Move up/left
-    newSquare = square.clone();
-    if (newSquare.addRank(1) && newSquare.addFile(-1)) {
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Move up/right
-    newSquare = square.clone();
-    if (newSquare.addRank(1) && newSquare.addFile(1)) {
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Move down/left
-    newSquare = square.clone();
-    if (newSquare.addRank(-1) && newSquare.addFile(-1)) {
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Move down/right
-    newSquare = square.clone();
-    if (newSquare.addRank(-1) && newSquare.addFile(1)) {
-        if (tempPosition.getPiece(newSquare).getColor() !== position.getColorToMove()) {
-            if (!this.isSquareAttacked(tempPosition, newSquare, position.getColorNotToMove())) {
-                return false;
-            }
-        }
-    }
-
-    // Put king back since it cannot move
-    tempPosition.setPiece(square, '', position.getColorToMove() + 'k');
-
-    // Is the attacking piece under attack?
-    friend = this.getAttackers(tempPosition, attackerSquare, position.getColorToMove());
-    for (var i = 0; i < friend.length; i++) {
-        // Can the attacking piece be captured?
-        move = new $.Move(friend[i], attackerSquare);
-        if (this.isLegal(position, move)) {
-            return false;
-        }
-    }
-
-    // Can the check be blocked?
-    var attacker = tempPosition.getPiece(attackerSquare);
-    if (attacker.isRook() || attacker.isBishop() || attacker.isQueen()) {
-        if (square.compareRank(attackerSquare) > 1 || square.compareFile(attackerSquare) > 1) {
-            // Change king color so it does not count as an attacker
-            tempPosition.setPiece(square, '', position.getColorNotToMove() + 'k');
-            newSquare = square.clone();
-            while (newSquare.stepTo(attackerSquare)) {
-                if (newSquare.equals(attackerSquare)) {
-                    break;
-                }
-                if (this.getAttackers(tempPosition, newSquare, position.getColorToMove()).length > 0) {
-                    return false;
-                }
-            }
-        }
-    }
-
-    // Can en passant save the day?
-    if (attacker.isPawn()) {
-        // if attacker is vulnerable to en passant
-        enPassantSquare = attackerSquare.clone();
-        enPassantSquare.addRank(1);
-        if (position.isWhiteToMove() && attackerSquare.getRank() === '5' && position.getEnPassantSquare().equals(enPassantSquare)) {
-            // ... and if defender can execute en passant
-            newSquare = attackerSquare.clone();
-            if (newSquare.addFile(-1)) {
-                if (tempPosition.getPiece(newSquare).toString() === 'wp') {
-                    return false;
-                }
-            }
-            newSquare = attackerSquare.clone();
-            if (newSquare.addFile(1)) {
-                if (tempPosition.getPiece(newSquare).toString() === 'wp') {
-                    return false;
-                }
-            }
-        }
-        // if attacker is vulnerable to en passant
-        enPassantSquare = attackerSquare.clone();
-        enPassantSquare.addRank(-1);
-        if (!position.isWhiteToMove() && attackerSquare.getRank() === 4 && position.getEnPassantSquare().equals(enPassantSquare)) {
-            // ... and if defender can execute en passant
-            newSquare = attackerSquare.clone();
-            if (newSquare.addFile(1)) {
-                if (tempPosition.getPiece(newSquare).toString() === 'bp') {
-                    return false;
-                }
-            }
-            newSquare = attackerSquare.clone();
-            if (newSquare.addFile(1)) {
-                if (tempPosition.getPiece(newSquare).toString() === 'bp') {
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
+    return this.isCheck(position) && this.getLegalMoves(position).length === 0;
 };
 
 $.Engine.isSquareAttacked = function (position, square, pieceColor) {
