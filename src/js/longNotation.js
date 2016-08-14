@@ -18,11 +18,11 @@ CHESS.LongNotation = function ($) {
                 startSquareHint,
                 startSquare;
 
-            if (shortNotation === 'O-O') {
-                return (position.isWhiteToMove() ? 'e1-g1' : 'e8-g8');
-            }
-            if (shortNotation === 'O-O-O') {
+            if (shortNotation.lastIndexOf('O-O-O', 0) === 0) {
                 return (position.isWhiteToMove() ? 'e1-c1' : 'e8-c8');
+            }
+            if (shortNotation.lastIndexOf('O-O', 0) === 0) {
+                return (position.isWhiteToMove() ? 'e1-g1' : 'e8-g8');
             }
 
             startSquareHint = extractStartSquareHint(shortNotation);
