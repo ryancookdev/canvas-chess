@@ -1,6 +1,8 @@
 Canvas Chess
 ============
 
+Note: This project is no longer in active development. For updates on Canvas Chess 2, see the new repo: https://github.com/ryancookdev/CanvasChess2.
+
 A chess UI based on the HTML5 Canvas.
 
 ```javascript
