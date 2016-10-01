@@ -1138,7 +1138,7 @@ return function (config, fn) {
      * @returns {string} FEN string.
      */
     this.getFEN = function () {
-        return $.Engine.getFEN(model.position);
+        return model.position.getFen();
     };
 
     /**

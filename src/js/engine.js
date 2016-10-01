@@ -373,7 +373,7 @@ $.Engine.isInsufficientMaterial = function (position) {
     // * Drawing balance of forces
 
     var i,
-        fen = this.getFEN(position).split(' ')[0];
+        fen = position.getFen().split(' ')[0];
 
     if (/Q/.test(fen)) {
         return false;
