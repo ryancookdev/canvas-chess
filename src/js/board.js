@@ -1185,7 +1185,7 @@ return function (config, fn) {
      * @returns {boolean} True or false.
      */
     this.isStalemate = function () {
-        return $.Engine.isStalemate(model);
+        return $.Engine.isStalemate(model.position);
     };
 
     /**
