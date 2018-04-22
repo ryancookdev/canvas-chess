@@ -2,14 +2,15 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         jshint: {
-            beforeconcat: ['src/js/**'],
+            beforeconcat: ['src/**'],
+            esversion: 6
         },
         copy: {
             main: {
                 files: [
                     {
                         expand: true,
-                        cwd: 'src/js/',
+                        cwd: 'src/',
                         src: '**',
                         flatten: true,
                         dest: 'dist/temp/'
@@ -18,14 +19,8 @@ module.exports = function (grunt) {
                         expand: true,
                         src: 'img/**',
                         dest: 'dist/'
-                    },
-                    {
-                        expand: true,
-                        cwd: 'src/css/',
-                        src: '**',
-                        flatten: true,
-                        dest: 'dist/temp/'
                     }
+
                 ]
             }
         },
@@ -51,27 +46,12 @@ module.exports = function (grunt) {
                 ],
                 dest: 'dist/<%= pkg.name %>-<%= pkg.version %>.js'
             },
-            pgnViewer: {
-                src: ['dist/temp/pgnviewer.js'],
-                dest: 'dist/pgnviewer-<%= pkg.version %>.js'
-            },
-            css: {
-                src: ['dist/temp/pgn.css'],
-                dest: 'dist/pgn.css'
-            }
         },
         uglify: {
             main: {
                 files: {
-                    'dist/<%= pkg.name %>-<%= pkg.version %>.min.js': ['dist/<%= pkg.name %>-<%= pkg.version %>.js'],
-                    'dist/pgnviewer-<%= pkg.version %>.min.js': ['dist/pgnviewer-<%= pkg.version %>.js']
+                    'dist/<%= pkg.name %>-<%= pkg.version %>.min.js': ['dist/<%= pkg.name %>-<%= pkg.version %>.js']
                 }
-            }
-        },
-        cssmin: {
-            main: {
-                src: 'dist/pgn.css',
-                dest: 'dist/pgn.min.css'
             }
         },
         clean: {
@@ -95,13 +75,11 @@ module.exports = function (grunt) {
     });
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-csslint');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-compress');
 
     grunt.registerTask('deploy-dev', ['copy', 'concat', 'clean']);
-    grunt.registerTask('deploy', ['concat', 'uglify', 'cssmin', 'clean', 'copy', 'compress']);
+    grunt.registerTask('deploy', ['concat', 'uglify', 'clean', 'copy', 'compress']);
 };
