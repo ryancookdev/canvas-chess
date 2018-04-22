@@ -1302,7 +1302,7 @@ return function (config, fn) {
     this.setMode = function (mode) {
         model.mode = mode;
         if (mode === 'setup') {
-            //view.setActive(true);
+            view.setActive(true);
         }
         controller.resize(view.canvas.height, view.canvas.width);
         view.takeSnapshot();
@@ -1354,7 +1354,7 @@ return function (config, fn) {
 
         view.buildHtml(config.container);
 
-        //view.setActive(true);
+        view.setActive(true);
 
         view.highlight_move = (config.highlight_move === true ? true : false);
         view.highlight_hover = (config.highlight_hover === true ? true : false);
